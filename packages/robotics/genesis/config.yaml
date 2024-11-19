@@ -1,0 +1,29 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# gpu_support: false          # add GPU support, default is true
+# x11_display: false          # add X11 support, default is true
+# init_image: "image_name"    # The first docker image to use as a base
+                              # default is ryzers.RYZERS_DEFAULT_INIT_IMAGE
+
+# build_arguments:            # List of ARGs to pass to the `docker build` call
+# - "ARG=VALUE"               # E.g. - "PYTHON_VERSION=3.12"
+                  
+
+
+### ryzers run options
+
+# environment_variables:              # List of environment variables to set in the container
+# - "ENV_VARIABLE=VALUE"              # E.g. "PYTHONPATH=/path/to/python"
+
+# port_mappings:  
+# - "host_portnum:container_portnum"  # List of port mappings to expose from the docker 
+                                      # E.g. "8888:8888" for JupyterLab
+
+# volume_mappings:
+# - "host_path:container_path"        # List of volume mappings to mount from the host 
+                                      # E.g. "/path/to/host:/path/to/container" 
+
+# docker_extra_run_flags: "run flags" # Additional flags to pass to the `docker run` command

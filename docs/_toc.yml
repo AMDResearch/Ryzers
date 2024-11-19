@@ -1,0 +1,12 @@
+# Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+format: jb-book
+root: intro
+
+chapters:
+  - file: installation
+  - file: usage
+  - file: packages
+  - file: contributing
+  - file: license

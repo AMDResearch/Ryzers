@@ -1,0 +1,72 @@
+# Byte-compiled files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Logs and database files
+*.log
+*.sqlite3
+
+# Environment variables and virtual environments
+.env
+*.env
+.venv/
+venv/
+ENV/
+env/
+Pipfile.lock
+poetry.lock
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Django-specific
+*.pot
+*.pyc
+db.sqlite3
+/static/
+media/
+
+# Flask-specific
+instance/
+.webassets-cache
+
+# macOS-specific
+.DS_Store
+
+# Windows-specific
+Thumbs.db
+desktop.ini
+
+# IDE and editor-specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test coverage reports
+coverage.xml
+*.cover
+.hypothesis/
+
+# Distribution and build directories
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# C extensions
+*.so
+
+# MyPy cache
+.mypy_cache/
+
+# Pyre type checker
+.pyre/
+
+# pytest cache
+.pytest_cache/
+
+# docs
+docs/_build/

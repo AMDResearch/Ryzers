@@ -1,0 +1,56 @@
+# Configuration for Jupyter Book
+title : Ryzers Documentation
+author: 'AMD Research and Advanced Development'
+copyright: '2025'
+logo: header_small.png
+exclude_patterns : [_build, webmockup, README.md, '**.ipynb_checkpoints', '**.py', jbook/*]
+
+# Force re-execution of notebooks on each build.
+# See https://jupyterbook.org/content/execute.html
+execute:
+  execute_notebooks: 'off'
+  show_execution_count: true
+
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: book.tex
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/executablebooks/jupyter-book  # Online location of your book
+  path_to_book: docs  # Optional path to your book, relative to the repository root
+  branch: main  # Which branch of the repository should be used when creating links (optional)
+  provider: github
+
+# Add GitHub buttons to your book
+# See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
+html:
+  baseurl : ''
+  favicon: "./images/favicon.ico"
+  footer:
+    content: |
+      Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+      SPDX-License-Identifier: MIT
+  extra_footer: |
+    <p>
+    <div class="aem-Grid aem-Grid--16">
+    <div class="aem-GridColumn aem-GridColumn--xxxlarge--none aem-GridColumn--xsmall--16 aem-GridColumn--offset--xsmall--0 aem-GridColumn--xlarge--none aem-GridColumn--xxlarge--none aem-GridColumn--default--none aem-GridColumn--offset--large--1 aem-GridColumn--xlarge--12 aem-GridColumn--offset--default--0 aem-GridColumn--xxlarge--10 aem-GridColumn--offset--xlarge--2 aem-GridColumn--offset--xxlarge--3 aem-GridColumn--offset--xxxlarge--4 aem-GridColumn--xsmall--none aem-GridColumn--large--none aem-GridColumn aem-GridColumn--large--14 aem-GridColumn--xxxlarge--8 aem-GridColumn--default--16">
+    <div class="container-fluid sub-footer">
+    <div class="row">
+    <div class="col-xs-24">
+    <p><a target="_blank" href="https://www.amd.com/en/corporate/copyright">Terms and Conditions</a> | <a target="_blank" href="https://www.amd.com/en/corporate/privacy">Privacy</a> | <a target="_blank" href="https://www.amd.com/en/corporate/cookies">Cookie Policy</a> | <a target="_blank" href="https://www.amd.com/en/corporate/trademarks">Trademarks</a> | <a target="_blank" href="https://www.amd.com/system/files/documents/statement-human-trafficking-forced-labor.pdf">Statement on Forced Labor</a> | <a target="_blank" href="https://www.amd.com/en/corporate/competition">Fair and Open Competition</a> <br> <a target="_blank" href="https://www.amd.com/system/files/documents/amd-uk-tax-strategy.pdf">UK Tax Strategy</a> | <a target="_blank" href="https://docs.xilinx.com/v/u/9x6YvZKuWyhJId7y7RQQKA">Inclusive Terminology</a> | <a href="#cookiessettings" class="ot-sdk-show-settings">Cookies Settings</a></p>
+    </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div id="cookie-consent" class="cookie-consent">
+    <p>This website uses cookies to ensure you get the best experience on our website. <a href="#" id="cookie-accept">Accept</a> | <a href="#" id="cookie-reject">Reject</a></p>
+    </div>
+    </p>
+
+
+sphinx:
+  extra_extensions:
+    - sphinxcontrib.mermaid

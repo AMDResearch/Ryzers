@@ -1,0 +1,6 @@
+# Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+build_arguments:
+  - "OPENCV_VERSION=4.5.3"
+  - "PYTHON_VERSION=3.11"  # Example Python version argument to pass during build

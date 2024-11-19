@@ -1,0 +1,25 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+build_arguments:
+- "PYTHON_VERSION=3.10"   # Cannot exceed Python 3.11 due to Aloha Gym / Mujoco 2.3.7 dependency
+                          # https://pypi.org/project/mujoco/2.3.7/#files
+
+environment_variables: #TODO: Update with your own environment variables
+- "HF_TOKEN=your_token_here" 
+- "MODEL_CKPT_PATH=path_to_model"
+- "DEPLOYMENT_TASK='Pick up the green block and place it in the mug'"
+- "VIDEO_PATH_1=/dev/video0"
+- "VIDEO_PATH_2=/dev/video2"
+
+# TODO: change path to mount your trained policies
+volume_mappings:
+- "$PWD/packages/robotics/lerobot/mounted:/ryzers/mounted"
+- "~/.cache/huggingface/lerobot/calibration/:/root/.cache/huggingface/lerobot/calibration"
+
+# TODO: change to your robot, video device numbers and calibration directory:
+docker_extra_run_flags:
+    - "--device=/dev/ttyACM_kochleader:/dev/ttyACM_kochleader"
+    - "--device=/dev/ttyACM_kochfollower:/dev/ttyACM_kochfollower"
+    - "--device=/dev/video0:/dev/video0"
+    - "--device=/dev/video2:/dev/video2"

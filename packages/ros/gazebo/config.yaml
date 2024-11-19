@@ -1,0 +1,12 @@
+# Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+build_arguments:
+  - "GAZEBO_VERSION=fortress"   # ubuntu22.04  `
+#  - "GAZEBO_VERSION=harmonic"  # ubuntu22.04
+#  - "GAZEBO_VERSION=iconic"    # ubuntu24.04
+
+environment_variables:
+  - "GAZEBO_VERSION=fortress"   # ubuntu22.04  `
+#  - "GAZEBO_VERSION=harmonic"  # ubuntu22.04
+#  - "GAZEBO_VERSION=iconic"    # ubuntu24.04

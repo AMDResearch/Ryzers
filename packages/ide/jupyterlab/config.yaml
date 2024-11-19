@@ -1,0 +1,9 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# Runtime configurations
+environment_variables:
+  - "JUPYTER_CONFIG_DIR=/root/.jupyter"
+
+port_mappings:
+  - "8888:8888"  # Port mapping for JupyterLab
