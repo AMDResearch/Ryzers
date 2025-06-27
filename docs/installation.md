@@ -12,7 +12,7 @@ To get started, clone the repository:
 
 ```bash
 git clone https://github.com/AMDResearch/Ryzers
-pip install RyzenAI-Dockers/
+pip install Ryzers/
 ```
 
 ## Run an Example Ryzers Package

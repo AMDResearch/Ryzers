@@ -5,9 +5,12 @@ ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
 # handle add the render group
-RUN groupadd -f render
+RUN groupadd --system render
+RUN groupadd --system kvm
+
 RUN usermod -aG render root
 RUN usermod -aG video root
+RUN usermod -aG kvm root
 
 # add a sign-of-life test
 WORKDIR /ryzers
