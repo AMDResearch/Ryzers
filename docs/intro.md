@@ -16,6 +16,3 @@ Finally, many example packages come with Ryzers and it is our hope that contribu
 * [Contributing](contributing.md): Find out how you can contribute to the project.
 * [License](license.md): Review the licensing information for this project.
 
-
-```{tableofcontents}
-```
