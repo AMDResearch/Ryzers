@@ -72,7 +72,7 @@ For detailed build and run instructions, refer to the included documentation.
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
 | Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot)    |
 | Simulation                |  [`Genesis`](packages/robotics/genesis)  |
-| Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/sam) |
+| Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam) |
 | Ryzen AI NPU                |  $${\color{red}\small{\texttt{IRON}}}$$, $${\color{red}\small{\texttt{NPUEval}}}$$  |
 | Adaptive SoCs           | $${\color{red}\small{\texttt{PYNQ.remote}}}$$ |
 | IDEs   | [`JupyterLab`](packages/ide/jupyterlab) |
