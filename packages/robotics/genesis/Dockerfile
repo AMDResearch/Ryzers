@@ -26,4 +26,6 @@ RUN cd /ryzers
 
 # Install Genesis verified against 0.2.1
 RUN pip3 install genesis-world trimesh
+RUN pip3 install libigl==2.5.1
+
 CMD /ryzers/test_genesis.py 
