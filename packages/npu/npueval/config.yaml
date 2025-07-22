@@ -1,0 +1,11 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+environment_variables:
+- "OPENAI_API_KEY=your_api_key_here"
+
+port_mappings:
+  - "8888:8888"  # Port mapping for JupyterLab
+
+volume_mappings:
+- "$PWD/packages/npu/npueval/mounted:/ryzers/results"
