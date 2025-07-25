@@ -17,7 +17,7 @@ pip install Ryzers/
 
 ## Run an Example Ryzers Package
 
-Ryzers (usage)[./usage] will describe the Ryzers API in detail, but a simple build and run call below can check if the installation is correct.
+The [usage](usage) section will describe the Ryzers API in detail, but a simple build and run call below can check if the installation is correct.
 
 ```sh
 ryzers build genesis

@@ -41,7 +41,7 @@ When you run `ryzers build`, the command:
 1. Reads the `config.yaml` file for the specified package to determine build arguments, environment variables, and dependencies.
 2. Uses the `Dockerfile` associated with the package to build the image.
 3. Tags the resulting Docker image with the package name for easy reference.
-4. Generates a run script that can be called indepently or with the `ryzers run` call below.  This script includes all the run flags required to call the Docker image.
+4. Generates a run script that can be called independently or with the `ryzers run` call below.  This script includes all the run flags required to call the Docker image.
 
 
 ## `ryzers run`
