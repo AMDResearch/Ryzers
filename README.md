@@ -74,7 +74,7 @@ For detailed build and run instructions, refer to the included documentation.
 | Simulation                |  [`Genesis`](packages/robotics/genesis)  |
 | Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam) |
 | Ryzen AI NPU                |  $${\color{red}\small{\texttt{IRON}}}$$, $${\color{red}\small{\texttt{NPUEval}}}$$  |
-| Adaptive SoCs           | $${\color{red}\small{\texttt{PYNQ.remote}}}$$ |
+| Adaptive SoCs           | [`PYNQ.remote`](packages/adaptive-socs/pynq) |
 | IDEs   | [`JupyterLab`](packages/ide/jupyterlab) |
 
 Packages Legend: 
