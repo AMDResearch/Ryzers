@@ -10,7 +10,7 @@ Additionally, there is a demo.sh included that when run on the host machine, wil
 git clone https://github.com/ngxson/smolvlm-realtime-webcam <PATH TO REPO>
 
 ryzers build llamacpp smolvlm
-ryzers run /ryzers/smolvm_demo.sh
+ryzers run /ryzers/demo_smolvlm.sh
 ```
 
 In firefox, open file://\<PATH TO REPO\>/index.html
