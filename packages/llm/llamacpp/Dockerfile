@@ -6,6 +6,7 @@ FROM ${BASE_IMAGE}
 
 # Use an argument to get GPU architecture
 ARG HSA_OVERRIDE_GFX_VERSION
+ARG GFXSTRING
 
 # Install dependencies
 RUN apt-get update && \
@@ -24,7 +25,7 @@ WORKDIR /ryzers
 RUN git clone https://github.com/ggml-org/llama.cpp.git llamacpp && \
     cd llamacpp && \
     HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
-    cmake -S . -B build -DLLAMA_CURL=ON -DGGML_HIP=ON -DAMDGPU_TARGETS=$HSA_OVERRIDE_GFX_VERSION -DCMAKE_BUILD_TYPE=Release \
+    cmake -S . -B build -DLLAMA_CURL=ON -DGGML_HIP=ON -DAMDGPU_TARGETS=$GFXSTRING -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build --config Release -- -j 16
 
 # Copy test script

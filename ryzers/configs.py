@@ -3,6 +3,7 @@
 
 import os
 import yaml
+import glob
 from typing import List, Tuple
 
 from . import RYZERS_DEFAULT_RUN_FLAGS
@@ -40,6 +41,7 @@ class ConfigManager:
         "init_image",
         "gpu_support",
         "x11_display",
+        "camera_support",
         "build_arguments",
         "environment_variables",
         "port_mappings",
@@ -81,6 +83,7 @@ class ConfigManager:
         runflags = RYZERS_DEFAULT_RUN_FLAGS
         gpu = True
         x11 = True
+        cameras = True
         extra_run_flags = ""
 
         for c in self.configentries:
@@ -95,13 +98,17 @@ class ConfigManager:
                 gpu = c.value
             if c.key == "x11_display":
                 x11 = c.value
+            if c.key == "camera_support":
+                cameras = c.value                
             if c.key == "docker_extra_run_flags":
                 extra_run_flags += f" {c.value}"
         if gpu:
             runflags += " --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --group-add render "
         if x11:
             runflags += " -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix"
-
+        if cameras:
+            vdevices = sorted(glob.glob('/dev/video*'))
+            runflags += f" {' '.join(f'--device {vdev}' for vdev in vdevices)}"
         if extra_run_flags:
             runflags += extra_run_flags
 
