@@ -4,6 +4,11 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
+# add dependencies
+RUN apt-get update && \
+    apt-get install -y \
+	curl
+
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN python3 -m pip install ollama
 

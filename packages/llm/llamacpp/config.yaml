@@ -1,6 +1,6 @@
 
 build_arguments:            
-- "GFXSTRING=gfx1100"               # llamacpp needs the amdgpu gfx string for build
+- "GFXSTRING=gfx1151"               # llamacpp needs the amdgpu gfx string for build
 
 volume_mappings:
 - "$PWD/llamacpp_cache:/root/.cache" 

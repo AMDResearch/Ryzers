@@ -17,5 +17,5 @@ franka = scene.add_entity(
 )
 scene.build()
 
-for i in range(10000):
+for i in range(1000):
     scene.step()
