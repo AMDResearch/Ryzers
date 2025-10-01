@@ -68,14 +68,14 @@ For detailed build and run instructions, refer to the included documentation.
 | Category        | Software                                                                                                    |
 |-----------------|--------------------------------------------------------------------------------------------------------------------|
 | LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp)   |
-| VLM / VLAM              | [`OpenVLA`](packages/robotics/openvla) |
+| VLM / VLAM              | [`OpenVLA`](packages/robotics/openvla), [`SmolVLA`](packages/robotics/smolvla) |
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
 | Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot). [`ACT`](packages/robotics/act)    |
 | Simulation                |  [`Genesis`](packages/robotics/genesis)  |
 | Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam) |
 | Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval)  |
 | Adaptive SoCs           | $${\color{red}\small{\texttt{PYNQ.remote}}}$$ |
-| IDEs   | [`JupyterLab`](packages/ide/jupyterlab) |
+| Utilities   | [`JupyterLab`](packages/ide/jupyterlab), [`amdgpu_top`](packages/init/amdgpu_top) |
 
 Packages Legend: 
 $${\color{red}\small{\texttt{Coming Soon}}}$$, 
