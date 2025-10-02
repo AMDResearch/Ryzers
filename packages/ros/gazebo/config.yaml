@@ -2,11 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 build_arguments:
-  - "GAZEBO_VERSION=fortress"   # ubuntu22.04  `
-#  - "GAZEBO_VERSION=harmonic"  # ubuntu22.04
-#  - "GAZEBO_VERSION=iconic"    # ubuntu24.04
+#  - "GAZEBO_VERSION=harmonic"
+#  - "GAZEBO_VERSION=ionic"   
+  - "GAZEBO_VERSION=jetty"      
 
-environment_variables:
-  - "GAZEBO_VERSION=fortress"   # ubuntu22.04  `
-#  - "GAZEBO_VERSION=harmonic"  # ubuntu22.04
-#  - "GAZEBO_VERSION=iconic"    # ubuntu24.04
