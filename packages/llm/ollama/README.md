@@ -5,7 +5,7 @@ This folder contains the necessary files to build and run a Docker container wit
 ## Build the Docker Image
 
 ```sh
-ryzers build python rocm ollama
+ryzers build ollama
 ryzers run
 ```
 
