@@ -1,7 +1,7 @@
 # Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-ARG BASE_IMAGE
+ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE}
 
 # Set the OpenCV version as an argument (set in config.yaml)
@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y \
     gfortran \
     libopenexr-dev \
     libatlas-base-dev \
-    libtbb2 \
+    libtbbmalloc2 \
     libtbb-dev \
     libgstreamer-plugins-base1.0-dev \
     libgstreamer1.0-dev \

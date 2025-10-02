@@ -2,5 +2,4 @@
 # SPDX-License-Identifier: MIT
 
 build_arguments:
-  - "OPENCV_VERSION=4.5.3"
-  - "PYTHON_VERSION=3.11"  # Example Python version argument to pass during build
+  - "OPENCV_VERSION=4.12.0"
