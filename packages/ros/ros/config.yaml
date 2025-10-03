@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: MIT
 
 build_arguments:
-  - "ROS_VERSION=humble"
+  - "ROS_DISTRO=kilted"
+#  - "ROS_DISTRO=jazzy"  
 
 port_mappings:
   - "11311:11311"
 
-environment_variables:
-  - "ROS_VERSION=humble"
+# environment_variables:
+#   - "ROS_VERSION=jazzy"

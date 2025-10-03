@@ -1,8 +1,6 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-init_image: rocm/pytorch:rocm6.3.4_ubuntu24.04_py3.12_pytorch_release_2.4.0
-
 environment_variables:
 - "HSA_OVERRIDE_GFX_VERSION=11.0.0"  # Required for HIP to write kernels
 

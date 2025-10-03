@@ -8,15 +8,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /ryzers
 
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y libevdev2 ffmpeg libyaml-cpp0.7 
+
 # Install Vulkan
 RUN wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | tee /etc/apt/trusted.gpg.d/lunarg.asc
 RUN wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.4.309-jammy.list https://packages.lunarg.com/vulkan/1.4.309/lunarg-vulkan-1.4.309-jammy.list 
-RUN apt update 
-RUN apt install -y vulkan-sdk
+RUN apt-get update 
+RUN apt-get install -y libevdev2 ffmpeg libyaml-cpp0.7 vulkan-sdk
 
-RUN groupadd -f kvm
-RUN groupadd -f audio
-RUN usermod -aG kvm root
+
+RUN getent group audio || groupadd audio
 RUN usermod -aG audio root
 
 # Necessary for visualisation on Wayland backed systems like Ubuntu

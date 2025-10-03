@@ -1,6 +1,8 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+init_image: "rocm/pytorch:rocm6.3.3_ubuntu22.04_py3.10_pytorch_release_2.4.0"
+
 build_arguments:
 - "PYTHON_VERSION=3.10"   # Cannot exceed Python 3.11 due to Aloha Gym / Mujoco 2.3.7 dependency
                           # https://pypi.org/project/mujoco/2.3.7/#files

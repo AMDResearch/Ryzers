@@ -47,7 +47,7 @@ class DockerPackageManager:
         dockerfile_path_map = {}
         for entry in os.listdir(current_path):
             entry_path = os.path.join(current_path, entry)
-            if os.path.isdir(entry_path):
+            if self._is_directory_readable(entry_path):
                 if os.path.exists(os.path.join(entry_path, "Dockerfile")):
                     dockerfile_path_map[entry] = entry_path
                 else:
@@ -90,3 +90,8 @@ class DockerPackageManager:
         If no initial image is specified, returns the default image.
         """
         return self.config_manager.configs_to_initial_image()
+
+    def _is_directory_readable(self, path):
+        return (os.path.exists(path) and 
+                os.path.isdir(path) and 
+                os.access(path, os.R_OK))

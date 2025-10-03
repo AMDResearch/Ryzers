@@ -6,13 +6,21 @@ FROM ${BASE_IMAGE}
 
 SHELL ["/bin/bash", "-lc"]
 
-# handle add the render group
-# RUN groupadd --system render
-# RUN groupadd --system kvm
 
-# RUN usermod -aG render root
+RUN getent group render || groupadd render
+RUN getent group video || groupadd video
+RUN getent group kvm || groupadd kvm
+
+
+RUN usermod -aG render root
 RUN usermod -aG video root
-# RUN usermod -aG kvm root
+RUN usermod -aG kvm root
+
+#################################
+# Install ROCm Using ROCm Docker
+#################################
+
+
 
 
 #####################################
@@ -30,14 +38,6 @@ RUN usermod -aG video root
 
 # RUN python3 -m venv /ryzers/venv_ryzers
 # ENV PATH="/ryzers/venv_ryzers/bin:$PATH"
-
-# handle add the render group
-# RUN groupadd --system render
-# RUN groupadd --system kvm
-
-# RUN usermod -aG render root
-# RUN usermod -aG video root
-# RUN usermod -aG kvm root
 
 # RUN  python3 -m pip install \
 #   --index-url https://rocm.nightlies.amd.com/v2/gfx1151/ \

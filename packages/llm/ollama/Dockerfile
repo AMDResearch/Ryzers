@@ -12,10 +12,6 @@ RUN apt-get update && \
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN python3 -m pip install ollama
 
-# handle add the render group
-RUN groupadd -f render
-RUN usermod -aG render root
-
 # Copy test script
 WORKDIR /ryzers
 COPY test.sh /ryzers/test_ollama.sh
