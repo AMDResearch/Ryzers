@@ -4,5 +4,5 @@
 # SPDX-License-Identifier: MIT
 
 # Test script to verify ROS installation
-source /opt/ros/${ROS_VERSION}/setup.bash
+source /opt/ros/${ROS_DISTRO}/setup.bash
 ros2 run turtlesim turtlesim_node
