@@ -13,14 +13,11 @@ RUN apt-get update && apt-get install -y git vim wget
 RUN mkdir -p /ryzers/data/ && \
     wget https://github.com/AMDResearch/Riallto/blob/main/notebooks/images/jpg/toucan.jpg?raw=true -O /ryzers/data/toucan.jpg
 
-RUN python3 -m pip install \
-	accelerate \
-	transformers \
-	timm==0.9.10
-	
-RUN git clone https://github.com/openvla/openvla && \
-    cd openvla && \
-    python3 -m pip install --no-deps -e .
+RUN pip install -r https://raw.githubusercontent.com/openvla/openvla/refs/heads/main/requirements-min.txt
+
+RUN pip install accelerate
+
+COPY test.py /ryzers/test.py
 
 COPY test.sh /ryzers/test_openvla.sh
 RUN chmod +x /ryzers/test_openvla.sh
