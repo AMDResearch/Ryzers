@@ -67,7 +67,7 @@ For detailed build and run instructions, refer to the included documentation.
 
 | Category        | Software                                                                                                    |
 |-----------------|--------------------------------------------------------------------------------------------------------------------|
-| LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp)   |
+| LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp), [`lmstudio`](packages/llm/lmstudio)   |
 | VLM / VLA              | [`OpenVLA`](packages/robotics/openvla), [`SmolVLA`](packages/robotics/smolvla), [`GR00T-N1.5`](packages/robotics/gr00t) |
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
 | Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot). [`ACT`](packages/robotics/act)    |

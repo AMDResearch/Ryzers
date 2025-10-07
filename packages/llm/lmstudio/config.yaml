@@ -1,0 +1,13 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# "Ubuntu versions newer than 22 are not well tested."
+# https://lmstudio.ai/docs/app/system-requirements
+init_image: "rocm/pytorch:rocm6.3.3_ubuntu22.04_py3.10_pytorch_release_2.4.0"
+
+volume_mappings:
+- "$PWD/lmstudio_models:/root/.lmstudio/models/"  
+
+port_mappings:  
+ - "1234:1234"
+ - "5900:5900"
