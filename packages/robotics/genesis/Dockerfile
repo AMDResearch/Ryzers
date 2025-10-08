@@ -22,9 +22,10 @@ ENV PYOPENGL_PLATFORM='glx'
 
 # Copy test script
 COPY test.py /ryzers/test_genesis.py
-RUN chmod +x /ryzers/test_genesis.py
+COPY demo.sh /ryzers/demo_genesis.sh
+RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh
 
-RUN cd /ryzers
+RUN git clone https://github.com/Genesis-Embodied-AI/Genesis
 
 # Install Genesis verified against 0.2.1
 RUN pip3 install genesis-world trimesh
