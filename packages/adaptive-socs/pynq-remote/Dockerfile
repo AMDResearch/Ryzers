@@ -4,6 +4,9 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
+# Set environment variable for remote installation
+ENV PYNQ_REMOTE=1
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -25,16 +28,8 @@ RUN pip install --no-cache-dir \
     seaborn \
     plotly \
     ipywidgets \
-    tqdm
-
-# Set environment variable for remote installation
-ENV REMOTE_INSTALL=1
-
-# Clone and install PYNQ from master branch
-RUN git clone https://github.com/Xilinx/PYNQ.git -b image_v3.1 /tmp/pynq && \
-    cd /tmp/pynq && \
-    pip install . && \
-    rm -rf /tmp/pynq
+    tqdm \
+    pynq
 
 # Create a workspace directory
 RUN mkdir -p /workspace
