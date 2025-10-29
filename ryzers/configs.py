@@ -46,6 +46,7 @@ class ConfigManager:
         "environment_variables",
         "port_mappings",
         "volume_mappings",
+        "run_arguments",
         "docker_extra_build_flags",
         "docker_extra_run_flags"
     ]
@@ -84,6 +85,7 @@ class ConfigManager:
         gpu = True
         x11 = True
         cameras = True
+        render_group = True
         extra_run_flags = ""
 
         for c in self.configentries:
@@ -99,11 +101,16 @@ class ConfigManager:
             if c.key == "x11_display":
                 x11 = c.value
             if c.key == "camera_support":
-                cameras = c.value                
+                cameras = c.value
+            if c.key == "run_arguments" and c.key1 == "render_group":
+                render_group = c.value.lower() == 'true' if isinstance(c.value, str) else bool(c.value)
             if c.key == "docker_extra_run_flags":
                 extra_run_flags += f" {c.value}"
         if gpu:
-            runflags += " --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --group-add render "
+            if render_group:
+                runflags += " --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --group-add render "
+            else:
+                runflags += " --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video "
         if x11:
             runflags += " -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix"
         if cameras:
@@ -152,7 +159,7 @@ class ConfigManager:
         return configs
     
     def get_configentry_obj(self, key: str, value: str, config_path: str) -> Tuple[str, str]:
-        if key in ["build_arguments", "environment_variables"]:
+        if key in ["build_arguments", "environment_variables", "run_arguments"]:
             key0, val0 = value.split('=', 1)
             return ConfigKeyKeyValueEntry(key, key0, val0, config_path)
         if key in ["port_mappings", "volume_mappings"]:

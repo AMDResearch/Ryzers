@@ -1,0 +1,14 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+init_image: rocm/pytorch:rocm6.4.4_ubuntu24.04_py3.12_pytorch_release_2.7.1
+## For rocm6.4.4, use the following docker run (seems need to configure render in Dockerfile):
+#docker run -it --rm --shm-size 16G --cap-add=SYS_PTRACE  --network=host --ipc=host -e HSA_OVERRIDE_GFX_VERSION=11.0.0 --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix ryzerdocker 
+
+#init_image: rocm/pytorch:rocm7.0_ubuntu24.04_py3.12_pytorch_release_2.7.1
+
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"  # Required for HIP to write kernels
+
+run_arguments:
+- "render_group=False" # init_image doesn't have render group
