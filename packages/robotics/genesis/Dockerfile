@@ -41,7 +41,8 @@ RUN pip3 install --no-cache-dir --break-system-packages "gstaichi==2.5.0b4" \
 # Copy test script
 COPY test.py /ryzers/test_genesis.py
 COPY demo.sh /ryzers/demo_genesis.sh
-RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh
+COPY demo.py /ryzers/demo_genesis.py
+RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh /ryzers/demo_genesis.py
 
 RUN git clone https://github.com/Genesis-Embodied-AI/Genesis
 
