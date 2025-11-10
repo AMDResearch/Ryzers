@@ -9,16 +9,34 @@ ENV HSA_OVERRIDE_GFX_VERSION=11.0.0
 
 WORKDIR /ryzers
 
-RUN apt-get install -y wget
+# Basic environment setup
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    HSA_OVERRIDE_GFX_VERSION=11.0.0
 
-# Install Vulkan
-RUN wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | tee /etc/apt/trusted.gpg.d/lunarg.asc
-RUN wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list http://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
-RUN apt update 
-RUN apt install -y vulkan-sdk
+# System packages: Vulkan + FFmpeg + minimal GUI dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl wget git ca-certificates locales \
+    libvulkan1 mesa-vulkan-drivers vulkan-tools \
+    ffmpeg \
+    libgl1 libglib2.0-0 \
+ && rm -rf /var/lib/apt/lists/*
 
-# Necessary for visualisation on Wayland backed systems like Ubuntu
-ENV PYOPENGL_PLATFORM='glx'
+# pip configuration (system-wide inside the container)
+RUN mkdir -p /etc/pip.conf.d/ && \
+    echo "[global]" > /etc/pip.conf.d/pip.conf && \
+    echo "break-system-packages = true" >> /etc/pip.conf.d/pip.conf
+
+# Locale setup (optional but kept for completeness)
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
+
+# Compatible build: NumPy 2.x with corresponding scikit-image version
+RUN pip3 install --no-cache-dir --break-system-packages "numpy==2.1.2" && \
+    pip3 install --no-cache-dir --break-system-packages "scikit-image==0.24.0"
+
+# Genesis and gstaichi (compatible with Genesis 0.3.3; beta release fixes kernel interface mismatch)
+RUN pip3 install --no-cache-dir --break-system-packages "gstaichi==2.5.0b4" \
+ && pip3 install --no-cache-dir --break-system-packages "genesis-world==0.3.3"
 
 # Copy test script
 COPY test.py /ryzers/test_genesis.py
@@ -26,10 +44,5 @@ COPY demo.sh /ryzers/demo_genesis.sh
 RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh
 
 RUN git clone https://github.com/Genesis-Embodied-AI/Genesis
-
-# Install Genesis verified against 0.2.1
-RUN pip3 install genesis-world trimesh
-RUN pip3 install libigl==2.5.1
-RUN pip3 install numpy==1.26.4
 
 CMD /ryzers/test_genesis.py 

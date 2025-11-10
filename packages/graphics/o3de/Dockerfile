@@ -8,16 +8,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /ryzers
 
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y libevdev2 ffmpeg libyaml-cpp0.7 
-
 # Install Vulkan
-RUN wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | tee /etc/apt/trusted.gpg.d/lunarg.asc
-RUN wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.4.309-jammy.list https://packages.lunarg.com/vulkan/1.4.309/lunarg-vulkan-1.4.309-jammy.list 
-RUN apt-get update 
-RUN apt-get install -y libevdev2 ffmpeg libyaml-cpp0.7 vulkan-sdk
-
+RUN wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+RUN sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
+RUN sudo apt update
+RUN sudo apt install -y vulkan-sdk
 
 RUN getent group audio || groupadd audio
 RUN usermod -aG audio root
@@ -33,9 +28,9 @@ RUN cd /ryzers
 RUN echo 'pcm.!default = null;' >> /root/.asoundrc
 
 # Install O3DE
-RUN wget https://o3debinaries.org/main/Latest/Linux/o3de_2409_2.deb
-RUN apt install -y ./o3de_2409_2.deb
-RUN rm ./o3de_2409_2.deb
+RUN wget https://o3debinaries.org/main/Latest/Linux/o3de_2510_0.deb
+RUN apt install -y ./o3de_2510_0.deb
+RUN rm ./o3de_2510_0.deb
 
 COPY test.sh /ryzers/test_o3de.sh
 RUN chmod +x /ryzers/test_o3de.sh

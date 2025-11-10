@@ -1,0 +1,5 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"  # Required for HIP to write kernels

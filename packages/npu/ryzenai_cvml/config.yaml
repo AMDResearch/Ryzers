@@ -1,0 +1,12 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"  # Required for HIP to write kernels
+- "RYZEN_AI_DIR=/ryzers/RyzenAI-SW/Ryzen-AI-CVML-Library"
+- "LD_LIBRARY_PATH=/ryzers/RyzenAI-SW/Ryzen-AI-CVML-Library/linux:/opt/xilinx/xrt/lib"
+
+docker_extra_run_flags:
+    - "--device=/dev/accel/accel0:/dev/accel/accel0"
+    - "--ulimit memlock=-1"
+#    - "--device=/dev/video0:/dev/video0" # set this to your camera device

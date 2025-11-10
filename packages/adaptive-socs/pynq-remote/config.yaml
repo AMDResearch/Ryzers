@@ -1,0 +1,12 @@
+# Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+gpu_support: true
+x11_display: true
+
+port_mappings:
+  - "8888:8888"  # JupyterLab
+  - "7967:7967"  # PYNQ.remote
+
+volume_mappings:
+  - "$PWD/workspace:/workspace"

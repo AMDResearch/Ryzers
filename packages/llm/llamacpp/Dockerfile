@@ -20,12 +20,19 @@ RUN apt-get update && \
     libcurl4-openssl-dev \
     rsync
 
+#  Install Vulkan backend
+RUN apt-get update \
+&& wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | tee /etc/apt/trusted.gpg.d/lunarg.asc \
+&& wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list https://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list \
+&& apt update \
+&& apt install -y vulkan-sdk
+
 # Clone and build LlamaCPP
 WORKDIR /ryzers
 RUN git clone https://github.com/ggml-org/llama.cpp.git llamacpp && \
     cd llamacpp && \
     HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
-    cmake -S . -B build -DLLAMA_CURL=ON -DGGML_HIP=ON -DAMDGPU_TARGETS=$GFXSTRING -DCMAKE_BUILD_TYPE=Release \
+    cmake -S . -B build -DLLAMA_CURL=ON -DGGML_VULKAN=1 -DGGML_HIP=ON -DAMDGPU_TARGETS=$GFXSTRING -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build --config Release -- -j 16
 
 # Copy test script

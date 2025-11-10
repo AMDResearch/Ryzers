@@ -37,11 +37,22 @@ RUN apt-get update \
  && apt-get install -y ros-${ROS_DISTRO}-desktop \
  && rm -rf /var/lib/apt/lists/*
 
-# 5. (Optional) Install dev tools
-RUN apt-get update && apt-get install -y ros-dev-tools \
+# 5. Install dev tools
+RUN apt-get update \
+ && apt-get install -y \
+    ros-dev-tools \
+    ros-${ROS_DISTRO}-cv-bridge \
+    ros-${ROS_DISTRO}-image-transport \
+    ros-${ROS_DISTRO}-web-video-server \
+    ros-${ROS_DISTRO}-v4l2-camera \
  && rm -rf /var/lib/apt/lists/*
 
-# 6. Source ROS environment
+
+# 6. Install Python packages
+RUN pip install catkin_pkg opencv-python
+RUN pip install "numpy<2"
+
+# 7. Source ROS environment
 SHELL ["/bin/bash", "-c"]
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc
 

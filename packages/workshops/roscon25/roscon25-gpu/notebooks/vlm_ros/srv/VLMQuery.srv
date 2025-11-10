@@ -1,0 +1,6 @@
+# Request
+sensor_msgs/Image image
+string prompt
+---
+# Response
+string response

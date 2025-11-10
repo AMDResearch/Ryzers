@@ -17,7 +17,7 @@ ryzers build genesis
 ryzers run
 ```
 ### References
-https://genesis-world.readthedocs.io/en/latest/
-https://github.com/Genesis-Embodied-AI/Genesis
+- https://genesis-world.readthedocs.io/en/latest/
+- https://github.com/Genesis-Embodied-AI/Genesis
 
 Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.

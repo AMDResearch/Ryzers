@@ -21,7 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -U jupyter-book sphinxcontrib.mermaid
+          pip install -U "jupyter-book<2" sphinxcontrib.mermaid
 
       - name: Build the book
         run: jupyter-book build ./docs --all

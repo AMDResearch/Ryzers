@@ -68,13 +68,13 @@ For detailed build and run instructions, refer to the included documentation.
 | Category        | Software                                                                                                    |
 |-----------------|--------------------------------------------------------------------------------------------------------------------|
 | LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp), [`lmstudio`](packages/llm/lmstudio)   |
-| VLM / VLA              | [`OpenVLA`](packages/robotics/openvla), [`SmolVLA`](packages/robotics/smolvla), [`GR00T-N1.5`](packages/robotics/gr00t), [`Gemma3`](packages/vlm/gemma3), [`SmolVLM`](packages/vlm/smolvlm),  |
+| VLM / VLA              | [`OpenVLA`](packages/robotics/openvla), [`SmolVLA`](packages/robotics/smolvla), [`GR00T-N1.5`](packages/robotics/gr00t), [`Gemma3`](packages/vlm/gemma3), [`SmolVLM`](packages/vlm/smolvlm),  [`Phi-4`](packages/vlm/phi4) |
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
 | Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot). [`ACT`](packages/robotics/act)    |
 | Simulation                |  [`Genesis`](packages/robotics/genesis)  |
-| Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam), [`ncnn`](packages/vision/ncnn) |
-| Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval)  |
-| Adaptive SoCs           | $${\color{red}\small{\texttt{PYNQ.remote}}}$$ |
+| Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam), [`ncnn`](packages/vision/ncnn), [`DINOv3`](packages/vision/dinov3) |
+| Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval), [`Ryzen AI CVML`](packages/npu/ryzenai_cvml)  |
+| Adaptive SoCs           | [`PYNQ.remote`](packages/adaptive-socs/pynq-remote) |
 | Utilities   | [`JupyterLab`](packages/ide/jupyterlab), [`amdgpu_top`](packages/init/amdgpu_top) |
 
 Packages Legend: 
@@ -84,13 +84,9 @@ $${\color{orange}\small{\texttt{Help Wanted}}}$$
 
 ---
 
-## Highlighted Packages
-
-TBD
-
 ## Contributing
 
-We welcome contributions to Ryzers! If you have ideas for new features, bug fixes, or improvements, please submit a pull request or open an issue.  The format of a Ryzer package can be quickly learned from existing packages and Co-Pilots and Chatbots are quite good at vibe-coding new packages.  For detailed guidelines, see CONTRIBUTING.md.
+We welcome contributions to Ryzers! If you have ideas for new features, bug fixes, or improvements, please submit a pull request or open an issue.  The format of a Ryzer package can be quickly learned from existing packages and Co-Pilots and Chatbots are quite good at vibe-coding new packages.  For detailed guidelines, see [CONTRIBUTING.md](docs/contributing.md).
 
 ---
 

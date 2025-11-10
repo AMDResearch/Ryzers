@@ -11,7 +11,8 @@ from lerobot.common.policies.smolvla.configuration_smolvla import SmolVLAConfig
 from transformers import AutoProcessor
 
 # Load model (replace with your checkpoint if needed)
-policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base").to("cuda")
+# Note: locking to hub revision before pipeline update
+policy = SmolVLAPolicy.from_pretrained("lerobot/smolvla_base", revision="3326b10").to("cuda")
 policy.eval()
 
 # patch: The loaded policy is missing the language_tokenizer attribute.
