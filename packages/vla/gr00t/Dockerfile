@@ -48,6 +48,7 @@ RUN git clone https://github.com/pytorch/torchcodec.git && \
 
 RUN git clone https://github.com/NVIDIA/Isaac-GR00T && \
     cd Isaac-GR00T && \
+    git checkout 4af2b62 && \
     pip install -e .
 
 COPY test.py /ryzers/test.py
