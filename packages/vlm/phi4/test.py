@@ -31,12 +31,12 @@ prompt_suffix = '<|end|>'
 
 # Part 1: Image Processing
 print("\n--- IMAGE PROCESSING ---")
-prompt = f'{user_prompt}<|image_1|>What is shown in this image?{prompt_suffix}{assistant_prompt}'
-print(f'>>> Prompt\n{prompt}')
+image_prompt = f'{user_prompt}<|image_1|>What is shown in this image?{prompt_suffix}{assistant_prompt}'
+print(f'>>> Prompt\n{image_prompt}')
 
 # Open image
 image = Image.open('/ryzers/data/toucan.jpg')
-inputs = processor(text=prompt, images=image, return_tensors='pt').to(model.device)
+inputs = processor(text=image_prompt, images=image, return_tensors='pt').to(model.device)
 
 # Generate response
 generate_ids = model.generate(
@@ -54,14 +54,14 @@ print(f'>>> Response\n{response}')
 print("\n--- AUDIO PROCESSING ---")
 
 speech_prompt = "Transcribe the audio to text, and then translate the audio to French. Use <sep> as a separator between the original transcript and the translation."
-prompt = f'{user_prompt}<|audio_1|>{speech_prompt}{prompt_suffix}{assistant_prompt}'
-print(f'>>> Prompt\n{prompt}')
+audio_prompt = f'{user_prompt}<|audio_1|>{speech_prompt}{prompt_suffix}{assistant_prompt}'
+print(f'>>> Prompt\n{audio_prompt}')
 
 # Open audio file
 audio, samplerate = sf.read("/ryzers/data/audio.flac")
 
 # Process with the model
-inputs = processor(text=prompt, audios=[(audio, samplerate)], return_tensors='pt').to(model.device)
+inputs = processor(text=audio_prompt, audios=[(audio, samplerate)], return_tensors='pt').to(model.device)
 
 generate_ids = model.generate(
     **inputs,
