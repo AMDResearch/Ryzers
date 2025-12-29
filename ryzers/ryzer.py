@@ -1,7 +1,7 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-from typing import List
+from typing import List, Optional
 from .runner import DockerRunner
 from .packages import DockerPackageManager
 from .builder import DockerBuilder
@@ -20,7 +20,7 @@ class RyzerManager:
         packages (List[str]): List of package names to combine.
     """
 
-    def __init__(self, base_path: str, container_name: str, packages: List[str]):
+    def __init__(self, base_path: str, container_name: str, packages: List[str], base_image: Optional[str]=None):
         """
         Initializes the RyzerManager with the base path, container name, packages, and base image.
 
@@ -28,7 +28,7 @@ class RyzerManager:
             base_path (str): The base directory to scan for Dockerfiles.
             container_name (str): The name of the container.
             packages (List[str]): List of package names to manage.
-            base_image (str, optional): The initial base image to start with. Defaults to "ubuntu:22.04".
+            base_image (str, optional): The initial base image to start with. Defaults to RYZERS_DEFAULT_INIT_IMAGE in __init__.py.
         """
         self.packages = ["ryzer_env"] + packages
         self.docker_manager = DockerPackageManager(base_path, self.packages)
@@ -36,6 +36,7 @@ class RyzerManager:
         self.docker_runner = DockerRunner(container_name)   
 
         self.container_name = container_name
+        self.base_image = base_image
  
 
     def build(self):
@@ -47,7 +48,7 @@ class RyzerManager:
         """
         buildflags = self.docker_manager.get_build_flags()
         runflags = self.docker_manager.get_run_flags()
-        initimage = self.docker_manager.get_initial_image()
+        initimage = self.base_image if self.base_image is not None else self.docker_manager.get_initial_image()
 
         print(f'Build Flags: {buildflags}')
         print(f'Run Flags:   {runflags}')       
