@@ -2,12 +2,6 @@
 
 Ultralytics YOLO (You Only Look Once) is a state-of-the-art object detection and image segmentation model. This package includes support with AMD ROCm GPU acceleration.
 
-## Features
-
-- ROCm GPU acceleration with HSA_OVERRIDE flag
-- Fast inference with benchmarking
-- Pre-configured test image and scripts
-
 ## Build and Run
 
 ```bash
