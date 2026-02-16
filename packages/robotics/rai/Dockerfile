@@ -33,7 +33,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN echo "source $VIRTUAL_ENV/bin/activate" >> /root/.bashrc
 
 # Install Poetry into the venv
-RUN pip install --upgrade pip poetry empy lark
+RUN pip install --upgrade pip "setuptools<82" poetry empy lark && \
+    pip install --no-build-isolation openai-whisper==20231117
 
 # Clone and install RAI framework
 WORKDIR /ryzers
