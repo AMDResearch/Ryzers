@@ -4,8 +4,8 @@
 ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE}
 
-# Allow build-time argument for ROS distro (jazzy or kilted)
-ARG ROS_DISTRO=kilted
+# Allow build-time argument for ROS distro (e.g. jazzy, kilted)
+ARG ROS_DISTRO=jazzy
 ENV ROS_DISTRO=${ROS_DISTRO}
 
 # Avoid interactive prompts

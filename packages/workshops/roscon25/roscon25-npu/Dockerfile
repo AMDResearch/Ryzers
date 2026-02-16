@@ -10,13 +10,13 @@ COPY notebooks /ryzers/notebooks/
 WORKDIR /ryzers/notebooks
 
 RUN echo "source /opt/xilinx/xrt/setup.sh" >> ~/.bashrc && \
-    echo "source /opt/ros/kilted/setup.sh" >> ~/.bashrc
+    echo "source /opt/ros/$ROS_DISTRO/setup.sh" >> ~/.bashrc
 
 # EntryPoint for jupyter lab
 RUN echo '#!/bin/bash' > /entrypoint.sh && \
     echo 'export SHELL=/bin/bash' >> /entrypoint.sh && \
     echo 'source /opt/xilinx/xrt/setup.sh' >> /entrypoint.sh && \
-    echo "source /opt/ros/kilted/setup.sh" >> ~/.bashrc && \
+    echo "source /opt/ros/$ROS_DISTRO/setup.sh" >> ~/.bashrc && \
     echo 'exec python3 -m jupyter lab --ip=0.0.0.0 --port=8888 --allow-root "$@"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
