@@ -6,6 +6,8 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers
 
-COPY quickstart-pytorch /ryzers/quickstart-pytorch 
+ENV HSA_OVERRIDE_GFX_VERSION=11.0.0
 
-ENTRYPOINT[flower-superlink]
+RUN python -m pip install flwr
+
+ENTRYPOINT ["flower-supernode"]
