@@ -7,32 +7,28 @@ This repository provides a collection of composable Dockerfiles and build script
 
 ---
 
-## Features
-
-- **Verified AMD Support for Popular Frameworks**: A variety of Robotics and ML software frameworks supported across Ryzen AI platforms.
-- **Optimized for Ryzen AI**: Includes support for hardware-accelerated AI workloads and accelerators like the iGPU and NPUs.
-- **Minimal Host Software Requirements**: Standard Ubuntu support with minimal software requirements
-- **Composable Dockerfiles**: Modular design for reusability across different applications.
-
----
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Supported Packages](#supported-packages)
-5. [Highlighted Packages](#highlighted-packages)
-5. [Contributing](#contributing)
-6. [License](#license)
-
----
-
 ## Overview
 
 Ryzers is a modular framework for building and running Docker containers tailored for AMD Ryzen AI hardware. It supports a wide range of applications, including machine learning, robotics, vision, and more. The repository is structured to allow easy composition of Dockerfiles, enabling users to build custom containers for their specific needs.
 
 These dockerfiles will also be pushed and actively maintained in their original repository homes whenever possible.  Ryzers will be a collection point of software frameworks to run on AMD hardware.  We are committed to open-source and happy to accept contributions or feedback on packages hosted here.
+
+---
+
+## Supported Packages
+
+| Category        | Software                                                                                                    |
+|-----------------|--------------------------------------------------------------------------------------------------------------------|
+| LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp), [`lmstudio`](packages/llm/lmstudio), [`GEPA`](packages/llm/gepa)   |
+| VLM                     | [`Gemma3`](packages/vlm/gemma3), [`SmolVLM`](packages/vlm/smolvlm), [`Phi-4`](packages/vlm/phi4), [`LFM2-VL`](packages/vlm/lfm2vl) |
+| VLA                     | [`OpenVLA`](packages/vla/openvla), [`SmolVLA`](packages/vla/smolvla), [`GR00T-N1.5`](packages/vla/gr00t), [`openpi`](packages/vla/openpi), [`CogACT`](packages/vla/cogact) |
+| Graphics                     | [`O3DE`](packages/graphics/o3de) |
+| Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot), [`ACT`](packages/robotics/act), [`RAI`](packages/robotics/rai)    |
+| Simulation                |  [`Genesis`](packages/robotics/genesis)  |
+| Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam), [`ncnn`](packages/vision/ncnn), [`DINOv3`](packages/vision/dinov3), [`SAM3`](packages/vision/sam3), [`Ultralytics`](packages/vision/ultralytics) |
+| Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval), [`Ryzen AI CVML`](packages/npu/ryzenai_cvml)  |
+| Adaptive SoCs           | [`PYNQ.remote`](packages/adaptive-socs/pynq-remote) |
+| Utilities   | [`JupyterLab`](packages/ide/jupyterlab), [`amdgpu_top`](packages/init/amdgpu_top) |
 
 ---
 
@@ -45,7 +41,7 @@ git clone https://github.com/AMDResearch/Ryzers
 pip install Ryzers/
 ```
 
-For detailed installation instructions and requirements, refer to the included documentation.
+For detailed installation instructions and requirements, refer to the [included documentation](https://amdresearch.github.io/Ryzers/installation.html).
 
 ## Usage
 
@@ -61,27 +57,14 @@ ryzers run
 ryzers run bash
 ```
 
-For detailed build and run instructions, refer to the included documentation.
+For detailed build and run instructions, refer to the instructions included in the package.
 
-## Supported Packages
+## Features
 
-| Category        | Software                                                                                                    |
-|-----------------|--------------------------------------------------------------------------------------------------------------------|
-| LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp), [`lmstudio`](packages/llm/lmstudio)   |
-| VLM / VLA              | [`OpenVLA`](packages/robotics/openvla), [`SmolVLA`](packages/robotics/smolvla), [`GR00T-N1.5`](packages/robotics/gr00t), [`Gemma3`](packages/vlm/gemma3), [`SmolVLM`](packages/vlm/smolvlm),  [`Phi-4`](packages/vlm/phi4), [`openpi`](packages/robotics/openpi) |
-| Graphics                     | [`O3DE`](packages/graphics/o3de) |
-| Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot). [`ACT`](packages/robotics/act)    |
-| Simulation                |  [`Genesis`](packages/robotics/genesis)  |
-| Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam), [`ncnn`](packages/vision/ncnn), [`DINOv3`](packages/vision/dinov3) |
-| Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval), [`Ryzen AI CVML`](packages/npu/ryzenai_cvml)  |
-| Adaptive SoCs           | [`PYNQ.remote`](packages/adaptive-socs/pynq-remote) |
-| Federated Learning | [`Flower`](packages/federated/flower) |
-| Utilities   | [`JupyterLab`](packages/ide/jupyterlab), [`amdgpu_top`](packages/init/amdgpu_top) |
-
-Packages Legend: 
-$${\color{red}\small{\texttt{Coming Soon}}}$$, 
-$${\color{orange}\small{\texttt{Help Wanted}}}$$
-
+- **Verified AMD Support for Popular Frameworks**: A variety of Robotics and ML software frameworks supported across Ryzen AI platforms.
+- **Optimized for Ryzen AI**: Includes support for hardware-accelerated AI workloads and accelerators like the iGPU and NPUs.
+- **Minimal Host Software Requirements**: Standard Ubuntu support with minimal software requirements
+- **Composable Dockerfiles**: Modular design for reusability across different applications.
 
 ---
 

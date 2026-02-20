@@ -7,16 +7,17 @@ import argparse
 from .ryzer import RyzerManager
 from .runner import DockerRunner
 
-def build(name, base_path, packages):
+def build(base_path, name, packages, init_image):
     """
     Builds the Docker images using the specified packages path and selected packages.
 
     Args:
-        name (str): The name of the Docker image to build.
         base_path (str): The base directory to scan for Dockerfiles.
+        name (str): The name of the Docker image to build.
         packages (list): List of package names to manage.
+        init_image (str, optional): The initial base image to start with.
     """
-    mgr = RyzerManager(name, base_path, packages)
+    mgr = RyzerManager(base_path, name, packages, init_image)
     mgr.build()
 
 def run(name, docker_cmd):
@@ -48,6 +49,7 @@ def main():
     build_parser.add_argument("--base_path", default=default_base_path, help=f"Base path for the project (default: CWD)")
     build_parser.add_argument("--name", default="ryzerdocker", help="Name of the docker image to build")
     build_parser.add_argument("dockerfiles", nargs="*", help="List of Dockerfiles to combine for the build (optional)")
+    build_parser.add_argument("--init_image", default=None, help=f"Initial base image to start with (default: None)")
 
     # 'run' command
     run_parser = subparsers.add_parser("run", help="Run the project")
@@ -58,7 +60,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "build":
-        build(args.base_path, args.name, args.dockerfiles)
+        build(args.base_path, args.name, args.dockerfiles, args.init_image)
     elif args.command == "run":
         run(args.name, args.docker_cmd)
     else:

@@ -24,4 +24,17 @@ ryzers run /ryzers/demo_gemma3.sh
 
 In a browser, open file://\<PATH TO REPO\>/index.html
 
+### Build and run with HuggingFace Transformers
+
+gemma3 can also be run with the transformers API. To do so, run:
+
+```
+ryzers build gemma3
+ryzers run bash
+
+# inside docker container
+cd /ryzers
+HSA_OVERRIDE_GFX_VERSION=11.0.0 HF_TOKEN=<your_huggingface_token> python test_gemma3_hf.py
+```
+
 Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.

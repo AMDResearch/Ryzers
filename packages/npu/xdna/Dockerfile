@@ -1,7 +1,7 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-ARG DRIVER_VERSION="0ad5aa3"
+ARG DRIVER_VERSION="854ff04"
 
 # required by rocm driver
 RUN groupadd -f render && usermod -aG render root
@@ -40,8 +40,8 @@ RUN cd /ryzers/xdna-driver/build && \
 # these will also need to be installed on the host system
 # if they haven't been already
 RUN mkdir /ryzers/debs && \
-    cp /ryzers/xdna-driver/build/Release/xrt_plugin.2.20.0_24.04-amd64-amdxdna.deb /ryzers/debs/ && \
-    cp /ryzers/xdna-driver/xrt/build/Release/xrt_202520.2.20.0_24.04-amd64-base.deb /ryzers/debs/ && \
+    cp /ryzers/xdna-driver/build/Release/xrt_plugin*amd64-amdxdna.deb /ryzers/debs/ && \
+    cp /ryzers/xdna-driver/xrt/build/Release/xrt*-amd64-base.deb /ryzers/debs/ && \
 	dpkg -i /ryzers/debs/*.deb
 
 # Cleanup

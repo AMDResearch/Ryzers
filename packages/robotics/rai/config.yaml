@@ -1,0 +1,13 @@
+# Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+port_mappings:
+  - "8501:8501"   # Streamlit frontend
+
+# Uncomment to set your OpenAI API key
+#environment_variables:
+#- "OPENAI_API_KEY=your-api-key-here"
+
+volume_mappings:                                                                                                                                                                      
+  # Persist benchmark results after container exits 
+  - "$PWD/experiments:/ryzers/rai/src/rai_bench/rai_bench/experiments"

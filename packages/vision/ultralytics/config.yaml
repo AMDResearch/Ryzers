@@ -1,0 +1,12 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+init_image: rocm/pytorch:rocm7.1.1_ubuntu24.04_py3.12_pytorch_release_2.8.0
+
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"
+- "YOLO_DATASETS_DIR=/ryzers/data_ultralytics"
+- "YOLO_CONFIG_DIR=/ryzers"
+
+volume_mappings:
+- "$PWD/data_ultralytics:/ryzers/data_ultralytics" 

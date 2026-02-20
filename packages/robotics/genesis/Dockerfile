@@ -32,16 +32,18 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 
 # Compatible build: NumPy 2.x with corresponding scikit-image version
 RUN pip3 install --no-cache-dir --break-system-packages "numpy==2.1.2" && \
-    pip3 install --no-cache-dir --break-system-packages "scikit-image==0.24.0"
+    pip3 install --no-cache-dir --break-system-packages "scikit-image==0.24.0" && \
+    pip3 install --no-cache-dir --break-system-packages "matplotlib==3.10.8"
 
 # Genesis and gstaichi (compatible with Genesis 0.3.3; beta release fixes kernel interface mismatch)
-RUN pip3 install --no-cache-dir --break-system-packages "gstaichi==2.5.0b4" \
+RUN pip3 install --no-cache-dir --break-system-packages "gstaichi==2.5.0" \
  && pip3 install --no-cache-dir --break-system-packages "genesis-world==0.3.3"
 
 # Copy test script
 COPY test.py /ryzers/test_genesis.py
 COPY demo.sh /ryzers/demo_genesis.sh
-RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh
+COPY demo.py /ryzers/demo_genesis.py
+RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh /ryzers/demo_genesis.py
 
 RUN git clone https://github.com/Genesis-Embodied-AI/Genesis
 
