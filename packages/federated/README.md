@@ -5,7 +5,9 @@ Flower is a framework for federated learning. This Ryzer demonstrates how to use
 Execute `pip install flower` to install Flower.
 
 In `Ryzers/packages/federated/superexec/` create a getting started project:
-`flwr  new  @flwrlabs/quickstart-pytorch`
+```
+flwr  new  @flwrlabs/quickstart-pytorch
+```
 
 Edit the `pyproject.toml` to comment out the dependencies on torch and torchvision (lines 13-14), as these packages are installed in the Ryzer already.
 
@@ -20,7 +22,9 @@ ryzers build supernode --name supernode
 
 ## Create the network
 Flower communicates between the containers using the docker network. Create a dedicated docker network for it to use:
-`docker  network  create  --driver  bridge  flwr-network`
+```
+docker  network  create  --driver  bridge  flwr-network
+```
 
 ## Run the example
 Run `Ryzers/packages/federated/superexec/flower.sh`. This will launch a superlink to coordinate the federation, supernodes (clients), and superexecs for scheduling applications per client.
