@@ -50,8 +50,8 @@ class DockerPackageManager:
             if self._is_directory_readable(entry_path):
                 if os.path.exists(os.path.join(entry_path, "Dockerfile")):
                     dockerfile_path_map[entry] = entry_path
-                else:
-                    dockerfile_path_map.update(self._find_allpackages(entry_path, current_depth + 1, max_depth))
+                #else:
+                dockerfile_path_map.update(self._find_allpackages(entry_path, current_depth + 1, max_depth))
         return dockerfile_path_map
 
     def get_packages_filelist(self, filename, optional=False):
