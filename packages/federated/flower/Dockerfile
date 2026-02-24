@@ -6,9 +6,11 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers
 
-RUN pip install flwr
+RUN pip install -U "flwr[simulation]"
 
 RUN flwr new @flwrlabs/quickstart-pytorch
+RUN cd quickstart-pytorch && sed -i '/torch=/d;/torchvision=/d' pyproject.toml && pip install -e .
+
 
 COPY test.sh .
 RUN chmod +x test.sh
