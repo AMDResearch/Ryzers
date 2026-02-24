@@ -6,5 +6,10 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers
 
-COPY quickstart-pytorch /ryzers/quickstart-pytorch 
+RUN pip install flwr
 
+RUN flwr new @flwrlabs/quickstart-pytorch
+
+COPY test.sh .
+RUN chmod +x test.sh
+CMD ./test.sh
