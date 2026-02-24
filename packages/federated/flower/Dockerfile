@@ -8,4 +8,3 @@ WORKDIR /ryzers
 
 COPY quickstart-pytorch /ryzers/quickstart-pytorch 
 
-ENTRYPOINT[flower-superlink]
