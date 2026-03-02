@@ -35,7 +35,7 @@ RUN echo "source /ryzers/notebooks/vlm_ros/install/setup.bash" >> /etc/bash.bash
 # EntryPoint for Jupyter
 RUN echo '#!/bin/bash' > /entrypoint.sh && \
     echo 'export SHELL=/bin/bash' >> /entrypoint.sh && \
-    echo 'source /opt/ros/kilted/setup.bash' >> /entrypoint.sh && \
+    echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /entrypoint.sh && \
     echo "source /ryzers/notebooks/vlm_ros/install/setup.bash" >> /entrypoint.sh && \
     echo 'exec python3 -m jupyterlab --ip=0.0.0.0 --port=8888 --allow-root "$@"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh

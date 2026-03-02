@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /opt/ros/kilted/setup.bash
+source /opt/ros/${ROS_DISTRO}/setup.bash
 colcon build --packages-select cvml_ros
 
 # Launch webcam node
