@@ -5,7 +5,8 @@ port_mappings:
   - "8501:8501"   # Streamlit frontend
 
 # Uncomment to set your OpenAI API key
-#environment_variables:
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"
 #- "OPENAI_API_KEY=your-api-key-here"
 
 volume_mappings:                                                                                                                                                                      

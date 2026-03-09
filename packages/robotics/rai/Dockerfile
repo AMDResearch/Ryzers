@@ -41,6 +41,7 @@ WORKDIR /ryzers
 RUN git clone https://github.com/RobotecAI/rai.git
 
 WORKDIR /ryzers/rai
+RUN git checkout a097617 # pin working commit
 RUN vcs import < ros_deps.repos
 RUN vcs import < demos.repos
 
@@ -57,6 +58,9 @@ RUN . ./scripts/download_demo.sh manipulation
 # Build ROS 2 packages (need to source ROS environment first)
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     colcon build --symlink-install
+
+# Re-install torch
+RUN pip install --force-reinstall --no-deps /torch*.whl
 
 # Copy test scripts
 WORKDIR /ryzers
