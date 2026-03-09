@@ -2,11 +2,8 @@
 # SPDX-License-Identifier: MIT
 
 build_arguments:
-  - "ROS_DISTRO=kilted"
-#  - "ROS_DISTRO=jazzy"  
+  - "ROS_DISTRO=jazzy"
 
 port_mappings:
   - "11311:11311"
 
-# environment_variables:
-#   - "ROS_VERSION=jazzy"
