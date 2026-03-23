@@ -6,9 +6,31 @@ We welcome contributions to the Ryzers! Whether you're fixing bugs, adding new f
 
 ## Creating Your Own Package
 
-To create your own package, follow the structure and format used in the repository under the `packages` folder. You can use the `packages/robotics/genesis` package as an example. 
+To create your own package, follow the structure and format used in the repository under the `packages` folder. You can use the `packages/robotics/genesis` package as an example.
 
-### Required Package Contents 
+### Using an AI Coding Agent
+
+The fastest way to scaffold a new package is with an AI coding agent. The `skills/` directory at the repo root contains agent skills (like `new-ryzer`) with complete templates, conventions, and reference examples.
+
+Depending on your framework of choice, you can symlink `skills/` to the location your tool expects, for example:
+
+```bash
+# Claude Code
+ln -s skills .claude/skills
+
+# Codex
+ln -s skills .agents/skills
+
+# Cursor
+ln -s skills .cursor/skills
+
+# Antigravity
+ln -s skills .agent/skills
+```
+
+This is not necessary, as you can still point your agent to the skill directly, but it does make developmetn more seamless.
+
+### Required Package Contents
 
 At a minimum, only 4 files are needed to create a ryzers package contribution.
 

@@ -1,0 +1,10 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers run options
+
+port_mappings:
+- "8000:8000"
+
+volume_mappings:
+- "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"

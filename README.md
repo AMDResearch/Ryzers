@@ -19,9 +19,9 @@ These dockerfiles will also be pushed and actively maintained in their original 
 
 | Category        | Software                                                                                                    |
 |-----------------|--------------------------------------------------------------------------------------------------------------------|
-| LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp), [`lmstudio`](packages/llm/lmstudio), [`GEPA`](packages/llm/gepa)   |
+| LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp), [`lmstudio`](packages/llm/lmstudio), [`GEPA`](packages/llm/gepa), [`Lemonade`](packages/llm/lemonade-sdk)   |
 | VLM                     | [`Gemma3`](packages/vlm/gemma3), [`SmolVLM`](packages/vlm/smolvlm), [`Phi-4`](packages/vlm/phi4), [`LFM2-VL`](packages/vlm/lfm2vl) |
-| VLA                     | [`OpenVLA`](packages/vla/openvla), [`SmolVLA`](packages/vla/smolvla), [`GR00T-N1.5`](packages/vla/gr00t), [`openpi`](packages/vla/openpi), [`CogACT`](packages/vla/cogact) |
+| VLA                     | [`OpenVLA`](packages/vla/openvla), [`SmolVLA`](packages/vla/smolvla), [`GR00T-N1.5`](packages/vla/gr00t), [`openpi`](packages/vla/openpi), [`CogACT`](packages/vla/cogact), [`MolmoAct`](packages/vla/molmoact) |
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
 | Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot), [`ACT`](packages/robotics/act), [`RAI`](packages/robotics/rai)    |
 | Federated Learning | [`Flower`](packages/federated/flower) |
@@ -71,7 +71,11 @@ For detailed build and run instructions, refer to the instructions included in t
 
 ## Contributing
 
-We welcome contributions to Ryzers! If you have ideas for new features, bug fixes, or improvements, please submit a pull request or open an issue.  The format of a Ryzer package can be quickly learned from existing packages and Co-Pilots and Chatbots are quite good at vibe-coding new packages.  For detailed guidelines, see [CONTRIBUTING.md](docs/contributing.md).
+We welcome contributions to Ryzers! If you have ideas for new features, bug fixes, or improvements, please submit a pull request or open an issue.
+
+**Using an AI coding agent?** Point it at [`skills/new-ryzer/SKILL.md`](skills/new-ryzer/SKILL.md) — it has everything an agent needs to scaffold a new package correctly (templates, conventions, config schema, and reference examples). Works with any agent: Claude Code, Codex, Cursor, Copilot, etc.
+
+For detailed guidelines, see [CONTRIBUTING.md](docs/contributing.md).
 
 ---
 
