@@ -7,3 +7,7 @@ set -ex
 FLOWER_ENV_PATH="${BASH_SOURCE[0]}"
 FLOWER_SCRIPTS="$(cd "$(dirname "$FLOWER_ENV_PATH")" && pwd)"
 FLOWER_PATH=`dirname $(realpath $FLOWER_SCRIPTS)`
+REPO_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+
+# Change to repo root where the ryzers.run.*.sh scripts are generated
+cd "$REPO_ROOT"
