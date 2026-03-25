@@ -3,3 +3,6 @@
 
 # Note: Names will be set per instance in the start script
 # We use the default host network mode from ryzers
+
+# Run in detached mode (background) instead of interactive
+detached_mode: true
