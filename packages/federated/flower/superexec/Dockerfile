@@ -10,9 +10,11 @@ WORKDIR /ryzers
 
 RUN python -m pip install flwr
 
-# Create and configure the quickstart project
-RUN flwr new @flwrlabs/quickstart-pytorch
-RUN cd quickstart-pytorch && \
+# Create and configure the quickstart project if it doesn't exist
+RUN if [ ! -d "quickstart-pytorch" ]; then \
+        flwr new @flwrlabs/quickstart-pytorch; \
+    fi && \
+    cd quickstart-pytorch && \
     sed -i '/torch=/d;/torchvision=/d' pyproject.toml && \
     sed -i 's/.*flwr\[simulation\].*//' pyproject.toml && \
     python -m pip install -U --no-cache-dir .
