@@ -1,2 +1,6 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
+
+# Common configuration for all Flower containers
+# Note: Individual containers (superlink, supernode, superexec) will need to be built with their own names
+# and may have specific port mappings defined in their own directories

@@ -1,0 +1,9 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+port_mappings:
+- "9091:9091"
+- "9092:9092"
+- "9093:9093"
+
+docker_extra_run_flags: "--network=flwr-network"

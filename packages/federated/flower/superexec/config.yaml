@@ -1,0 +1,5 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# Note: Names will be set per instance in the start script
+docker_extra_run_flags: "--network=flwr-network"
