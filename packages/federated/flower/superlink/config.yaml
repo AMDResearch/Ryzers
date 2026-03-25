@@ -6,4 +6,5 @@ port_mappings:
 - "9092:9092"
 - "9093:9093"
 
-docker_extra_run_flags: "--network=flwr-network"
+# Note: We use the default host network mode from ryzers
+# The flwr-network will be set via docker network connect after container start

@@ -2,4 +2,4 @@
 # SPDX-License-Identifier: MIT
 
 # Note: Port mappings and names will be set per instance in the start script
-docker_extra_run_flags: "--network=flwr-network"
+# We use the default host network mode from ryzers
