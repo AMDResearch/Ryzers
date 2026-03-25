@@ -10,8 +10,11 @@ WORKDIR /ryzers
 
 RUN python -m pip install flwr
 
-COPY quickstart-pytorch/pyproject.toml .
-RUN sed -i 's/.*flwr\[simulation\].*//' pyproject.toml \
-&& python -m pip install -U --no-cache-dir .
+# Create and configure the quickstart project
+RUN flwr new @flwrlabs/quickstart-pytorch
+RUN cd quickstart-pytorch && \
+    sed -i '/torch=/d;/torchvision=/d' pyproject.toml && \
+    sed -i 's/.*flwr\[simulation\].*//' pyproject.toml && \
+    python -m pip install -U --no-cache-dir .
 
 ENTRYPOINT ["flower-superexec"]
