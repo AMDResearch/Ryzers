@@ -10,22 +10,6 @@ source "$SCRIPT_DIR/env.sh"
 
 export FLOWER_SCRIPTS="$SCRIPT_DIR"
 
-# Verify ryzers_env is built (required base for all ryzers)
-echo "Verifying ryzers_env base image..."
-if ! docker images --format '{{.Repository}}' | grep -q '^ryzer_env$'; then
-    echo "Building ryzers_env base image..."
-    cd "$REPO_ROOT"
-    ryzers build --base_path "$REPO_ROOT/packages" init/ryzer_env --name ryzer_env
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Failed to build ryzers_env base image"
-        exit 1
-    fi
-    echo "✓ ryzers_env built successfully"
-else
-    echo "✓ ryzers_env base image exists"
-fi
-echo ""
-
 # Create Docker network if it doesn't exist
 if ! docker network ls | grep -q flwr-network; then
     echo "Creating Docker bridge network: flwr-network"
@@ -69,15 +53,9 @@ done
 if [ ${#MISSING_IMAGES[@]} -gt 0 ]; then
     echo ""
     echo "ERROR: Missing required Docker images!"
-    echo "Please build them first with:"
+    echo "Please build all required images by running:"
     echo ""
-    echo "  cd $REPO_ROOT"
-    echo "  ryzers build --base_path packages federated/flower superlink --name superlink"
-    echo "  ryzers build --base_path packages federated/flower supernode-1 --name supernode-1"
-    echo "  ryzers build --base_path packages federated/flower supernode-2 --name supernode-2"
-    echo "  ryzers build --base_path packages federated/flower superexec --name superexec-serverapp"
-    echo "  ryzers build --base_path packages federated/flower superexec --name superexec-clientapp-1"
-    echo "  ryzers build --base_path packages federated/flower superexec --name superexec-clientapp-2"
+    echo "  $FLOWER_SCRIPTS/build_all.sh"
     echo ""
     exit 1
 fi
