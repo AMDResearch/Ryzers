@@ -21,7 +21,7 @@ echo "Step 1/7: Building ryzers_env base image..."
 if docker images --format '{{.Repository}}' | grep -q '^ryzer_env$'; then
     echo "  ✓ ryzer_env already exists (skipping)"
 else
-    ryzers build --base_path packages init/ryzer_env --name ryzer_env
+    ryzers build --base_path packages init ryzer_env --name ryzer_env
     if [ $? -ne 0 ]; then
         echo "  ✗ Failed to build ryzer_env"
         exit 1
