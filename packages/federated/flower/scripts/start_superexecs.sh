@@ -8,9 +8,10 @@ source $(dirname "$0")/env.sh
 echo "Starting Flower Superexecs..."
 
 # Note: For multi-instance deployments, build separate images for each instance:
-#   ryzers build superexec --name superexec-serverapp
-#   ryzers build superexec --name superexec-clientapp-1
-#   ryzers build superexec --name superexec-clientapp-2
+#   ryzers build flower superexec --name superexec-serverapp
+#   ryzers build flower superexec --name superexec-clientapp-1
+#   ryzers build flower superexec --name superexec-clientapp-2
+# Network configuration is set in superexec/config.yaml (docker_network: flwr-network)
 
 # Check and restart superexec-serverapp if running
 if docker ps --format '{{.Names}}' | grep -q '^superexec-serverapp$'; then

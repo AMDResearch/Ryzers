@@ -16,7 +16,9 @@ if docker ps --format '{{.Names}}' | grep -q '^superlink$'; then
 fi
 
 # Start the superlink container using ryzers run
-# The container configuration (GPU, network, etc.) is defined in superlink/config.yaml
+# Network configuration is set in superlink/config.yaml (docker_network: flwr-network)
 ryzers run --name superlink "--insecure --isolation process"
+
+echo "Superlink started successfully"
 
 exec bash

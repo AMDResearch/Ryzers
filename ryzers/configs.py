@@ -48,7 +48,8 @@ class ConfigManager:
         "volume_mappings",
         "docker_extra_build_flags",
         "docker_extra_run_flags",
-        "detached_mode"
+        "detached_mode",
+        "docker_network"
     ]
 
     def __init__(self, configfiles: List[str]):
@@ -87,6 +88,7 @@ class ConfigManager:
         cameras = True
         extra_run_flags = ""
         detached = False
+        custom_network = None
 
         for c in self.configentries:
             print(str(c))
@@ -106,10 +108,19 @@ class ConfigManager:
                 extra_run_flags += f" {c.value}"
             if c.key == "detached_mode":
                 detached = c.value
+            if c.key == "docker_network":
+                custom_network = c.value
 
         # If detached mode, replace -it with -d
         if detached:
             runflags = runflags.replace("-it", "-d")
+
+        # If custom network specified, replace --network=host and remove --ipc=host
+        if custom_network:
+            runflags = runflags.replace("--network=host", f"--network={custom_network}")
+            runflags = runflags.replace("--ipc=host", "")
+            # Clean up any double spaces
+            runflags = " ".join(runflags.split())
 
         if gpu:
             runflags += " --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --group-add render "
@@ -167,7 +178,7 @@ class ConfigManager:
         if key in ["port_mappings", "volume_mappings"]:
             key0, val0 = value.split(':', 1)
             return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=':')
-        if key in ["gpu_support", "x11_display", "docker_extra_build_flags", "docker_extra_run_flags", "init_image", "detached_mode", "camera_support"]:
+        if key in ["gpu_support", "x11_display", "docker_extra_build_flags", "docker_extra_run_flags", "init_image", "detached_mode", "camera_support", "docker_network"]:
             return ConfigKeyValueEntry(key, value, config_path)
         else:
             raise ValueError(f"Invalid key: {key}. Must be one of {', '.join(self.CONFIG_KEYS)}")

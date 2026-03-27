@@ -6,9 +6,8 @@ port_mappings:
 - "9092:9092"
 - "9093:9093"
 
-# Use bridge network for container-to-container communication
-docker_extra_run_flags:
-- "--network=flwr-network"
+# Use custom Docker network for Flower communication
+docker_network: flwr-network
 
 # Run in detached mode
 detached_mode: true
