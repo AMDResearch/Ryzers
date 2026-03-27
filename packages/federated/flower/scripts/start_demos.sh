@@ -21,3 +21,28 @@ gnome-terminal --tab --title="Superexecs" -- bash -c 'echo -ne "\033]0;Superexec
 
 echo "All Flower components started in separate terminal tabs"
 echo "To view logs, check each terminal tab"
+echo ""
+
+# Wait for all components to be ready
+echo "Waiting for all components to be ready..."
+sleep 10
+
+# Execute the local-deployment
+echo "========================================"
+echo "Running Flower local-deployment..."
+echo "========================================"
+echo ""
+
+# Check if we're in a container or on the host
+if [ -d "/ryzers/quickstart-pytorch" ]; then
+    # Running inside the flower container
+    cd /ryzers/quickstart-pytorch
+    flwr run . local-deployment --stream
+else
+    # Running from host - need to execute in the flower container
+    echo "Launching local-deployment in flower container..."
+    docker run --rm -it \
+        --network host \
+        flower \
+        bash -c "cd /ryzers/quickstart-pytorch && flwr run . local-deployment --stream"
+fi
