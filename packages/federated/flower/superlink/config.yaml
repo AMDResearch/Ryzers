@@ -6,6 +6,9 @@ port_mappings:
 - "9092:9092"
 - "9093:9093"
 
+# Enable AMD GPU support
+gpu_support: true
+
 # Use custom Docker network for Flower communication
 docker_network: flwr-network
 

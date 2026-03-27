@@ -3,6 +3,9 @@
 
 # Note: Names will be set per instance in the start script
 
+# Enable AMD GPU support
+gpu_support: true
+
 # Use custom Docker network for Flower communication
 docker_network: flwr-network
 
