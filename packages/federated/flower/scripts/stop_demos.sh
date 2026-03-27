@@ -29,12 +29,10 @@ echo ""
 echo "All Flower containers stopped"
 echo ""
 
-# Ask if user wants to clean up network
-read -p "Remove Docker network 'flwr-network'? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    docker network rm flwr-network 2>/dev/null && echo "Removed flwr-network" || echo "Network flwr-network not found"
-fi
+# Always try to remove the network (it will only succeed if no containers are using it)
+echo "Removing Docker network 'flwr-network'..."
+docker network rm flwr-network 2>/dev/null && echo "✓ Removed flwr-network" || echo "Note: Network may still be in use or not found"
+echo ""
 
 # Ask if user wants to clean up quickstart project
 read -p "Remove quickstart-pytorch project directory? (y/N): " -n 1 -r

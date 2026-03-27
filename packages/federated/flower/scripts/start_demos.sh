@@ -10,6 +10,15 @@ source "$SCRIPT_DIR/env.sh"
 
 export FLOWER_SCRIPTS="$SCRIPT_DIR"
 
+# Create Docker network if it doesn't exist
+if ! docker network ls | grep -q flwr-network; then
+    echo "Creating Docker bridge network: flwr-network"
+    docker network create --driver bridge flwr-network
+else
+    echo "Docker network flwr-network already exists"
+fi
+echo ""
+
 # Launch each component in a separate terminal tab
 gnome-terminal --tab --title="Superlink" -- bash -c 'echo -ne "\033]0;Superlink\007"; '"$FLOWER_SCRIPTS"'/start_superlink.sh; exec bash'
 

@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: MIT
 
 # Note: Port mappings and names will be set per instance in the start script
-# We use the default host network mode from ryzers
+
+# Use bridge network for container-to-container communication
+docker_extra_run_flags:
+- "--network=flwr-network"
 
 # Run in detached mode (background) instead of interactive
 detached_mode: true

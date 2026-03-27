@@ -20,7 +20,7 @@ fi
 
 # Start supernode-1
 # The base configuration comes from supernode/config.yaml
-ryzers run --name supernode-1 "--insecure --superlink superlink:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process" &
+ryzers run --name supernode-1 "-p 9094:9094 --insecure --superlink superlink:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process" &
 
 echo "Started supernode-1"
 sleep 2
@@ -33,7 +33,7 @@ if docker ps --format '{{.Names}}' | grep -q '^supernode-2$'; then
 fi
 
 # Start supernode-2
-ryzers run --name supernode-2 "--insecure --superlink superlink:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process" &
+ryzers run --name supernode-2 "-p 9095:9095 --insecure --superlink superlink:9092 --node-config partition-id=1 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process" &
 
 echo "Started supernode-2"
 sleep 2
