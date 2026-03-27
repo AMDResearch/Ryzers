@@ -57,19 +57,32 @@ if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
 fi
 
 # Navigate to the quickstart project directory and run deployment
-echo "Changing to quickstart project directory: $FLOWER_QUICKSTART_DIR"
-if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
-    echo "ERROR: Quickstart directory not found at $FLOWER_QUICKSTART_DIR"
-    exit 1
-fi
-
-cd "$FLOWER_QUICKSTART_DIR" || {
-    echo "ERROR: Failed to change to directory $FLOWER_QUICKSTART_DIR"
+echo "Launching local-deployment in a new terminal..."
+gnome-terminal --tab --title="Flower Local Deployment" -- bash -c '
+echo -ne "\033]0;Flower Local Deployment\007"
+cd "'"$FLOWER_QUICKSTART_DIR"'" || {
+    echo "ERROR: Failed to change to directory '"$FLOWER_QUICKSTART_DIR"'"
+    read -p "Press Enter to close..."
     exit 1
 }
 
+echo "========================================"
+echo "Flower Local Deployment"
+echo "========================================"
+echo ""
 echo "Current directory: $(pwd)"
 echo "Running: flwr run . local-deployment --stream"
 echo ""
 
 flwr run . local-deployment --stream
+
+echo ""
+echo "========================================"
+echo "Deployment completed"
+echo "========================================"
+read -p "Press Enter to close this window..."
+'
+
+echo ""
+echo "Local deployment started in new terminal tab"
+echo "Check the 'Flower Local Deployment' tab to view progress"
