@@ -8,9 +8,9 @@ source $(dirname "$0")/env.sh
 echo "Starting Flower Superexecs..."
 
 # Note: Build separate images for each instance:
-#   ryzers build flower superexec --name superexec-serverapp
-#   ryzers build flower superexec --name superexec-clientapp-1
-#   ryzers build flower superexec --name superexec-clientapp-2
+#   ryzers build superexec --name superexec-serverapp
+#   ryzers build superexec --name superexec-clientapp-1
+#   ryzers build superexec --name superexec-clientapp-2
 
 # Check and restart superexec-serverapp if running
 if docker ps --format '{{.Names}}' | grep -q '^superexec-serverapp$'; then

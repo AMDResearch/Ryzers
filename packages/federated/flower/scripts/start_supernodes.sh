@@ -8,8 +8,8 @@ source $(dirname "$0")/env.sh
 echo "Starting Flower Supernodes..."
 
 # Note: Build separate images for each instance from shared supernode directory:
-#   ryzers build federated/flower supernode --name supernode-1
-#   ryzers build federated/flower supernode --name supernode-2
+#   ryzers build supernode --name supernode-1
+#   ryzers build supernode --name supernode-2
 
 # Check and restart supernode-1 if running
 if docker ps --format '{{.Names}}' | grep -q '^supernode-1$'; then
