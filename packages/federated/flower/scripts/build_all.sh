@@ -40,9 +40,9 @@ fi
 echo "  ✓ superlink built successfully"
 echo ""
 
-# Step 3: Build supernode-1 (from shared supernode directory)
+# Step 3: Build supernode-1
 echo "Step 3/7: Building supernode-1..."
-ryzers build supernode --name supernode-1
+ryzers build supernode-1 --name supernode-1
 if [ $? -ne 0 ]; then
     echo "  ✗ Failed to build supernode-1"
     exit 1
@@ -50,9 +50,9 @@ fi
 echo "  ✓ supernode-1 built successfully"
 echo ""
 
-# Step 4: Build supernode-2 (from shared supernode directory)
+# Step 4: Build supernode-2
 echo "Step 4/7: Building supernode-2..."
-ryzers build supernode --name supernode-2
+ryzers build supernode-2 --name supernode-2
 if [ $? -ne 0 ]; then
     echo "  ✗ Failed to build supernode-2"
     exit 1
