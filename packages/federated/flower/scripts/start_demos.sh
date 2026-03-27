@@ -47,6 +47,9 @@ mkdir -p ~/.flwr
 if ! grep -q "\[superlink.local-deployment\]" ~/.flwr/config.toml 2>/dev/null; then
     echo "Configuring Flower local-deployment federation..."
     cat >> ~/.flwr/config.toml <<EOF
+[defaults]
+federation = "local-deployment"
+
 [superlink.local-deployment]
 address = "127.0.0.1:9093"
 insecure = true
