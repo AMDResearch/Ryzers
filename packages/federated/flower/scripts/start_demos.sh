@@ -131,6 +131,16 @@ if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
     exit 1
 fi
 
+# Verify superlink is accessible from host
+echo "Verifying superlink connection from host..."
+timeout 10 bash -c 'until nc -z localhost 9093; do echo "Waiting for superlink..."; sleep 1; done' || {
+    echo "ERROR: Cannot connect to superlink at localhost:9093"
+    echo "Check that the superlink container is running and port 9093 is exposed"
+    exit 1
+}
+echo "✓ Superlink is accessible from host"
+echo ""
+
 # Navigate to quickstart directory
 cd "$FLOWER_QUICKSTART_DIR" || {
     echo "ERROR: Failed to change to directory $FLOWER_QUICKSTART_DIR"

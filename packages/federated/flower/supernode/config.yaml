@@ -1,11 +1,15 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# Note: Port mappings will be overridden per instance in the start script
-# These are the default ports for supernode instances
+# Shared configuration for all supernode instances
+# Note: Port mappings are set per instance in start_supernodes.sh
 
 # Enable AMD GPU support
 gpu_support: true
+
+# GPU environment variables for AMD ROCm
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"
 
 # Use custom Docker network for Flower communication
 docker_network: flwr-network

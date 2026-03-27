@@ -4,3 +4,10 @@
 # Common configuration for all Flower containers
 # Note: Individual containers (superlink, supernode, superexec) will need to be built with their own names
 # and may have specific port mappings defined in their own directories
+
+# Enable AMD GPU support
+gpu_support: true
+
+# GPU environment variables for AMD ROCm
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"
