@@ -10,6 +10,22 @@ source "$SCRIPT_DIR/env.sh"
 
 export FLOWER_SCRIPTS="$SCRIPT_DIR"
 
+# Verify ryzers_env is built (required base for all ryzers)
+echo "Verifying ryzers_env base image..."
+if ! docker images --format '{{.Repository}}' | grep -q '^ryzer_env$'; then
+    echo "Building ryzers_env base image..."
+    cd "$REPO_ROOT"
+    ryzers build --base_path "$REPO_ROOT/packages" init/ryzer_env --name ryzer_env
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Failed to build ryzers_env base image"
+        exit 1
+    fi
+    echo "✓ ryzers_env built successfully"
+else
+    echo "✓ ryzers_env base image exists"
+fi
+echo ""
+
 # Create Docker network if it doesn't exist
 if ! docker network ls | grep -q flwr-network; then
     echo "Creating Docker bridge network: flwr-network"
@@ -36,6 +52,39 @@ echo ""
 echo "Waiting for all components to be ready..."
 sleep 10
 
+# Verify required Docker images exist
+echo "Verifying Flower component images..."
+REQUIRED_IMAGES=("superlink" "supernode-1" "supernode-2" "superexec-serverapp" "superexec-clientapp-1" "superexec-clientapp-2")
+MISSING_IMAGES=()
+
+for image in "${REQUIRED_IMAGES[@]}"; do
+    if docker images --format '{{.Repository}}' | grep -q "^${image}$"; then
+        echo "  ✓ $image image exists"
+    else
+        echo "  ✗ $image image missing"
+        MISSING_IMAGES+=("$image")
+    fi
+done
+
+if [ ${#MISSING_IMAGES[@]} -gt 0 ]; then
+    echo ""
+    echo "ERROR: Missing required Docker images!"
+    echo "Please build them first with:"
+    echo ""
+    echo "  cd $REPO_ROOT"
+    echo "  ryzers build --base_path packages federated/flower superlink --name superlink"
+    echo "  ryzers build --base_path packages federated/flower supernode-1 --name supernode-1"
+    echo "  ryzers build --base_path packages federated/flower supernode-2 --name supernode-2"
+    echo "  ryzers build --base_path packages federated/flower superexec --name superexec-serverapp"
+    echo "  ryzers build --base_path packages federated/flower superexec --name superexec-clientapp-1"
+    echo "  ryzers build --base_path packages federated/flower superexec --name superexec-clientapp-2"
+    echo ""
+    exit 1
+fi
+
+echo "All required images exist!"
+echo ""
+
 # Verify all containers are running
 echo "Verifying all Flower components are running..."
 REQUIRED_CONTAINERS=("superlink" "supernode-1" "supernode-2" "superexec-serverapp" "superexec-clientapp-1" "superexec-clientapp-2")
@@ -54,13 +103,6 @@ if [ "$ALL_RUNNING" = false ]; then
     echo ""
     echo "ERROR: Not all required containers are running!"
     echo "Please check the terminal tabs for error messages."
-    echo "You may need to rebuild the containers with:"
-    echo "  ryzers build flower superlink --name superlink"
-    echo "  ryzers build flower supernode --name supernode-1"
-    echo "  ryzers build flower supernode --name supernode-2"
-    echo "  ryzers build flower superexec --name superexec-serverapp"
-    echo "  ryzers build flower superexec --name superexec-clientapp-1"
-    echo "  ryzers build flower superexec --name superexec-clientapp-2"
     exit 1
 fi
 
