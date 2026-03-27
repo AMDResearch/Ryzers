@@ -53,6 +53,18 @@ if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
     cd quickstart-pytorch
     # Remove torch dependencies as they're in the containers
     sed -i '/torch=/d;/torchvision=/d' pyproject.toml
+
+    # Add local-deployment federation to pyproject.toml if not present
+    if ! grep -q "\[tool.flwr.federations.local-deployment\]" pyproject.toml; then
+        echo "Adding local-deployment federation to pyproject.toml..."
+        cat >> pyproject.toml <<EOF
+
+[tool.flwr.federations.local-deployment]
+options.num-supernodes = 2
+
+EOF
+    fi
+
     pip install -e .
 fi
 
