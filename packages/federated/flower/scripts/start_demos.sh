@@ -57,5 +57,19 @@ if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
 fi
 
 # Navigate to the quickstart project directory and run deployment
-cd "$FLOWER_QUICKSTART_DIR"
+echo "Changing to quickstart project directory: $FLOWER_QUICKSTART_DIR"
+if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
+    echo "ERROR: Quickstart directory not found at $FLOWER_QUICKSTART_DIR"
+    exit 1
+fi
+
+cd "$FLOWER_QUICKSTART_DIR" || {
+    echo "ERROR: Failed to change to directory $FLOWER_QUICKSTART_DIR"
+    exit 1
+}
+
+echo "Current directory: $(pwd)"
+echo "Running: flwr run . local-deployment --stream"
+echo ""
+
 flwr run . local-deployment --stream
