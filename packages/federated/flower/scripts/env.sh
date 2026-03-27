@@ -9,5 +9,8 @@ FLOWER_SCRIPTS="$(cd "$(dirname "$FLOWER_ENV_PATH")" && pwd)"
 FLOWER_PATH=`dirname $(realpath $FLOWER_SCRIPTS)`
 REPO_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
 
+# Set quickstart project directory (where to run flwr commands from)
+FLOWER_QUICKSTART_DIR="${FLOWER_PATH}/quickstart-pytorch"
+
 # Change to repo root where the ryzers.run.*.sh scripts are generated
 cd "$REPO_ROOT"

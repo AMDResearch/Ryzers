@@ -27,22 +27,31 @@ echo ""
 echo "Waiting for all components to be ready..."
 sleep 10
 
-# Execute the local-deployment
+# Execute the local-deployment on the host
 echo "========================================"
 echo "Running Flower local-deployment..."
 echo "========================================"
 echo ""
 
-# Check if we're in a container or on the host
-if [ -d "/ryzers/quickstart-pytorch" ]; then
-    # Running inside the flower container
-    cd /ryzers/quickstart-pytorch
-    flwr run . local-deployment --stream
-else
-    # Running from host - need to execute in the flower container
-    echo "Launching local-deployment in flower container..."
-    docker run --rm -it \
-        --network host \
-        flower \
-        bash -c "cd /ryzers/quickstart-pytorch && flwr run . local-deployment --stream"
+# Check if quickstart project exists on host, if not create it
+if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
+    echo "Creating quickstart-pytorch project on host..."
+    cd "$FLOWER_PATH"
+    flwr new @flwrlabs/quickstart-pytorch
+    cd quickstart-pytorch
+    # Remove torch dependencies as they're in the containers
+    sed -i '/torch=/d;/torchvision=/d' pyproject.toml
+    pip install -e .
+
+    # Configure flwr for local-deployment
+    mkdir -p ~/.flwr
+    cat > ~/.flwr/config.toml <<EOF
+[superlink.local-deployment]
+address = "127.0.0.1:9093"
+insecure = true
+EOF
 fi
+
+# Navigate to the quickstart project directory and run deployment
+cd "$FLOWER_QUICKSTART_DIR"
+flwr run . local-deployment --stream
