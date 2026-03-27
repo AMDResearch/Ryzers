@@ -78,15 +78,26 @@ echo "Current directory: $(pwd)"
 echo "Running: flwr run . local-deployment --stream"
 echo ""
 
+# Run the deployment and show all output
+set -x
 flwr run . local-deployment --stream
+EXIT_CODE=$?
+set +x
 
 echo ""
 echo "========================================"
-echo "Deployment completed"
+if [ $EXIT_CODE -eq 0 ]; then
+    echo "✓ Deployment completed successfully!"
+else
+    echo "✗ Deployment failed with exit code: $EXIT_CODE"
+fi
 echo "========================================"
+echo ""
+echo "Review the output above to see training progress and results."
+echo ""
 read -p "Press Enter to close this window..."
 '
 
 echo ""
 echo "Local deployment started in new terminal tab"
-echo "Check the 'Flower Local Deployment' tab to view progress"
+echo "Check the 'Flower Local Deployment' tab to view progress and training output"
