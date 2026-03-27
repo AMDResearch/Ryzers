@@ -36,6 +36,38 @@ echo ""
 echo "Waiting for all components to be ready..."
 sleep 10
 
+# Verify all containers are running
+echo "Verifying all Flower components are running..."
+REQUIRED_CONTAINERS=("superlink" "supernode-1" "supernode-2" "superexec-serverapp" "superexec-clientapp-1" "superexec-clientapp-2")
+ALL_RUNNING=true
+
+for container in "${REQUIRED_CONTAINERS[@]}"; do
+    if docker ps --format '{{.Names}}' | grep -q "^${container}$"; then
+        echo "  ✓ $container is running"
+    else
+        echo "  ✗ $container is NOT running"
+        ALL_RUNNING=false
+    fi
+done
+
+if [ "$ALL_RUNNING" = false ]; then
+    echo ""
+    echo "ERROR: Not all required containers are running!"
+    echo "Please check the terminal tabs for error messages."
+    echo "You may need to rebuild the containers with:"
+    echo "  ryzers build flower superlink --name superlink"
+    echo "  ryzers build flower supernode --name supernode-1"
+    echo "  ryzers build flower supernode --name supernode-2"
+    echo "  ryzers build flower superexec --name superexec-serverapp"
+    echo "  ryzers build flower superexec --name superexec-clientapp-1"
+    echo "  ryzers build flower superexec --name superexec-clientapp-2"
+    exit 1
+fi
+
+echo ""
+echo "All containers verified!"
+echo ""
+
 # Execute the local-deployment on the host
 echo "========================================"
 echo "Running Flower local-deployment..."
@@ -72,29 +104,29 @@ if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
     pip install -e .
 fi
 
-# Navigate to the quickstart project directory and run deployment
-echo "Launching local-deployment in a new terminal..."
-gnome-terminal --tab --title="Flower Local Deployment" -- bash -c '
-echo -ne "\033]0;Flower Local Deployment\007"
-cd "'"$FLOWER_QUICKSTART_DIR"'" || {
-    echo "ERROR: Failed to change to directory '"$FLOWER_QUICKSTART_DIR"'"
-    read -p "Press Enter to close..."
+# Verify quickstart directory exists
+if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
+    echo "ERROR: Quickstart directory not found at $FLOWER_QUICKSTART_DIR"
+    echo "This should have been created during setup. Please check for errors above."
+    exit 1
+fi
+
+# Navigate to quickstart directory
+cd "$FLOWER_QUICKSTART_DIR" || {
+    echo "ERROR: Failed to change to directory $FLOWER_QUICKSTART_DIR"
     exit 1
 }
 
-echo "========================================"
-echo "Flower Local Deployment"
-echo "========================================"
-echo ""
 echo "Current directory: $(pwd)"
 echo "Running: flwr run . local-deployment --stream"
 echo ""
+echo "Starting federated learning training..."
+echo "This will show real-time output from the ServerApp."
+echo ""
 
-# Run the deployment and show all output
-set -x
+# Run the deployment directly in this terminal
 flwr run . local-deployment --stream
 EXIT_CODE=$?
-set +x
 
 echo ""
 echo "========================================"
@@ -104,12 +136,3 @@ else
     echo "✗ Deployment failed with exit code: $EXIT_CODE"
 fi
 echo "========================================"
-echo ""
-echo "Review the output above to see training progress and results."
-echo ""
-read -p "Press Enter to close this window..."
-'
-
-echo ""
-echo "Local deployment started in new terminal tab"
-echo "Check the 'Flower Local Deployment' tab to view progress and training output"
