@@ -33,6 +33,18 @@ echo "Running Flower local-deployment..."
 echo "========================================"
 echo ""
 
+# Configure flwr for local-deployment (always ensure it exists)
+mkdir -p ~/.flwr
+if ! grep -q "\[superlink.local-deployment\]" ~/.flwr/config.toml 2>/dev/null; then
+    echo "Configuring Flower local-deployment federation..."
+    cat >> ~/.flwr/config.toml <<EOF
+[superlink.local-deployment]
+address = "127.0.0.1:9093"
+insecure = true
+
+EOF
+fi
+
 # Check if quickstart project exists on host, if not create it
 if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
     echo "Creating quickstart-pytorch project on host..."
@@ -42,14 +54,6 @@ if [ ! -d "$FLOWER_QUICKSTART_DIR" ]; then
     # Remove torch dependencies as they're in the containers
     sed -i '/torch=/d;/torchvision=/d' pyproject.toml
     pip install -e .
-
-    # Configure flwr for local-deployment
-    mkdir -p ~/.flwr
-    cat > ~/.flwr/config.toml <<EOF
-[superlink.local-deployment]
-address = "127.0.0.1:9093"
-insecure = true
-EOF
 fi
 
 # Navigate to the quickstart project directory and run deployment
