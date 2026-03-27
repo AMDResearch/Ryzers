@@ -1,46 +1,66 @@
 # Flower
 Flower is a framework for federated learning. This Ryzer demonstrates how to use Flower on AMD GPUs. This example is based on the Flower example found [here](https://flower.ai/docs/framework/docker/tutorial-quickstart-docker.html).
 
-## Install Flower
-Execute `pip install flower` to install Flower.
+## Quick Start
 
-In `Ryzers/packages/federated/superexec/` create a getting started project:
-```
-flwr  new  @flwrlabs/quickstart-pytorch
-```
+The Flower ryzer comes pre-configured with the PyTorch quickstart project and will automatically run `flwr run . local-deployment --stream` when launched.
 
-Edit the `pyproject.toml` to comment out the dependencies on torch and torchvision (lines 13-14), as these packages are installed in the Ryzer already.
-
-## Build the containers
-Unlike other Ryzers, Flower requires several containers to be built. From the Ryzers directory, run;
-
-```
-ryzers build superexec --name superexec
-ryzers build superlink --name superlink
-ryzers build supernode --name supernode
+### Build the Flower ryzer
+```bash
+ryzers build flower
 ```
 
-## Create the network
-Flower communicates between the containers using the docker network. Create a dedicated docker network for it to use:
-```
-docker  network  create  --driver  bridge  flwr-network
+### Run the quickstart
+```bash
+ryzers run
 ```
 
-## Run the example
-Run `Ryzers/packages/federated/superexec/flower.sh`. This will launch a superlink to coordinate the federation, supernodes (clients), and superexecs for scheduling applications per client.
+This will launch the Flower quickstart project, which demonstrates federated learning with PyTorch on AMD GPUs.
 
-Find your local config file:
-`flwr  config  list`
+## Advanced Usage
 
-Edit the config file to tell it about your superlink:
+### Build individual containers
+Unlike other Ryzers, Flower can use several containers for distributed deployment. From the Ryzers directory, you can build:
+
+```bash
+ryzers build flower superexec --name superexec
+ryzers build flower superlink --name superlink
+ryzers build flower supernode --name supernode
 ```
+
+### Create the network
+Flower communicates between containers using a Docker network. Create a dedicated network:
+```bash
+docker network create --driver bridge flwr-network
+```
+
+### Run distributed components
+Use the scripts in `packages/federated/flower/scripts/` to launch the distributed architecture:
+- `start_superlink.sh` - Launch the federation coordinator
+- `start_supernodes.sh` - Launch client nodes (2 instances)
+- `start_superexecs.sh` - Launch execution containers
+
+Or run all components:
+```bash
+./packages/federated/flower/scripts/start_demos.sh
+```
+
+## Configuration
+
+The Flower configuration is automatically set up in `~/.flwr/config.toml`:
+```toml
 [superlink.local-deployment]
-address  =  "127.0.0.1:9093"
-insecure  =  true
+address = "127.0.0.1:9093"
+insecure = true
 ```
 
-Launch the quickstart application with 2 clients:
+You can verify the configuration with:
+```bash
+flwr config list
+```
 
-`flwr run . local-deployment --stream`
+## Notes
 
-The example will use the GPU between 2 clients.
+- The quickstart project dependencies (torch/torchvision) are automatically removed from `pyproject.toml` since they're already installed in the base Ryzer environment
+- The example demonstrates federated learning across 2 clients using AMD GPU acceleration
+- Based on the official Flower quickstart tutorial: https://flower.ai/docs/framework/docker/tutorial-quickstart-docker.html
