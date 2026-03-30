@@ -1,0 +1,11 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# No GPU needed for SuperLink (coordinator)
+gpu_support: false
+
+# No X11 needed
+x11_display: false
+
+# No camera needed
+camera_support: false

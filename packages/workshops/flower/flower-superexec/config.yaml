@@ -1,0 +1,11 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# GPU support for training
+gpu_support: true
+
+# No X11 needed
+x11_display: false
+
+# No camera needed
+camera_support: false
