@@ -5,6 +5,11 @@
 
 source "$(dirname "$0")/env.sh"
 
+# Activate virtualenv if it exists
+if [ -f "$FLOWER_VENV/bin/activate" ]; then
+    source "$FLOWER_VENV/bin/activate"
+fi
+
 echo "========================================="
 echo "  Flower SuperExec (ClientApp 1)"
 echo "========================================="

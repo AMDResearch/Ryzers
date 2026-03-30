@@ -9,6 +9,7 @@ FLOWER_SCRIPTS="$(cd "$(dirname "$FLOWER_ENV_PATH")" && pwd)"
 FLOWER_PATH="$(realpath $(dirname "$FLOWER_SCRIPTS"))"
 FLOWER_WORKSPACE="$FLOWER_PATH/workspace"
 FLOWER_PROJECT="$FLOWER_WORKSPACE/quickstart-pytorch"
+FLOWER_VENV="$FLOWER_PATH/flower_venv"
 
 # Flower configuration
 FLOWER_VERSION="1.27.0"
