@@ -28,6 +28,16 @@ fi
 
 # Create Flower config file in the project directory (so Docker can access it)
 mkdir -p "$FLOWER_PROJECT/.flwr"
+
+# Fix directory permissions first to ensure we can write
+chmod 755 "$FLOWER_PROJECT/.flwr" 2>/dev/null || true
+
+# Remove old config if it exists and fix permissions
+if [ -f "$FLOWER_PROJECT/.flwr/config.toml" ]; then
+    chmod 644 "$FLOWER_PROJECT/.flwr/config.toml" 2>/dev/null || rm -f "$FLOWER_PROJECT/.flwr/config.toml"
+fi
+
+# Create new config file
 cat > "$FLOWER_PROJECT/.flwr/config.toml" << EOF
 [superlink.local-deployment]
 address = "127.0.0.1:9093"
@@ -36,10 +46,15 @@ EOF
 
 # Fix permissions so Docker containers can access it
 chmod 644 "$FLOWER_PROJECT/.flwr/config.toml"
-chmod 755 "$FLOWER_PROJECT/.flwr"
 
 # Also create in home directory for local use
 mkdir -p ~/.flwr
+
+# Fix home directory permissions
+if [ -f ~/.flwr/config.toml ]; then
+    chmod 644 ~/.flwr/config.toml 2>/dev/null || rm -f ~/.flwr/config.toml
+fi
+
 cp "$FLOWER_PROJECT/.flwr/config.toml" ~/.flwr/config.toml
 chmod 644 ~/.flwr/config.toml
 
