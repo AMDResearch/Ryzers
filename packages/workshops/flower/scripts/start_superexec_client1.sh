@@ -27,5 +27,5 @@ docker run --rm \
     "$SUPEREXEC_CLIENT1_NAME:latest" \
     flower-superexec \
     --insecure \
-    --executor-config "app-dir=/app node-id=0" \
-    --executor flwr.superexec.deployment:executor
+    --plugin-type clientapp \
+    --appio-api-address "$SUPERNODE1_NAME:9094"

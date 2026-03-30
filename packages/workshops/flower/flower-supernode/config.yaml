@@ -6,3 +6,7 @@ gpu_support: false
 
 # No X11 needed
 x11_display: false
+
+# Bridge network for Flower communication
+docker_extra_run_flags:
+    - "--network flwr-network"

@@ -56,7 +56,8 @@ if [ -f "$FLOWER_PROJECT/.flwr/config.toml" ]; then
 fi
 
 # Create new config file (using container name on bridge network)
-cat > "$FLOWER_PROJECT/.flwr/config.toml" << EOF
+# Note: Using non-quoted EOF to expand variables
+cat > "$FLOWER_PROJECT/.flwr/config.toml" <<EOF
 [superlink.local-deployment]
 address = "$SUPERLINK_NAME:9093"
 insecure = true

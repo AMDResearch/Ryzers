@@ -18,9 +18,4 @@ echo "========================================="
 RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
 cd "$RYZERS_ROOT"
 
-# Use docker run with bridge network (ryzers run doesn't support --network flag)
-docker run --rm \
-    --network "$FLOWER_NETWORK" \
-    --name "$SUPERLINK_NAME" \
-    "$SUPERLINK_NAME:latest" \
-    flower-superlink --insecure --isolation process
+ryzers run --name "$SUPERLINK_NAME" flower-superlink --insecure --isolation process
