@@ -7,8 +7,17 @@ source "$(dirname "$0")/env.sh"
 
 echo "Setting up Flower demo environment..."
 
-# Create workspace directory
+# Create workspace directory with correct ownership
 mkdir -p "$FLOWER_WORKSPACE"
+
+# Fix ownership if it was created by Docker/root in a previous run
+if [ "$(stat -c '%U' "$FLOWER_WORKSPACE" 2>/dev/null)" = "root" ]; then
+    echo "Fixing workspace ownership (was owned by root)..."
+    sudo chown -R "$(id -u):$(id -g)" "$FLOWER_WORKSPACE"
+fi
+
+# Ensure workspace has correct permissions
+chmod 755 "$FLOWER_WORKSPACE"
 
 # Initialize Flower project using the SuperExec ryzer (which has flwr CLI)
 echo "Initializing Flower project..."
