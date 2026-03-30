@@ -10,19 +10,15 @@ echo "Setting up Flower demo environment..."
 # Create workspace directory
 mkdir -p "$FLOWER_WORKSPACE"
 
-# Change to Ryzers root directory (ryzers run must run from repo root)
-RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
-
 # Initialize Flower project using the SuperExec ryzer (which has flwr CLI)
 echo "Initializing Flower project..."
 
 if [ ! -d "$FLOWER_PROJECT" ]; then
     # Run flwr new command inside SuperExec ryzer
-    pushd "$RYZERS_ROOT"
-    ryzers run --name "$SUPEREXEC_SERVER_NAME" \
+    docker run --rm \
         -v "$FLOWER_WORKSPACE:/workspace" \
-        -- /bin/bash -c "cd /workspace && (flwr new @flwrlabs/quickstart-pytorch --non-interactive || flwr new quickstart-pytorch --framework pytorch)"
-    popd
+        "$SUPEREXEC_SERVER_NAME:latest" \
+        /bin/bash -c "cd /workspace && (flwr new @flwrlabs/quickstart-pytorch --non-interactive || flwr new quickstart-pytorch --framework pytorch)"
 
     echo "✓ Flower project created at: $FLOWER_PROJECT"
 else
