@@ -14,9 +14,10 @@ mkdir -p "$FLOWER_WORKSPACE"
 echo "Initializing Flower project..."
 
 if [ ! -d "$FLOWER_PROJECT" ]; then
-    # Run flwr new command inside SuperExec ryzer
+    # Run flwr new command inside SuperExec ryzer with current user
     docker run --rm \
         -v "$FLOWER_WORKSPACE:/workspace" \
+        -u "$(id -u):$(id -g)" \
         "$SUPEREXEC_SERVER_NAME:latest" \
         /bin/bash -c "cd /workspace && flwr new @flwrlabs/quickstart-pytorch"
 
@@ -33,9 +34,14 @@ address = "127.0.0.1:9093"
 insecure = true
 EOF
 
+# Fix permissions so Docker containers can access it
+chmod 644 "$FLOWER_PROJECT/.flwr/config.toml"
+chmod 755 "$FLOWER_PROJECT/.flwr"
+
 # Also create in home directory for local use
 mkdir -p ~/.flwr
 cp "$FLOWER_PROJECT/.flwr/config.toml" ~/.flwr/config.toml
+chmod 644 ~/.flwr/config.toml
 
 echo "✓ Setup complete!"
 echo ""
