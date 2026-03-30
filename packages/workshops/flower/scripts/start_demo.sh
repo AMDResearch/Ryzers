@@ -16,6 +16,10 @@ if [ ! -d "$FLOWER_PROJECT" ]; then
     exit 1
 fi
 
+# Change to Ryzers root directory (ryzers run must run from repo root)
+RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+pushd "$RYZERS_ROOT"
+
 # Step 1: Launch SuperLink
 echo "[1/6] Launching SuperLink (central coordinator)..."
 ryzers run --name "$SUPERLINK_NAME" \
@@ -95,6 +99,8 @@ ryzers run --name "$SUPEREXEC_SERVER_NAME" \
     --network host \
     -v "$FLOWER_PROJECT:/app" \
     -- /bin/bash -c "cd /app && flwr run . local-deployment --stream"
+
+popd
 
 echo ""
 echo "========================================="
