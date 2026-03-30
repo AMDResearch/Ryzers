@@ -15,13 +15,10 @@ echo "Initializing Flower project..."
 cd "$FLOWER_WORKSPACE"
 
 if [ ! -d "$FLOWER_PROJECT" ]; then
-    # Run flwr new command inside a temporary SuperExec container
-    docker run --rm \
+    # Run flwr new command inside SuperExec ryzer
+    ryzers run --name "$SUPEREXEC_SERVER_NAME" \
         -v "$FLOWER_WORKSPACE:/workspace" \
-        -w /workspace \
-        --entrypoint /bin/bash \
-        "flower-superexec:latest" \
-        -c "flwr new @flwrlabs/quickstart-pytorch --non-interactive || flwr new quickstart-pytorch --framework pytorch"
+        -- /bin/bash -c "cd /workspace && (flwr new @flwrlabs/quickstart-pytorch --non-interactive || flwr new quickstart-pytorch --framework pytorch)"
 
     echo "✓ Flower project created at: $FLOWER_PROJECT"
 else

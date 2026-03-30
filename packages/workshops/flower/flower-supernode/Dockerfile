@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /ryzers
 
 # Install Python dependencies without torch (already in base image)
-RUN pip install --no-cache-dir --break-system-packages \
+RUN pip install --no-cache-dir \
     grpcio==1.67.1 \
     protobuf==5.29.0 \
     cryptography==44.0.0 \
@@ -24,7 +24,7 @@ RUN pip install --no-cache-dir --break-system-packages \
     iterators==0.0.2
 
 # Install flwr without dependencies to avoid torch conflict
-RUN pip install --no-deps --no-cache-dir --break-system-packages \
+RUN pip install --no-deps --no-cache-dir \
     flwr==1.27.0
 
 # Copy test script

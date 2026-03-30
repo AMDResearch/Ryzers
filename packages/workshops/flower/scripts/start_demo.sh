@@ -87,16 +87,14 @@ ryzers run --name "$SUPEREXEC_CLIENT2_NAME" \
 
 sleep 2
 
-# Step 6: Run Flower training (using SuperExec container with flwr CLI)
+# Step 6: Run Flower training (using SuperExec ryzer with flwr CLI)
 echo "[6/6] Starting Federated Learning training..."
 echo ""
 
-docker run --rm -it \
+ryzers run --name "$SUPEREXEC_SERVER_NAME" \
     --network host \
     -v "$FLOWER_PROJECT:/app" \
-    -w /app \
-    "$SUPEREXEC_SERVER_NAME:latest" \
-    flwr run . local-deployment --stream
+    -- /bin/bash -c "cd /app && flwr run . local-deployment --stream"
 
 echo ""
 echo "========================================="

@@ -9,13 +9,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /ryzers
 
 # Install torchvision and other ML dependencies (torch already in base image)
-RUN pip install --no-cache-dir --break-system-packages \
+RUN pip install --no-cache-dir \
     torchvision \
     numpy \
     pillow
 
 # Install Python dependencies without torch
-RUN pip install --no-cache-dir --break-system-packages \
+RUN pip install --no-cache-dir \
     grpcio==1.67.1 \
     protobuf==5.29.0 \
     cryptography==44.0.0 \
@@ -30,12 +30,12 @@ RUN pip install --no-cache-dir --break-system-packages \
     iterators==0.0.2
 
 # Install flwr without dependencies to avoid torch conflict
-RUN pip install --no-deps --no-cache-dir --break-system-packages \
+RUN pip install --no-deps --no-cache-dir \
     flwr==1.27.0
 
 # Install Flower CLI tools for project initialization
-RUN pip install --no-cache-dir --break-system-packages flwr[simulation]==1.27.0 || \
-    pip install --no-cache-dir --break-system-packages "flwr[simulation]==1.27.0" --no-deps || \
+RUN pip install --no-cache-dir flwr[simulation]==1.27.0 || \
+    pip install --no-cache-dir "flwr[simulation]==1.27.0" --no-deps || \
     echo "Flower CLI tools installed"
 
 # Copy test script
