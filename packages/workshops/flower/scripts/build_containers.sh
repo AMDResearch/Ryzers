@@ -9,6 +9,10 @@ echo "Building Flower ryzer containers..."
 
 cd "$FLOWER_PATH/.."
 
+# Build ryzer_env first (base environment)
+echo "[0/3] Building ryzer_env (base environment)..."
+ryzers build ryzer_env --name ryzer_env
+
 # Build SuperLink ryzer
 echo "[1/3] Building SuperLink..."
 ryzers build flower/flower-superlink --name "$SUPERLINK_NAME"
