@@ -7,8 +7,5 @@ gpu_support: false
 # No X11 needed
 x11_display: false
 
-# Bridge network for Flower communication
-# Note: Container name is set per-instance in the start script
-docker_extra_run_flags:
-    - "--rm"
-    - "--network flwr-network"
+# Note: Network is specified in docker run command (not using ryzers run for SuperNode)
+# Each SuperNode instance needs unique container name and port

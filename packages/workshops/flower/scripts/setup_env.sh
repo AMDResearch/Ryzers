@@ -7,6 +7,15 @@ source "$(dirname "$0")/env.sh"
 
 echo "Setting up Flower demo environment..."
 
+# Create virtualenv if it doesn't exist
+if [ ! -d "$FLOWER_VENV" ]; then
+    echo "Creating Python virtual environment..."
+    python3 -m venv "$FLOWER_VENV"
+    echo "✓ Virtual environment created at: $FLOWER_VENV"
+else
+    echo "✓ Virtual environment already exists: $FLOWER_VENV"
+fi
+
 # Create Docker bridge network for Flower components
 if ! docker network inspect "$FLOWER_NETWORK" &>/dev/null; then
     echo "Creating Docker network: $FLOWER_NETWORK"
