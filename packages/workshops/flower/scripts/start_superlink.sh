@@ -19,4 +19,5 @@ RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
 cd "$RYZERS_ROOT"
 
 # Use ryzers run (network and container name are in config.yaml)
-ryzers run --name "$SUPERLINK_NAME" flower-superlink --insecure --isolation process
+# Arguments are passed as a single string to the container CMD
+ryzers run --name "$SUPERLINK_NAME" "flower-superlink --insecure --isolation process"
