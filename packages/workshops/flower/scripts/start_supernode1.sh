@@ -18,7 +18,13 @@ echo "========================================="
 RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
 cd "$RYZERS_ROOT"
 
-ryzers run --name "$SUPERNODE1_NAME" \
+# Modify the run script to add container name and port
+# ryzers run generates script but we need unique container name per SuperNode
+docker run --rm \
+    --network "$FLOWER_NETWORK" \
+    --name "$SUPERNODE1_NAME" \
+    -p 9094:9094 \
+    "$SUPERNODE1_NAME:latest" \
     flower-supernode \
     --insecure \
     --superlink "$SUPERLINK_NAME:9092" \

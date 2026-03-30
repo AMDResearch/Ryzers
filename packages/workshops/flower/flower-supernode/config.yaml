@@ -8,5 +8,7 @@ gpu_support: false
 x11_display: false
 
 # Bridge network for Flower communication
+# Note: Container name is set per-instance in the start script
 docker_extra_run_flags:
+    - "--rm"
     - "--network flwr-network"
