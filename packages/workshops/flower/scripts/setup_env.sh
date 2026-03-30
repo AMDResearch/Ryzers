@@ -7,6 +7,14 @@ source "$(dirname "$0")/env.sh"
 
 echo "Setting up Flower demo environment..."
 
+# Create Docker bridge network for Flower components
+if ! docker network inspect "$FLOWER_NETWORK" &>/dev/null; then
+    echo "Creating Docker network: $FLOWER_NETWORK"
+    docker network create --driver bridge "$FLOWER_NETWORK"
+else
+    echo "✓ Docker network already exists: $FLOWER_NETWORK"
+fi
+
 # Create workspace directory with correct ownership
 mkdir -p "$FLOWER_WORKSPACE"
 
@@ -24,6 +32,7 @@ echo "Initializing Flower project..."
 
 if [ ! -d "$FLOWER_PROJECT" ]; then
     # Run flwr new command inside SuperExec ryzer with current user
+    # Using docker run directly as volume path is dynamic
     docker run --rm \
         -v "$FLOWER_WORKSPACE:/workspace" \
         -u "$(id -u):$(id -g)" \
@@ -46,10 +55,10 @@ if [ -f "$FLOWER_PROJECT/.flwr/config.toml" ]; then
     chmod 644 "$FLOWER_PROJECT/.flwr/config.toml" 2>/dev/null || rm -f "$FLOWER_PROJECT/.flwr/config.toml"
 fi
 
-# Create new config file
+# Create new config file (using container name on bridge network)
 cat > "$FLOWER_PROJECT/.flwr/config.toml" << EOF
 [superlink.local-deployment]
-address = "127.0.0.1:9093"
+address = "$SUPERLINK_NAME:9093"
 insecure = true
 EOF
 

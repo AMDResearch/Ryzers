@@ -14,10 +14,16 @@ echo "========================================="
 echo "  Flower SuperExec (ClientApp 1)"
 echo "========================================="
 
+# Change to Ryzers root (ryzers run must run from repo root)
+RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+cd "$RYZERS_ROOT"
+
+# Use docker run with bridge network and dynamic volume mount
 docker run --rm \
-    --network host \
+    --network "$FLOWER_NETWORK" \
     --name "$SUPEREXEC_CLIENT1_NAME" \
     -v "$FLOWER_PROJECT:/app" \
+    --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --group-add render \
     "$SUPEREXEC_CLIENT1_NAME:latest" \
     flower-superexec \
     --insecure \

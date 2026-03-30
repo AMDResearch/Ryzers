@@ -14,13 +14,18 @@ echo "========================================="
 echo "  Flower SuperNode 1 (Client Manager)"
 echo "========================================="
 
+# Change to Ryzers root (ryzers run must run from repo root)
+RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+cd "$RYZERS_ROOT"
+
+# Use docker run with bridge network (ryzers run doesn't support --network flag)
 docker run --rm \
-    --network host \
+    --network "$FLOWER_NETWORK" \
     --name "$SUPERNODE1_NAME" \
     "$SUPERNODE1_NAME:latest" \
     flower-supernode \
     --insecure \
-    --superlink 127.0.0.1:9092 \
+    --superlink "$SUPERLINK_NAME:9092" \
     --node-config "partition-id=0 num-partitions=2" \
     --clientappio-api-address 0.0.0.0:9094 \
     --isolation process

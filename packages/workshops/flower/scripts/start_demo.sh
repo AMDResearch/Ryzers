@@ -55,7 +55,7 @@ echo ""
 
 # Set FLWR_HOME to the project's .flwr directory so it finds the config
 docker run --rm -it \
-    --network host \
+    --network "$FLOWER_NETWORK" \
     -v "$FLOWER_PROJECT:/app" \
     -e FLWR_HOME=/app/.flwr \
     "$SUPEREXEC_SERVER_NAME:latest" \

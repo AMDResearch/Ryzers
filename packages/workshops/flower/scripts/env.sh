@@ -13,6 +13,7 @@ FLOWER_VENV="$FLOWER_PATH/flower_venv"
 
 # Flower configuration
 FLOWER_VERSION="1.27.0"
+FLOWER_NETWORK="flwr-network"
 
 # Ryzer container names
 SUPERLINK_NAME="flower-superlink"

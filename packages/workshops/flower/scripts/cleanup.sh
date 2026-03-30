@@ -16,3 +16,6 @@ docker stop "$SUPEREXEC_CLIENT1_NAME" 2>/dev/null || true
 docker stop "$SUPEREXEC_CLIENT2_NAME" 2>/dev/null || true
 
 echo "✓ All containers stopped"
+echo ""
+echo "To remove the Docker network:"
+echo "  docker network rm $FLOWER_NETWORK"

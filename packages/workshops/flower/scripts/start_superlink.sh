@@ -14,8 +14,13 @@ echo "========================================="
 echo "  Flower SuperLink (Coordinator)"
 echo "========================================="
 
+# Change to Ryzers root (ryzers run must run from repo root)
+RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+cd "$RYZERS_ROOT"
+
+# Use docker run with bridge network (ryzers run doesn't support --network flag)
 docker run --rm \
-    --network host \
+    --network "$FLOWER_NETWORK" \
     --name "$SUPERLINK_NAME" \
     "$SUPERLINK_NAME:latest" \
     flower-superlink --insecure --isolation process
