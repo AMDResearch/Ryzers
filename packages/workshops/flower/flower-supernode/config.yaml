@@ -6,6 +6,3 @@ gpu_support: false
 
 # No X11 needed
 x11_display: false
-
-# No camera needed
-camera_support: false
