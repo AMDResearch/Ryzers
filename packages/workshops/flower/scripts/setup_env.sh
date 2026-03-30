@@ -18,7 +18,7 @@ if [ ! -d "$FLOWER_PROJECT" ]; then
     docker run --rm \
         -v "$FLOWER_WORKSPACE:/workspace" \
         "$SUPEREXEC_SERVER_NAME:latest" \
-        /bin/bash -c "cd /workspace && (flwr new @flwrlabs/quickstart-pytorch --non-interactive || flwr new quickstart-pytorch --framework pytorch)"
+        /bin/bash -c "cd /workspace && flwr new @flwrlabs/quickstart-pytorch"
 
     echo "✓ Flower project created at: $FLOWER_PROJECT"
 else
