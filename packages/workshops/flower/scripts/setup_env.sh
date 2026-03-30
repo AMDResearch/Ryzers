@@ -25,13 +25,17 @@ else
     echo "✓ Flower project already exists: $FLOWER_PROJECT"
 fi
 
-# Create Flower config file
-mkdir -p ~/.flwr
-cat > ~/.flwr/config.toml << EOF
+# Create Flower config file in the project directory (so Docker can access it)
+mkdir -p "$FLOWER_PROJECT/.flwr"
+cat > "$FLOWER_PROJECT/.flwr/config.toml" << EOF
 [superlink.local-deployment]
 address = "127.0.0.1:9093"
 insecure = true
 EOF
+
+# Also create in home directory for local use
+mkdir -p ~/.flwr
+cp "$FLOWER_PROJECT/.flwr/config.toml" ~/.flwr/config.toml
 
 echo "✓ Setup complete!"
 echo ""

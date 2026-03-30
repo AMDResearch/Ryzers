@@ -97,9 +97,11 @@ sleep 2
 echo "[6/6] Starting Federated Learning training..."
 echo ""
 
+# Set FLWR_HOME to the project's .flwr directory so it finds the config
 docker run --rm -it \
     --network host \
     -v "$FLOWER_PROJECT:/app" \
+    -e FLWR_HOME=/app/.flwr \
     "$SUPEREXEC_SERVER_NAME:latest" \
     /bin/bash -c "cd /app && flwr run . local-deployment --stream"
 
