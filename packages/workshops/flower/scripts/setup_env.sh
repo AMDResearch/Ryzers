@@ -16,6 +16,11 @@ else
     echo "✓ Virtual environment already exists: $FLOWER_VENV"
 fi
 
+# Activate virtualenv for this script
+if [ -f "$FLOWER_VENV/bin/activate" ]; then
+    source "$FLOWER_VENV/bin/activate"
+fi
+
 # Create Docker bridge network for Flower components
 if ! docker network inspect "$FLOWER_NETWORK" &>/dev/null; then
     echo "Creating Docker network: $FLOWER_NETWORK"

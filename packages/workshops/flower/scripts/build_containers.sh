@@ -5,6 +5,11 @@
 
 source "$(dirname "$0")/env.sh"
 
+# Activate virtualenv if it exists
+if [ -f "$FLOWER_VENV/bin/activate" ]; then
+    source "$FLOWER_VENV/bin/activate"
+fi
+
 echo "Building Flower ryzer containers..."
 
 # Change to Ryzers root directory (ryzers build must run from repo root)
