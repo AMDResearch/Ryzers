@@ -6,7 +6,7 @@ set -e
 # This script must be sourced "source env.sh" for paths to be set correctly
 FLOWER_ENV_PATH="${BASH_SOURCE[0]}"
 FLOWER_SCRIPTS="$(cd "$(dirname "$FLOWER_ENV_PATH")" && pwd)"
-FLOWER_PATH=$(dirname "$FLOWER_SCRIPTS")
+FLOWER_PATH="$(realpath $(dirname "$FLOWER_SCRIPTS"))"
 FLOWER_WORKSPACE="$FLOWER_PATH/workspace"
 FLOWER_PROJECT="$FLOWER_WORKSPACE/quickstart-pytorch"
 
