@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir \
     grpcio==1.70.0 \
     protobuf==5.29.0 \
     cryptography==44.0.0 \
+    pycryptodome \
     pydantic==2.10.3 \
     tomli==2.2.1 \
     tomli-w==1.1.0 \
