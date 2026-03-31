@@ -66,9 +66,9 @@ if [ ! -f "$SUPERNODE1_SCRIPT" ]; then
     exit 1
 fi
 TEMP_SUPERNODE1="/tmp/ryzers.run.${SUPERNODE1_NAME}.sh.tmp"
-# Add --name AND embed the full command
+# Add --name to docker run and replace $1 with the command
 sed "s|docker run|docker run --name $SUPERNODE1_NAME|" "$SUPERNODE1_SCRIPT" | \
-    sed "s|\$@|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process|" > "$TEMP_SUPERNODE1"
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process|" > "$TEMP_SUPERNODE1"
 if [ ! -f "$TEMP_SUPERNODE1" ]; then
     echo "Error: Failed to create $TEMP_SUPERNODE1"
     exit 1
@@ -82,9 +82,9 @@ echo "  Started with PID $SUPERNODE1_PID"
 echo "[3/6] Launching SuperNode 2 (background)..."
 SUPERNODE2_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPERNODE2_NAME}.sh"
 TEMP_SUPERNODE2="/tmp/ryzers.run.${SUPERNODE2_NAME}.sh.tmp"
-# Add --name AND embed the full command
+# Add --name to docker run and replace $1 with the command
 sed "s|docker run|docker run --name $SUPERNODE2_NAME|" "$SUPERNODE2_SCRIPT" | \
-    sed "s|\$@|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=1 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process|" > "$TEMP_SUPERNODE2"
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=1 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process|" > "$TEMP_SUPERNODE2"
 chmod +x "$TEMP_SUPERNODE2"
 bash "$TEMP_SUPERNODE2" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
