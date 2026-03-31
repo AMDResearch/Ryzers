@@ -7,5 +7,10 @@ gpu_support: true
 # No X11 needed
 x11_display: false
 
-# Note: Network is specified in docker run command (not using ryzers run for SuperExec)
-# Each SuperExec instance needs unique container name and dynamic volume mount
+# Bridge network and volume mount for Flower workspace
+# Note: Start scripts export FLOWER_PROJECT environment variable
+docker_extra_run_flags:
+    - "--rm"
+    - "--network flwr-network"
+    - "-v $FLOWER_PROJECT:/app"
+    - "-e FLWR_HOME=/app/.flwr"

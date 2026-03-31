@@ -21,50 +21,78 @@ if [ ! -d "$FLOWER_PROJECT" ]; then
     exit 1
 fi
 
-export FLOWER_SCRIPTS=$FLOWER_SCRIPTS
+# Export FLOWER_PROJECT for use in docker run flags (config.yaml uses $FLOWER_PROJECT)
+export FLOWER_PROJECT
 
-# Step 1: Launch SuperLink in its own terminal
-echo "[1/6] Launching SuperLink in new terminal..."
-gnome-terminal --tab --title="Flower SuperLink" -- bash -c 'echo -ne "\033]0;Flower SuperLink\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superlink.sh; exec bash'
+# Change to Ryzers root directory
+RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+cd "$RYZERS_ROOT"
+
+# Cleanup function for graceful shutdown
+cleanup() {
+    echo ""
+    echo "Stopping all Flower containers..."
+    docker stop "$SUPERLINK_NAME" 2>/dev/null || true
+    docker stop "$SUPERNODE1_NAME" 2>/dev/null || true
+    docker stop "$SUPERNODE2_NAME" 2>/dev/null || true
+    docker stop "$SUPEREXEC_SERVER_NAME" 2>/dev/null || true
+    docker stop "$SUPEREXEC_CLIENT1_NAME" 2>/dev/null || true
+    docker stop "$SUPEREXEC_CLIENT2_NAME" 2>/dev/null || true
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM
+
+# Step 1: Launch SuperLink in background
+echo "[1/6] Launching SuperLink (background)..."
+ryzers run --name "$SUPERLINK_NAME" "flower-superlink --insecure --isolation process" &
+SUPERLINK_PID=$!
 
 sleep 3
 
-# Step 2: Launch SuperNode 1 in its own terminal
-echo "[2/6] Launching SuperNode 1 in new terminal..."
-gnome-terminal --tab --title="Flower SuperNode 1" -- bash -c 'echo -ne "\033]0;Flower SuperNode 1\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_supernode1.sh; exec bash'
+# Step 2: Launch SuperNode 1 in background
+echo "[2/6] Launching SuperNode 1 (background)..."
+ryzers run --name "$SUPERNODE1_NAME" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" &
+SUPERNODE1_PID=$!
 
-# Step 3: Launch SuperNode 2 in its own terminal
-echo "[3/6] Launching SuperNode 2 in new terminal..."
-gnome-terminal --tab --title="Flower SuperNode 2" -- bash -c 'echo -ne "\033]0;Flower SuperNode 2\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_supernode2.sh; exec bash'
+# Step 3: Launch SuperNode 2 in background
+echo "[3/6] Launching SuperNode 2 (background)..."
+ryzers run --name "$SUPERNODE2_NAME" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" &
+SUPERNODE2_PID=$!
 
 sleep 3
 
-# Step 4: Launch ServerApp executor in its own terminal
-echo "[4/6] Launching ServerApp executor in new terminal..."
-gnome-terminal --tab --title="Flower ServerApp" -- bash -c 'echo -ne "\033]0;Flower ServerApp\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superexec_server.sh; exec bash'
+# Step 4: Launch ServerApp executor in background
+echo "[4/6] Launching ServerApp executor (background)..."
+ryzers run --name "$SUPEREXEC_SERVER_NAME" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" &
+SUPEREXEC_SERVER_PID=$!
 
 sleep 2
 
-# Step 5: Launch ClientApp executors in their own terminals
-echo "[5/6] Launching ClientApp executor 1 in new terminal..."
-gnome-terminal --tab --title="Flower ClientApp 1" -- bash -c 'echo -ne "\033]0;Flower ClientApp 1\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superexec_client1.sh; exec bash'
+# Step 5: Launch ClientApp executors in background
+echo "[5/6] Launching ClientApp executor 1 (background)..."
+ryzers run --name "$SUPEREXEC_CLIENT1_NAME" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" &
+SUPEREXEC_CLIENT1_PID=$!
 
-echo "[5/6] Launching ClientApp executor 2 in new terminal..."
-gnome-terminal --tab --title="Flower ClientApp 2" -- bash -c 'echo -ne "\033]0;Flower ClientApp 2\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superexec_client2.sh; exec bash'
+echo "[5/6] Launching ClientApp executor 2 (background)..."
+ryzers run --name "$SUPEREXEC_CLIENT2_NAME" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" &
+SUPEREXEC_CLIENT2_PID=$!
 
 sleep 2
 
-# Step 6: Run Flower training in this terminal (interactive)
+# Show running containers
+echo ""
+echo "All components started. Running containers:"
+docker ps --filter "name=flower-" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+echo ""
+
+# Step 6: Run Flower training in this terminal (foreground/interactive)
 echo "[6/6] Starting Federated Learning training..."
 echo ""
 
-# Set FLWR_HOME to the project's .flwr directory so it finds the config
-docker run --rm -it \
-    --network "$FLOWER_NETWORK" \
-    -v "$FLOWER_PROJECT:/app" \
-    -e FLWR_HOME=/app/.flwr \
-    "$SUPEREXEC_SERVER_NAME:latest" \
-    /bin/bash -c "cd /app && flwr run . local-deployment --stream"
+# Run training using ryzers - this will use the SuperExec config with volume mount
+# The command will be run inside /app which is mounted from $FLOWER_PROJECT
+ryzers run --name "$SUPEREXEC_SERVER_NAME" "bash -c 'cd /app && flwr run . local-deployment --stream'"
 
 echo ""
 echo "========================================="
@@ -72,3 +100,6 @@ echo "  Demo complete!"
 echo "========================================="
 echo ""
 echo "To cleanup: ./cleanup.sh"
+
+# Cleanup on exit
+cleanup
