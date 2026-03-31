@@ -97,9 +97,9 @@ TEMP_RUNSCRIPT="${RUNSCRIPT}.interactive.tmp"
 sed 's/ -d / -it /g' "$RUNSCRIPT" > "$TEMP_RUNSCRIPT"
 chmod +x "$TEMP_RUNSCRIPT"
 
-# Run the interactive training command (use heredoc to avoid quoting issues)
-TRAINING_CMD='bash -c "cd /app && flwr run . local-deployment --stream"'
-bash "$TEMP_RUNSCRIPT" "$TRAINING_CMD"
+# Run the interactive training command
+# Pass command components separately to avoid nested quoting issues
+bash "$TEMP_RUNSCRIPT" sh -c 'cd /app && flwr run . local-deployment --stream'
 
 # Cleanup temporary script
 rm -f "$TEMP_RUNSCRIPT"
