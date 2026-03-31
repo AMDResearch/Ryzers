@@ -7,10 +7,8 @@ gpu_support: false
 # No X11 needed
 x11_display: false
 
-# Bridge network, container name, and port mappings for Flower communication
+# Port mappings for Flower communication (network set via build script)
 docker_extra_run_flags:
-    - "--rm"
-    - "--network flwr-network"
     - "--name flower-superlink"
     - "-p 9091:9091"
     - "-p 9092:9092"
