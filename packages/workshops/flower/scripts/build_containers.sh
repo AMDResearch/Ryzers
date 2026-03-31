@@ -35,9 +35,7 @@ ryzers build flower-superexec --name "$SUPEREXEC_SERVER_NAME"
 ryzers build flower-superexec --name "$SUPEREXEC_CLIENT1_NAME"
 ryzers build flower-superexec --name "$SUPEREXEC_CLIENT2_NAME"
 
-popd
-
-# Fix network and TTY in generated run scripts
+# Fix network and TTY in generated run scripts (BEFORE popd, while still in RYZERS_ROOT)
 echo ""
 echo "Fixing network and TTY configuration in run scripts..."
 for script in ryzers.run.flower-*.sh; do
@@ -51,6 +49,8 @@ for script in ryzers.run.flower-*.sh; do
         echo "     Docker command: $(grep '^docker run' "$script" | head -1 | cut -c1-80)..."
     fi
 done
+
+popd
 
 echo ""
 echo "✓ All Flower ryzers built successfully!"
