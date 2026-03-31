@@ -125,7 +125,8 @@ echo "  Started with PID $SUPEREXEC_CLIENT2_PID"
 sleep 3
 
 # Cleanup temp files now that all containers have started
-rm -f "$TEMP_SUPERNODE1" "$TEMP_SUPERNODE2" "$TEMP_SERVER" "$TEMP_CLIENT1" "$TEMP_CLIENT2"
+# Commenting out for debugging
+# rm -f "$TEMP_SUPERNODE1" "$TEMP_SUPERNODE2" "$TEMP_SERVER" "$TEMP_CLIENT1" "$TEMP_CLIENT2"
 
 # Show running containers
 echo ""
