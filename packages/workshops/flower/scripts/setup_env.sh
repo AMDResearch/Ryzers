@@ -21,6 +21,12 @@ if [ -f "$FLOWER_VENV/bin/activate" ]; then
     source "$FLOWER_VENV/bin/activate"
 fi
 
+# Install Ryzers into the virtualenv
+echo "Installing Ryzers into virtualenv..."
+RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+pip install -q -e "$RYZERS_ROOT"
+echo "✓ Ryzers installed"
+
 # Create Docker bridge network for Flower components
 if ! docker network inspect "$FLOWER_NETWORK" &>/dev/null; then
     echo "Creating Docker network: $FLOWER_NETWORK"
