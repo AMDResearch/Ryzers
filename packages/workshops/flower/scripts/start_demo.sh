@@ -97,22 +97,26 @@ TEMP_RUNSCRIPT="${RUNSCRIPT}.interactive.tmp"
 sed 's/ -d / -it /g' "$RUNSCRIPT" > "$TEMP_RUNSCRIPT"
 chmod +x "$TEMP_RUNSCRIPT"
 
-# Create a wrapper script that will be executed inside the container
-# This avoids all the quoting issues
-TRAIN_SCRIPT=$(mktemp)
-cat > "$TRAIN_SCRIPT" << 'EOF'
-cd /app
-echo "Installing project dependencies..."
-pip install -q -e .
-echo "Starting federated learning training..."
-flwr run . local-deployment --stream
-EOF
+# Check that all required containers are running
+echo "Verifying all containers are running..."
+RUNNING_COUNT=$(docker ps --filter "name=flower-" --format "{{.Names}}" | wc -l)
+if [ "$RUNNING_COUNT" -lt 5 ]; then
+    echo "Warning: Expected 5+ containers, found $RUNNING_COUNT"
+    echo "Running containers:"
+    docker ps --filter "name=flower-" --format "  - {{.Names}}"
+    echo ""
+fi
 
-# Run the container with bash reading from the script
-bash "$TEMP_RUNSCRIPT" bash < "$TRAIN_SCRIPT"
+# Run the training using a simpler single-line approach
+echo "Installing project and running federated learning..."
+echo ""
 
-# Cleanup temporary scripts
-rm -f "$TEMP_RUNSCRIPT" "$TRAIN_SCRIPT"
+# Use printf to build command without quote issues
+TRAINING_CMD=$(printf 'bash -c %s' "'cd /app && pip install -q -e . && flwr run . local-deployment --stream'")
+bash "$TEMP_RUNSCRIPT" "$TRAINING_CMD"
+
+# Cleanup temporary script
+rm -f "$TEMP_RUNSCRIPT"
 
 echo ""
 echo "========================================="
