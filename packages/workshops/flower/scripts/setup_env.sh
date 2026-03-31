@@ -47,75 +47,8 @@ fi
 # Ensure workspace has correct permissions
 chmod 755 "$FLOWER_WORKSPACE"
 
-# Initialize Flower project using the SuperExec ryzer (which has flwr CLI)
-echo "Initializing Flower project..."
-
-if [ ! -d "$FLOWER_PROJECT" ]; then
-    # Create a temp ryzers run script that mounts workspace instead of project
-    RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
-    SUPEREXEC_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPEREXEC_SERVER_NAME}.sh"
-    TEMP_INIT_SCRIPT="/tmp/ryzers.init.flower.sh.tmp"
-
-    # Temporarily set FLOWER_PROJECT to workspace for the volume mount
-    SAVED_FLOWER_PROJECT="$FLOWER_PROJECT"
-    export FLOWER_PROJECT="$FLOWER_WORKSPACE"
-
-    # Create temp script with --rm instead of -d for one-time command
-    sed "s| -d | --rm |g" "$SUPEREXEC_SCRIPT" > "$TEMP_INIT_SCRIPT"
-    chmod +x "$TEMP_INIT_SCRIPT"
-
-    # Run flwr new command using ryzers script
-    bash "$TEMP_INIT_SCRIPT" "/bin/bash -c 'cd /app && flwr new @flwrlabs/quickstart-pytorch'"
-
-    # Restore FLOWER_PROJECT
-    export FLOWER_PROJECT="$SAVED_FLOWER_PROJECT"
-
-    # Cleanup temp script
-    rm -f "$TEMP_INIT_SCRIPT"
-
-    echo "✓ Flower project created at: $FLOWER_PROJECT"
-else
-    echo "✓ Flower project already exists: $FLOWER_PROJECT"
-fi
-
-# Create Flower config file in the project directory (so Docker can access it)
-mkdir -p "$FLOWER_PROJECT/.flwr"
-
-# Fix directory permissions first to ensure we can write
-chmod 755 "$FLOWER_PROJECT/.flwr" 2>/dev/null || true
-
-# Remove old config if it exists and fix permissions
-if [ -f "$FLOWER_PROJECT/.flwr/config.toml" ]; then
-    chmod 644 "$FLOWER_PROJECT/.flwr/config.toml" 2>/dev/null || rm -f "$FLOWER_PROJECT/.flwr/config.toml"
-fi
-
-# Create new config file (using container name on bridge network)
-# Note: Using non-quoted EOF to expand variables
-cat > "$FLOWER_PROJECT/.flwr/config.toml" <<EOF
-[superlink.local-deployment]
-address = "$SUPERLINK_NAME:9093"
-insecure = true
-EOF
-
-# Fix permissions so Docker containers can access it
-chmod 644 "$FLOWER_PROJECT/.flwr/config.toml"
-
-# Also create in home directory for local use
-mkdir -p ~/.flwr
-
-# Fix home directory permissions
-if [ -f ~/.flwr/config.toml ]; then
-    chmod 644 ~/.flwr/config.toml 2>/dev/null || rm -f ~/.flwr/config.toml
-fi
-
-cp "$FLOWER_PROJECT/.flwr/config.toml" ~/.flwr/config.toml
-chmod 644 ~/.flwr/config.toml
-
-# Install project dependencies locally (for verification)
-echo "Installing project dependencies..."
-cd "$FLOWER_PROJECT"
-pip install -q -e .
-cd - > /dev/null
+# Note: Flower project creation moved to build_containers.sh
+# (needs SuperExec container to be built first)
 
 echo "✓ Setup complete!"
 echo ""
