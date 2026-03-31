@@ -98,8 +98,8 @@ sed 's/ -d / -it /g' "$RUNSCRIPT" > "$TEMP_RUNSCRIPT"
 chmod +x "$TEMP_RUNSCRIPT"
 
 # Run the interactive training command
-# Install project dependencies and run flwr
-bash "$TEMP_RUNSCRIPT" sh -c 'cd /app && pip install -q -e . && flwr run . local-deployment --stream'
+# Install project dependencies and run flwr (pass as single quoted argument)
+bash "$TEMP_RUNSCRIPT" 'sh -c "cd /app && pip install -q -e . && flwr run . local-deployment --stream"'
 
 # Cleanup temporary script
 rm -f "$TEMP_RUNSCRIPT"
