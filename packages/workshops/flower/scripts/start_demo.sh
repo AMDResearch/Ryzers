@@ -68,7 +68,7 @@ TEMP_SUPERNODE1="/tmp/ryzers.run.${SUPERNODE1_NAME}.sh.tmp"
 # Remove --rm and add --name and port before image name, and replace $1 with the command
 sed "s|--rm ||" "$SUPERNODE1_SCRIPT" | \
     sed "s|flower-supernode-1|--name flower-supernode-1 -p 9094:9094 flower-supernode-1|" | \
-    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process|" > "$TEMP_SUPERNODE1"
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process|" > "$TEMP_SUPERNODE1"
 if [ ! -f "$TEMP_SUPERNODE1" ]; then
     echo "Error: Failed to create $TEMP_SUPERNODE1"
     exit 1
@@ -85,7 +85,7 @@ TEMP_SUPERNODE2="/tmp/ryzers.run.${SUPERNODE2_NAME}.sh.tmp"
 # Remove --rm and add --name and port before image name, and replace $1 with the command
 sed "s|--rm ||" "$SUPERNODE2_SCRIPT" | \
     sed "s|flower-supernode-2|--name flower-supernode-2 -p 9095:9095 flower-supernode-2|" | \
-    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=1 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process|" > "$TEMP_SUPERNODE2"
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process|" > "$TEMP_SUPERNODE2"
 chmod +x "$TEMP_SUPERNODE2"
 bash "$TEMP_SUPERNODE2" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
