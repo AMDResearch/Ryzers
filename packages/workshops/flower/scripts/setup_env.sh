@@ -97,6 +97,12 @@ fi
 cp "$FLOWER_PROJECT/.flwr/config.toml" ~/.flwr/config.toml
 chmod 644 ~/.flwr/config.toml
 
+# Install project dependencies locally (for verification)
+echo "Installing project dependencies..."
+cd "$FLOWER_PROJECT"
+pip install -q -e .
+cd - > /dev/null
+
 echo "✓ Setup complete!"
 echo ""
-echo "Next step: ./start_demo.sh"
+echo "Next step: ./build_containers.sh"

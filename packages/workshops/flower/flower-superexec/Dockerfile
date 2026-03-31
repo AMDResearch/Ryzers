@@ -33,13 +33,16 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-deps --no-cache-dir \
     flwr==1.27.0
 
-# Install Flower CLI tools for project initialization
-RUN pip install --no-cache-dir flwr[simulation]==1.27.0 || \
-    pip install --no-cache-dir "flwr[simulation]==1.27.0" --no-deps || \
-    echo "Flower CLI tools installed"
+# Install Flower CLI tools and datasets for project
+RUN pip install --no-cache-dir \
+    flwr[simulation]==1.27.0 \
+    flwr-datasets[vision]
 
 # Copy test script
 COPY test.py /ryzers/test_superexec.py
 RUN chmod +x /ryzers/test_superexec.py
+
+# Set working directory where project will be mounted
+WORKDIR /app
 
 CMD ["/ryzers/test_superexec.py"]
