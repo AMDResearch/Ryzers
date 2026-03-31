@@ -8,24 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /ryzers
 
-# Install Python dependencies without torch (already in base image)
+# Install flwr with all dependencies (SuperLink doesn't need torch, no conflict)
 RUN pip install --no-cache-dir \
-    grpcio==1.70.0 \
-    protobuf==5.29.0 \
-    cryptography==44.0.0 \
-    pycryptodome \
-    pydantic==2.10.3 \
-    tomli==2.2.1 \
-    tomli-w==1.1.0 \
-    pathspec==0.12.1 \
-    click==8.1.8 \
-    pyyaml==6.0.2 \
-    typer==0.15.1 \
-    requests==2.32.3 \
-    iterators==0.0.2
-
-# Install flwr without dependencies to avoid torch conflict
-RUN pip install --no-deps --no-cache-dir \
     flwr==1.27.0
 
 # Copy test script

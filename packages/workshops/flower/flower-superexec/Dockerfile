@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir \
     protobuf==5.29.0 \
     cryptography==44.0.0 \
     pycryptodome \
+    sqlalchemy \
     pydantic==2.10.3 \
     tomli==2.2.1 \
     tomli-w==1.1.0 \
