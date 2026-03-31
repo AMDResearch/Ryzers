@@ -51,13 +51,27 @@ chmod 755 "$FLOWER_WORKSPACE"
 echo "Initializing Flower project..."
 
 if [ ! -d "$FLOWER_PROJECT" ]; then
-    # Run flwr new command inside SuperExec ryzer with current user
-    # Using docker run directly as volume path is dynamic
-    docker run --rm \
-        -v "$FLOWER_WORKSPACE:/workspace" \
-        -u "$(id -u):$(id -g)" \
-        "$SUPEREXEC_SERVER_NAME:latest" \
-        /bin/bash -c "cd /workspace && flwr new @flwrlabs/quickstart-pytorch"
+    # Create a temp ryzers run script that mounts workspace instead of project
+    RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
+    SUPEREXEC_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPEREXEC_SERVER_NAME}.sh"
+    TEMP_INIT_SCRIPT="/tmp/ryzers.init.flower.sh.tmp"
+
+    # Temporarily set FLOWER_PROJECT to workspace for the volume mount
+    SAVED_FLOWER_PROJECT="$FLOWER_PROJECT"
+    export FLOWER_PROJECT="$FLOWER_WORKSPACE"
+
+    # Create temp script with --rm instead of -d for one-time command
+    sed "s| -d | --rm |g" "$SUPEREXEC_SCRIPT" > "$TEMP_INIT_SCRIPT"
+    chmod +x "$TEMP_INIT_SCRIPT"
+
+    # Run flwr new command using ryzers script
+    bash "$TEMP_INIT_SCRIPT" "/bin/bash -c 'cd /app && flwr new @flwrlabs/quickstart-pytorch'"
+
+    # Restore FLOWER_PROJECT
+    export FLOWER_PROJECT="$SAVED_FLOWER_PROJECT"
+
+    # Cleanup temp script
+    rm -f "$TEMP_INIT_SCRIPT"
 
     echo "✓ Flower project created at: $FLOWER_PROJECT"
 else
