@@ -45,7 +45,7 @@ trap cleanup SIGINT SIGTERM
 
 # Step 1: Launch SuperLink in background
 echo "[1/6] Launching SuperLink (background)..."
-ryzers run "$SUPERLINK_NAME" "flower-superlink --insecure --isolation process" > /tmp/flower-superlink.log 2>&1 &
+bash "$RYZERS_ROOT/ryzers.run.$SUPERLINK_NAME.sh" "flower-superlink --insecure --isolation process" > /tmp/flower-superlink.log 2>&1 &
 SUPERLINK_PID=$!
 echo "  Started with PID $SUPERLINK_PID"
 
@@ -53,13 +53,13 @@ sleep 3
 
 # Step 2: Launch SuperNode 1 in background
 echo "[2/6] Launching SuperNode 1 (background)..."
-ryzers run "$SUPERNODE1_NAME" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
+bash "$RYZERS_ROOT/ryzers.run.$SUPERNODE1_NAME.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
 SUPERNODE1_PID=$!
 echo "  Started with PID $SUPERNODE1_PID"
 
 # Step 3: Launch SuperNode 2 in background
 echo "[3/6] Launching SuperNode 2 (background)..."
-ryzers run "$SUPERNODE2_NAME" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
+bash "$RYZERS_ROOT/ryzers.run.$SUPERNODE2_NAME.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
 echo "  Started with PID $SUPERNODE2_PID"
 
@@ -67,7 +67,7 @@ sleep 3
 
 # Step 4: Launch ServerApp executor in background
 echo "[4/6] Launching ServerApp executor (background)..."
-ryzers run "$SUPEREXEC_SERVER_NAME" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" > /tmp/flower-superexec-server.log 2>&1 &
+bash "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_SERVER_NAME.sh" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" > /tmp/flower-superexec-server.log 2>&1 &
 SUPEREXEC_SERVER_PID=$!
 echo "  Started with PID $SUPEREXEC_SERVER_PID"
 
@@ -75,12 +75,12 @@ sleep 2
 
 # Step 5: Launch ClientApp executors in background
 echo "[5/6] Launching ClientApp executor 1 (background)..."
-ryzers run "$SUPEREXEC_CLIENT1_NAME" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" > /tmp/flower-superexec-client1.log 2>&1 &
+bash "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_CLIENT1_NAME.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" > /tmp/flower-superexec-client1.log 2>&1 &
 SUPEREXEC_CLIENT1_PID=$!
 echo "  Started with PID $SUPEREXEC_CLIENT1_PID"
 
 echo "[5/6] Launching ClientApp executor 2 (background)..."
-ryzers run "$SUPEREXEC_CLIENT2_NAME" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" > /tmp/flower-superexec-client2.log 2>&1 &
+bash "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_CLIENT2_NAME.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" > /tmp/flower-superexec-client2.log 2>&1 &
 SUPEREXEC_CLIENT2_PID=$!
 echo "  Started with PID $SUPEREXEC_CLIENT2_PID"
 
@@ -133,10 +133,15 @@ flwr run . local-deployment --stream
 EOF
 chmod +x "$FLOWER_PROJECT/run_training.sh"
 
-# Run the script inside the container using ryzers run (interactive mode)
+# Run the script inside the container using ryzers-generated script (interactive mode)
 echo "Installing project and running federated learning..."
 echo ""
-ryzers run "$SUPEREXEC_SERVER_NAME" /app/run_training.sh
+# Create interactive version (replace -d with -it for foreground)
+TEMP_TRAINING_SCRIPT="/tmp/ryzers.run.training.sh.tmp"
+sed 's/ -d / -it /g' "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_SERVER_NAME.sh" > "$TEMP_TRAINING_SCRIPT"
+chmod +x "$TEMP_TRAINING_SCRIPT"
+bash "$TEMP_TRAINING_SCRIPT" /app/run_training.sh
+rm -f "$TEMP_TRAINING_SCRIPT"
 
 # Cleanup
 rm -f "$FLOWER_PROJECT/run_training.sh"
