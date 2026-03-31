@@ -45,37 +45,37 @@ trap cleanup SIGINT SIGTERM
 
 # Step 1: Launch SuperLink in background
 echo "[1/6] Launching SuperLink (background)..."
-ryzers run --name "$SUPERLINK_NAME" "flower-superlink --insecure --isolation process" &
+bash "ryzers.run.${SUPERLINK_NAME}.sh" "flower-superlink --insecure --isolation process" &
 SUPERLINK_PID=$!
 
 sleep 3
 
 # Step 2: Launch SuperNode 1 in background
 echo "[2/6] Launching SuperNode 1 (background)..."
-ryzers run --name "$SUPERNODE1_NAME" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" &
+bash "ryzers.run.${SUPERNODE1_NAME}.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" &
 SUPERNODE1_PID=$!
 
 # Step 3: Launch SuperNode 2 in background
 echo "[3/6] Launching SuperNode 2 (background)..."
-ryzers run --name "$SUPERNODE2_NAME" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" &
+bash "ryzers.run.${SUPERNODE2_NAME}.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" &
 SUPERNODE2_PID=$!
 
 sleep 3
 
 # Step 4: Launch ServerApp executor in background
 echo "[4/6] Launching ServerApp executor (background)..."
-ryzers run --name "$SUPEREXEC_SERVER_NAME" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" &
+bash "ryzers.run.${SUPEREXEC_SERVER_NAME}.sh" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" &
 SUPEREXEC_SERVER_PID=$!
 
 sleep 2
 
 # Step 5: Launch ClientApp executors in background
 echo "[5/6] Launching ClientApp executor 1 (background)..."
-ryzers run --name "$SUPEREXEC_CLIENT1_NAME" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" &
+bash "ryzers.run.${SUPEREXEC_CLIENT1_NAME}.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" &
 SUPEREXEC_CLIENT1_PID=$!
 
 echo "[5/6] Launching ClientApp executor 2 (background)..."
-ryzers run --name "$SUPEREXEC_CLIENT2_NAME" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" &
+bash "ryzers.run.${SUPEREXEC_CLIENT2_NAME}.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" &
 SUPEREXEC_CLIENT2_PID=$!
 
 sleep 2

@@ -44,9 +44,11 @@ for script in ryzers.run.flower-*.sh; do
     if [ -f "$script" ]; then
         # Replace --network=host with --network flwr-network
         sed -i 's/--network=host/--network flwr-network/g' "$script"
-        # Replace -it with -d for background daemon mode
-        sed -i 's/ -it / -d /g' "$script"
+        # Replace -it with -d for background daemon mode (multiple patterns to catch all cases)
+        sed -i 's/ -it / -d /g; s/^docker run -it /docker run -d /g; s/ -it$/ -d/g' "$script"
         echo "  ✓ Fixed $script"
+        # Show the docker run line for verification
+        echo "     Docker command: $(grep '^docker run' "$script" | head -1 | cut -c1-80)..."
     fi
 done
 
