@@ -25,32 +25,32 @@ export FLOWER_SCRIPTS=$FLOWER_SCRIPTS
 
 # Step 1: Launch SuperLink in its own terminal
 echo "[1/6] Launching SuperLink in new terminal..."
-gnome-terminal --tab --title="Flower SuperLink" -- bash -c 'echo -ne "\033]0;Flower SuperLink\007"; '"$FLOWER_SCRIPTS"'/start_superlink.sh; exec bash'
+gnome-terminal --tab --title="Flower SuperLink" -- bash -c 'echo -ne "\033]0;Flower SuperLink\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superlink.sh; exec bash'
 
 sleep 3
 
 # Step 2: Launch SuperNode 1 in its own terminal
 echo "[2/6] Launching SuperNode 1 in new terminal..."
-gnome-terminal --tab --title="Flower SuperNode 1" -- bash -c 'echo -ne "\033]0;Flower SuperNode 1\007"; '"$FLOWER_SCRIPTS"'/start_supernode1.sh; exec bash'
+gnome-terminal --tab --title="Flower SuperNode 1" -- bash -c 'echo -ne "\033]0;Flower SuperNode 1\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_supernode1.sh; exec bash'
 
 # Step 3: Launch SuperNode 2 in its own terminal
 echo "[3/6] Launching SuperNode 2 in new terminal..."
-gnome-terminal --tab --title="Flower SuperNode 2" -- bash -c 'echo -ne "\033]0;Flower SuperNode 2\007"; '"$FLOWER_SCRIPTS"'/start_supernode2.sh; exec bash'
+gnome-terminal --tab --title="Flower SuperNode 2" -- bash -c 'echo -ne "\033]0;Flower SuperNode 2\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_supernode2.sh; exec bash'
 
 sleep 3
 
 # Step 4: Launch ServerApp executor in its own terminal
 echo "[4/6] Launching ServerApp executor in new terminal..."
-gnome-terminal --tab --title="Flower ServerApp" -- bash -c 'echo -ne "\033]0;Flower ServerApp\007"; '"$FLOWER_SCRIPTS"'/start_superexec_server.sh; exec bash'
+gnome-terminal --tab --title="Flower ServerApp" -- bash -c 'echo -ne "\033]0;Flower ServerApp\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superexec_server.sh; exec bash'
 
 sleep 2
 
 # Step 5: Launch ClientApp executors in their own terminals
 echo "[5/6] Launching ClientApp executor 1 in new terminal..."
-gnome-terminal --tab --title="Flower ClientApp 1" -- bash -c 'echo -ne "\033]0;Flower ClientApp 1\007"; '"$FLOWER_SCRIPTS"'/start_superexec_client1.sh; exec bash'
+gnome-terminal --tab --title="Flower ClientApp 1" -- bash -c 'echo -ne "\033]0;Flower ClientApp 1\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superexec_client1.sh; exec bash'
 
 echo "[5/6] Launching ClientApp executor 2 in new terminal..."
-gnome-terminal --tab --title="Flower ClientApp 2" -- bash -c 'echo -ne "\033]0;Flower ClientApp 2\007"; '"$FLOWER_SCRIPTS"'/start_superexec_client2.sh; exec bash'
+gnome-terminal --tab --title="Flower ClientApp 2" -- bash -c 'echo -ne "\033]0;Flower ClientApp 2\007"; source '"$FLOWER_SCRIPTS"'/env.sh; [ -f "$FLOWER_VENV/bin/activate" ] && source "$FLOWER_VENV/bin/activate"; '"$FLOWER_SCRIPTS"'/start_superexec_client2.sh; exec bash'
 
 sleep 2
 
