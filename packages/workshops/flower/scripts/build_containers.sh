@@ -44,6 +44,8 @@ for script in ryzers.run.flower-*.sh; do
         sed -i 's/--network=host/--network flwr-network/g' "$script"
         # Replace -it with -d for background daemon mode (multiple patterns to catch all cases)
         sed -i 's/ -it / -d /g; s/^docker run -it /docker run -d /g; s/ -it$/ -d/g' "$script"
+        # Remove xhost line (X11 not needed for Flower)
+        sed -i '/xhost +local:docker/d' "$script"
         echo "  ✓ Fixed $script"
         # Show the docker run line for verification
         echo "     Docker command: $(grep '^docker run' "$script" | head -1 | cut -c1-80)..."
