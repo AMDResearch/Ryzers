@@ -72,7 +72,7 @@ if [ ! -f "$TEMP_SUPERNODE1" ]; then
     exit 1
 fi
 chmod +x "$TEMP_SUPERNODE1"
-bash "$TEMP_SUPERNODE1" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
+bash "$TEMP_SUPERNODE1" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
 SUPERNODE1_PID=$!
 echo "  Started with PID $SUPERNODE1_PID"
 
@@ -82,7 +82,7 @@ SUPERNODE2_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPERNODE2_NAME}.sh"
 TEMP_SUPERNODE2="/tmp/ryzers.run.${SUPERNODE2_NAME}.sh.tmp"
 sed "s|docker run|docker run --name $SUPERNODE2_NAME|" "$SUPERNODE2_SCRIPT" > "$TEMP_SUPERNODE2"
 chmod +x "$TEMP_SUPERNODE2"
-bash "$TEMP_SUPERNODE2" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
+bash "$TEMP_SUPERNODE2" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=1 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
 echo "  Started with PID $SUPERNODE2_PID"
 
