@@ -54,10 +54,10 @@ sleep 3
 # Step 2: Launch SuperNode 1 in background
 echo "[2/6] Launching SuperNode 1 (background)..."
 TEMP_SUPERNODE1="/tmp/ryzers.run.$SUPERNODE1_NAME.sh.tmp"
-# Remove --rm, add --name and port, replace $1 with command (no quotes around node-config values)
+# Remove --rm, add --name and port, replace $1 with command (use single quotes around node-config value)
 sed "s|--rm ||" "$RYZERS_ROOT/ryzers.run.$SUPERNODE1_NAME.sh" | \
     sed "s|flower-supernode-1|--name flower-supernode-1 -p 9094:9094 flower-supernode-1|" | \
-    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process|" > "$TEMP_SUPERNODE1"
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process|" > "$TEMP_SUPERNODE1"
 chmod +x "$TEMP_SUPERNODE1"
 bash "$TEMP_SUPERNODE1" > /tmp/flower-supernode1.log 2>&1 &
 SUPERNODE1_PID=$!
@@ -66,10 +66,10 @@ echo "  Started with PID $SUPERNODE1_PID"
 # Step 3: Launch SuperNode 2 in background
 echo "[3/6] Launching SuperNode 2 (background)..."
 TEMP_SUPERNODE2="/tmp/ryzers.run.$SUPERNODE2_NAME.sh.tmp"
-# Remove --rm, add --name and port, replace $1 with command (no quotes around node-config values)
+# Remove --rm, add --name and port, replace $1 with command (use single quotes around node-config value)
 sed "s|--rm ||" "$RYZERS_ROOT/ryzers.run.$SUPERNODE2_NAME.sh" | \
     sed "s|flower-supernode-2|--name flower-supernode-2 -p 9095:9095 flower-supernode-2|" | \
-    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=1 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process|" > "$TEMP_SUPERNODE2"
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process|" > "$TEMP_SUPERNODE2"
 chmod +x "$TEMP_SUPERNODE2"
 bash "$TEMP_SUPERNODE2" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
