@@ -37,12 +37,15 @@ ryzers build flower-superexec --name "$SUPEREXEC_CLIENT2_NAME"
 
 popd
 
-# Fix network in generated run scripts (replace --network=host with --network flwr-network)
+# Fix network and TTY in generated run scripts
 echo ""
-echo "Fixing network configuration in run scripts..."
+echo "Fixing network and TTY configuration in run scripts..."
 for script in ryzers.run.flower-*.sh; do
     if [ -f "$script" ]; then
+        # Replace --network=host with --network flwr-network
         sed -i 's/--network=host/--network flwr-network/g' "$script"
+        # Replace -it with -d for background daemon mode
+        sed -i 's/ -it / -d /g' "$script"
         echo "  ✓ Fixed $script"
     fi
 done

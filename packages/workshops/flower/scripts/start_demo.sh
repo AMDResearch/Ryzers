@@ -90,9 +90,18 @@ echo ""
 echo "[6/6] Starting Federated Learning training..."
 echo ""
 
-# Run training using ryzers - this will use the SuperExec config with volume mount
-# The command will be run inside /app which is mounted from $FLOWER_PROJECT
-ryzers run --name "$SUPEREXEC_SERVER_NAME" "bash -c 'cd /app && flwr run . local-deployment --stream'"
+# For the training command, we need interactive mode (-it), but build script sets -d
+# Create a temporary interactive version of the run script
+RUNSCRIPT="ryzers.run.${SUPEREXEC_SERVER_NAME}.sh"
+TEMP_RUNSCRIPT="${RUNSCRIPT}.interactive.tmp"
+sed 's/ -d / -it /g' "$RUNSCRIPT" > "$TEMP_RUNSCRIPT"
+chmod +x "$TEMP_RUNSCRIPT"
+
+# Run the interactive training command
+bash "$TEMP_RUNSCRIPT" "bash -c 'cd /app && flwr run . local-deployment --stream'"
+
+# Cleanup temporary script
+rm -f "$TEMP_RUNSCRIPT"
 
 echo ""
 echo "========================================="
