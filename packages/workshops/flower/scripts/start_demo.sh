@@ -107,16 +107,27 @@ if [ "$RUNNING_COUNT" -lt 5 ]; then
     echo ""
 fi
 
-# Run the training using a simpler single-line approach
+# Create a simple training script in the workspace (will be mounted to /app)
+cat > "$FLOWER_PROJECT/run_training.sh" << 'EOF'
+#!/bin/bash
+set -e
+cd /app
+echo "Installing project dependencies..."
+pip install -q -e .
+echo ""
+echo "Starting federated learning training..."
+echo ""
+flwr run . local-deployment --stream
+EOF
+chmod +x "$FLOWER_PROJECT/run_training.sh"
+
+# Run the script inside the container (it's accessible at /app/run_training.sh)
 echo "Installing project and running federated learning..."
 echo ""
+bash "$TEMP_RUNSCRIPT" /app/run_training.sh
 
-# Use printf to build command without quote issues
-TRAINING_CMD=$(printf 'bash -c %s' "'cd /app && pip install -q -e . && flwr run . local-deployment --stream'")
-bash "$TEMP_RUNSCRIPT" "$TRAINING_CMD"
-
-# Cleanup temporary script
-rm -f "$TEMP_RUNSCRIPT"
+# Cleanup
+rm -f "$TEMP_RUNSCRIPT" "$FLOWER_PROJECT/run_training.sh"
 
 echo ""
 echo "========================================="
