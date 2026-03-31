@@ -74,7 +74,6 @@ fi
 chmod +x "$TEMP_SUPERNODE1"
 bash "$TEMP_SUPERNODE1" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
 SUPERNODE1_PID=$!
-rm -f "$TEMP_SUPERNODE1"
 echo "  Started with PID $SUPERNODE1_PID"
 
 # Step 3: Launch SuperNode 2 in background
@@ -85,7 +84,6 @@ sed "s|docker run|docker run --name $SUPERNODE2_NAME|" "$SUPERNODE2_SCRIPT" > "$
 chmod +x "$TEMP_SUPERNODE2"
 bash "$TEMP_SUPERNODE2" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
-rm -f "$TEMP_SUPERNODE2"
 echo "  Started with PID $SUPERNODE2_PID"
 
 sleep 3
@@ -98,7 +96,6 @@ sed "s|docker run|docker run --name $SUPEREXEC_SERVER_NAME|" "$SERVER_SCRIPT" > 
 chmod +x "$TEMP_SERVER"
 bash "$TEMP_SERVER" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" > /tmp/flower-superexec-server.log 2>&1 &
 SUPEREXEC_SERVER_PID=$!
-rm -f "$TEMP_SERVER"
 echo "  Started with PID $SUPEREXEC_SERVER_PID"
 
 sleep 2
@@ -111,7 +108,6 @@ sed "s|docker run|docker run --name $SUPEREXEC_CLIENT1_NAME|" "$CLIENT1_SCRIPT" 
 chmod +x "$TEMP_CLIENT1"
 bash "$TEMP_CLIENT1" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" > /tmp/flower-superexec-client1.log 2>&1 &
 SUPEREXEC_CLIENT1_PID=$!
-rm -f "$TEMP_CLIENT1"
 echo "  Started with PID $SUPEREXEC_CLIENT1_PID"
 
 echo "[5/6] Launching ClientApp executor 2 (background)..."
@@ -121,10 +117,12 @@ sed "s|docker run|docker run --name $SUPEREXEC_CLIENT2_NAME|" "$CLIENT2_SCRIPT" 
 chmod +x "$TEMP_CLIENT2"
 bash "$TEMP_CLIENT2" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" > /tmp/flower-superexec-client2.log 2>&1 &
 SUPEREXEC_CLIENT2_PID=$!
-rm -f "$TEMP_CLIENT2"
 echo "  Started with PID $SUPEREXEC_CLIENT2_PID"
 
-sleep 2
+sleep 3
+
+# Cleanup temp files now that all containers have started
+rm -f "$TEMP_SUPERNODE1" "$TEMP_SUPERNODE2" "$TEMP_SERVER" "$TEMP_CLIENT1" "$TEMP_CLIENT2"
 
 # Show running containers
 echo ""
