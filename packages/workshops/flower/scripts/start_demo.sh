@@ -60,8 +60,17 @@ sleep 3
 # Step 2: Launch SuperNode 1 in background
 echo "[2/6] Launching SuperNode 1 (background)..."
 # Add --name flag to the run script dynamically
+SUPERNODE1_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPERNODE1_NAME}.sh"
+if [ ! -f "$SUPERNODE1_SCRIPT" ]; then
+    echo "Error: $SUPERNODE1_SCRIPT not found!"
+    exit 1
+fi
 TEMP_SUPERNODE1="/tmp/ryzers.run.${SUPERNODE1_NAME}.sh.tmp"
-sed "s|docker run|docker run --name $SUPERNODE1_NAME|" "$RYZERS_ROOT/ryzers.run.${SUPERNODE1_NAME}.sh" > "$TEMP_SUPERNODE1"
+sed "s|docker run|docker run --name $SUPERNODE1_NAME|" "$SUPERNODE1_SCRIPT" > "$TEMP_SUPERNODE1"
+if [ ! -f "$TEMP_SUPERNODE1" ]; then
+    echo "Error: Failed to create $TEMP_SUPERNODE1"
+    exit 1
+fi
 chmod +x "$TEMP_SUPERNODE1"
 bash "$TEMP_SUPERNODE1" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
 SUPERNODE1_PID=$!
@@ -70,8 +79,9 @@ echo "  Started with PID $SUPERNODE1_PID"
 
 # Step 3: Launch SuperNode 2 in background
 echo "[3/6] Launching SuperNode 2 (background)..."
+SUPERNODE2_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPERNODE2_NAME}.sh"
 TEMP_SUPERNODE2="/tmp/ryzers.run.${SUPERNODE2_NAME}.sh.tmp"
-sed "s|docker run|docker run --name $SUPERNODE2_NAME|" "$RYZERS_ROOT/ryzers.run.${SUPERNODE2_NAME}.sh" > "$TEMP_SUPERNODE2"
+sed "s|docker run|docker run --name $SUPERNODE2_NAME|" "$SUPERNODE2_SCRIPT" > "$TEMP_SUPERNODE2"
 chmod +x "$TEMP_SUPERNODE2"
 bash "$TEMP_SUPERNODE2" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
@@ -82,8 +92,9 @@ sleep 3
 
 # Step 4: Launch ServerApp executor in background
 echo "[4/6] Launching ServerApp executor (background)..."
+SERVER_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPEREXEC_SERVER_NAME}.sh"
 TEMP_SERVER="/tmp/ryzers.run.${SUPEREXEC_SERVER_NAME}.sh.tmp"
-sed "s|docker run|docker run --name $SUPEREXEC_SERVER_NAME|" "$RYZERS_ROOT/ryzers.run.${SUPEREXEC_SERVER_NAME}.sh" > "$TEMP_SERVER"
+sed "s|docker run|docker run --name $SUPEREXEC_SERVER_NAME|" "$SERVER_SCRIPT" > "$TEMP_SERVER"
 chmod +x "$TEMP_SERVER"
 bash "$TEMP_SERVER" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" > /tmp/flower-superexec-server.log 2>&1 &
 SUPEREXEC_SERVER_PID=$!
@@ -94,8 +105,9 @@ sleep 2
 
 # Step 5: Launch ClientApp executors in background
 echo "[5/6] Launching ClientApp executor 1 (background)..."
+CLIENT1_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPEREXEC_CLIENT1_NAME}.sh"
 TEMP_CLIENT1="/tmp/ryzers.run.${SUPEREXEC_CLIENT1_NAME}.sh.tmp"
-sed "s|docker run|docker run --name $SUPEREXEC_CLIENT1_NAME|" "$RYZERS_ROOT/ryzers.run.${SUPEREXEC_CLIENT1_NAME}.sh" > "$TEMP_CLIENT1"
+sed "s|docker run|docker run --name $SUPEREXEC_CLIENT1_NAME|" "$CLIENT1_SCRIPT" > "$TEMP_CLIENT1"
 chmod +x "$TEMP_CLIENT1"
 bash "$TEMP_CLIENT1" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" > /tmp/flower-superexec-client1.log 2>&1 &
 SUPEREXEC_CLIENT1_PID=$!
@@ -103,8 +115,9 @@ rm -f "$TEMP_CLIENT1"
 echo "  Started with PID $SUPEREXEC_CLIENT1_PID"
 
 echo "[5/6] Launching ClientApp executor 2 (background)..."
+CLIENT2_SCRIPT="$RYZERS_ROOT/ryzers.run.${SUPEREXEC_CLIENT2_NAME}.sh"
 TEMP_CLIENT2="/tmp/ryzers.run.${SUPEREXEC_CLIENT2_NAME}.sh.tmp"
-sed "s|docker run|docker run --name $SUPEREXEC_CLIENT2_NAME|" "$RYZERS_ROOT/ryzers.run.${SUPEREXEC_CLIENT2_NAME}.sh" > "$TEMP_CLIENT2"
+sed "s|docker run|docker run --name $SUPEREXEC_CLIENT2_NAME|" "$CLIENT2_SCRIPT" > "$TEMP_CLIENT2"
 chmod +x "$TEMP_CLIENT2"
 bash "$TEMP_CLIENT2" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" > /tmp/flower-superexec-client2.log 2>&1 &
 SUPEREXEC_CLIENT2_PID=$!
