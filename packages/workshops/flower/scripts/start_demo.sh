@@ -45,38 +45,49 @@ trap cleanup SIGINT SIGTERM
 
 # Step 1: Launch SuperLink in background
 echo "[1/6] Launching SuperLink (background)..."
-bash "ryzers.run.${SUPERLINK_NAME}.sh" "flower-superlink --insecure --isolation process" &
+if [ ! -f "ryzers.run.${SUPERLINK_NAME}.sh" ]; then
+    echo "Error: Run script ryzers.run.${SUPERLINK_NAME}.sh not found!"
+    echo "Did you run ./build_containers.sh?"
+    exit 1
+fi
+bash "ryzers.run.${SUPERLINK_NAME}.sh" "flower-superlink --insecure --isolation process" > /tmp/flower-superlink.log 2>&1 &
 SUPERLINK_PID=$!
+echo "  Started with PID $SUPERLINK_PID"
 
 sleep 3
 
 # Step 2: Launch SuperNode 1 in background
 echo "[2/6] Launching SuperNode 1 (background)..."
-bash "ryzers.run.${SUPERNODE1_NAME}.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" &
+bash "ryzers.run.${SUPERNODE1_NAME}.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
 SUPERNODE1_PID=$!
+echo "  Started with PID $SUPERNODE1_PID"
 
 # Step 3: Launch SuperNode 2 in background
 echo "[3/6] Launching SuperNode 2 (background)..."
-bash "ryzers.run.${SUPERNODE2_NAME}.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" &
+bash "ryzers.run.${SUPERNODE2_NAME}.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
+echo "  Started with PID $SUPERNODE2_PID"
 
 sleep 3
 
 # Step 4: Launch ServerApp executor in background
 echo "[4/6] Launching ServerApp executor (background)..."
-bash "ryzers.run.${SUPEREXEC_SERVER_NAME}.sh" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" &
+bash "ryzers.run.${SUPEREXEC_SERVER_NAME}.sh" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" > /tmp/flower-superexec-server.log 2>&1 &
 SUPEREXEC_SERVER_PID=$!
+echo "  Started with PID $SUPEREXEC_SERVER_PID"
 
 sleep 2
 
 # Step 5: Launch ClientApp executors in background
 echo "[5/6] Launching ClientApp executor 1 (background)..."
-bash "ryzers.run.${SUPEREXEC_CLIENT1_NAME}.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" &
+bash "ryzers.run.${SUPEREXEC_CLIENT1_NAME}.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" > /tmp/flower-superexec-client1.log 2>&1 &
 SUPEREXEC_CLIENT1_PID=$!
+echo "  Started with PID $SUPEREXEC_CLIENT1_PID"
 
 echo "[5/6] Launching ClientApp executor 2 (background)..."
-bash "ryzers.run.${SUPEREXEC_CLIENT2_NAME}.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" &
+bash "ryzers.run.${SUPEREXEC_CLIENT2_NAME}.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" > /tmp/flower-superexec-client2.log 2>&1 &
 SUPEREXEC_CLIENT2_PID=$!
+echo "  Started with PID $SUPEREXEC_CLIENT2_PID"
 
 sleep 2
 
@@ -101,10 +112,23 @@ chmod +x "$TEMP_RUNSCRIPT"
 echo "Verifying all containers are running..."
 RUNNING_COUNT=$(docker ps --filter "name=flower-" --format "{{.Names}}" | wc -l)
 if [ "$RUNNING_COUNT" -lt 5 ]; then
-    echo "Warning: Expected 5+ containers, found $RUNNING_COUNT"
+    echo ""
+    echo "ERROR: Expected 5+ containers, found $RUNNING_COUNT"
+    echo ""
     echo "Running containers:"
     docker ps --filter "name=flower-" --format "  - {{.Names}}"
     echo ""
+    echo "Background process logs:"
+    echo "  SuperLink log: /tmp/flower-superlink.log"
+    echo "  SuperNode1 log: /tmp/flower-supernode1.log"
+    echo "  SuperNode2 log: /tmp/flower-supernode2.log"
+    echo "  SuperExec Server log: /tmp/flower-superexec-server.log"
+    echo "  SuperExec Client1 log: /tmp/flower-superexec-client1.log"
+    echo "  SuperExec Client2 log: /tmp/flower-superexec-client2.log"
+    echo ""
+    echo "Check logs with: tail -20 /tmp/flower-*.log"
+    echo ""
+    exit 1
 fi
 
 # Create a simple training script in the workspace (will be mounted to /app)
