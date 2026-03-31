@@ -53,13 +53,25 @@ sleep 3
 
 # Step 2: Launch SuperNode 1 in background
 echo "[2/6] Launching SuperNode 1 (background)..."
-bash "$RYZERS_ROOT/ryzers.run.$SUPERNODE1_NAME.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process" > /tmp/flower-supernode1.log 2>&1 &
+TEMP_SUPERNODE1="/tmp/ryzers.run.$SUPERNODE1_NAME.sh.tmp"
+# Remove --rm, add --name and port, replace $1 with command (no quotes around node-config values)
+sed "s|--rm ||" "$RYZERS_ROOT/ryzers.run.$SUPERNODE1_NAME.sh" | \
+    sed "s|flower-supernode-1|--name flower-supernode-1 -p 9094:9094 flower-supernode-1|" | \
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=0 num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process|" > "$TEMP_SUPERNODE1"
+chmod +x "$TEMP_SUPERNODE1"
+bash "$TEMP_SUPERNODE1" > /tmp/flower-supernode1.log 2>&1 &
 SUPERNODE1_PID=$!
 echo "  Started with PID $SUPERNODE1_PID"
 
 # Step 3: Launch SuperNode 2 in background
 echo "[3/6] Launching SuperNode 2 (background)..."
-bash "$RYZERS_ROOT/ryzers.run.$SUPERNODE2_NAME.sh" "flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process" > /tmp/flower-supernode2.log 2>&1 &
+TEMP_SUPERNODE2="/tmp/ryzers.run.$SUPERNODE2_NAME.sh.tmp"
+# Remove --rm, add --name and port, replace $1 with command (no quotes around node-config values)
+sed "s|--rm ||" "$RYZERS_ROOT/ryzers.run.$SUPERNODE2_NAME.sh" | \
+    sed "s|flower-supernode-2|--name flower-supernode-2 -p 9095:9095 flower-supernode-2|" | \
+    sed "s|\$1|flower-supernode --insecure --superlink $SUPERLINK_NAME:9092 --node-config partition-id=1 num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process|" > "$TEMP_SUPERNODE2"
+chmod +x "$TEMP_SUPERNODE2"
+bash "$TEMP_SUPERNODE2" > /tmp/flower-supernode2.log 2>&1 &
 SUPERNODE2_PID=$!
 echo "  Started with PID $SUPERNODE2_PID"
 
@@ -67,7 +79,12 @@ sleep 3
 
 # Step 4: Launch ServerApp executor in background
 echo "[4/6] Launching ServerApp executor (background)..."
-bash "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_SERVER_NAME.sh" "flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091" > /tmp/flower-superexec-server.log 2>&1 &
+TEMP_SERVER="/tmp/ryzers.run.$SUPEREXEC_SERVER_NAME.sh.tmp"
+# Add --name before image name, replace $1 with command
+sed "s|flower-superexec-server|--name flower-superexec-server flower-superexec-server|" "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_SERVER_NAME.sh" | \
+    sed "s|\$1|flower-superexec --insecure --plugin-type serverapp --appio-api-address $SUPERLINK_NAME:9091|" > "$TEMP_SERVER"
+chmod +x "$TEMP_SERVER"
+bash "$TEMP_SERVER" > /tmp/flower-superexec-server.log 2>&1 &
 SUPEREXEC_SERVER_PID=$!
 echo "  Started with PID $SUPEREXEC_SERVER_PID"
 
@@ -75,16 +92,29 @@ sleep 2
 
 # Step 5: Launch ClientApp executors in background
 echo "[5/6] Launching ClientApp executor 1 (background)..."
-bash "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_CLIENT1_NAME.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094" > /tmp/flower-superexec-client1.log 2>&1 &
+TEMP_CLIENT1="/tmp/ryzers.run.$SUPEREXEC_CLIENT1_NAME.sh.tmp"
+# Add --name before image name, replace $1 with command
+sed "s|flower-superexec-client-1|--name flower-superexec-client-1 flower-superexec-client-1|" "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_CLIENT1_NAME.sh" | \
+    sed "s|\$1|flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE1_NAME:9094|" > "$TEMP_CLIENT1"
+chmod +x "$TEMP_CLIENT1"
+bash "$TEMP_CLIENT1" > /tmp/flower-superexec-client1.log 2>&1 &
 SUPEREXEC_CLIENT1_PID=$!
 echo "  Started with PID $SUPEREXEC_CLIENT1_PID"
 
 echo "[5/6] Launching ClientApp executor 2 (background)..."
-bash "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_CLIENT2_NAME.sh" "flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095" > /tmp/flower-superexec-client2.log 2>&1 &
+TEMP_CLIENT2="/tmp/ryzers.run.$SUPEREXEC_CLIENT2_NAME.sh.tmp"
+# Add --name before image name, replace $1 with command
+sed "s|flower-superexec-client-2|--name flower-superexec-client-2 flower-superexec-client-2|" "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_CLIENT2_NAME.sh" | \
+    sed "s|\$1|flower-superexec --insecure --plugin-type clientapp --appio-api-address $SUPERNODE2_NAME:9095|" > "$TEMP_CLIENT2"
+chmod +x "$TEMP_CLIENT2"
+bash "$TEMP_CLIENT2" > /tmp/flower-superexec-client2.log 2>&1 &
 SUPEREXEC_CLIENT2_PID=$!
 echo "  Started with PID $SUPEREXEC_CLIENT2_PID"
 
 sleep 3
+
+# Cleanup temp files now that all containers have started
+rm -f "$TEMP_SUPERNODE1" "$TEMP_SUPERNODE2" "$TEMP_SERVER" "$TEMP_CLIENT1" "$TEMP_CLIENT2"
 
 # Show running containers
 echo ""
