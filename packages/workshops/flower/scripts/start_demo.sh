@@ -97,12 +97,22 @@ TEMP_RUNSCRIPT="${RUNSCRIPT}.interactive.tmp"
 sed 's/ -d / -it /g' "$RUNSCRIPT" > "$TEMP_RUNSCRIPT"
 chmod +x "$TEMP_RUNSCRIPT"
 
-# Run the interactive training command as a single argument to avoid quote issues
-# Use bash -c with semicolons instead of && to separate commands
-bash "$TEMP_RUNSCRIPT" 'bash -c "cd /app; pip install -q -e .; flwr run . local-deployment --stream"'
+# Create a wrapper script that will be executed inside the container
+# This avoids all the quoting issues
+TRAIN_SCRIPT=$(mktemp)
+cat > "$TRAIN_SCRIPT" << 'EOF'
+cd /app
+echo "Installing project dependencies..."
+pip install -q -e .
+echo "Starting federated learning training..."
+flwr run . local-deployment --stream
+EOF
 
-# Cleanup temporary script
-rm -f "$TEMP_RUNSCRIPT"
+# Run the container with bash reading from the script
+bash "$TEMP_RUNSCRIPT" bash < "$TRAIN_SCRIPT"
+
+# Cleanup temporary scripts
+rm -f "$TEMP_RUNSCRIPT" "$TRAIN_SCRIPT"
 
 echo ""
 echo "========================================="
