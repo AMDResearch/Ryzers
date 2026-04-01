@@ -154,8 +154,8 @@ cat > "$FLOWER_PROJECT/run_training.sh" << 'EOF'
 #!/bin/bash
 set -e
 cd /app
-echo "Installing project dependencies..."
-pip install -q -e .
+echo "Registering project package (dependencies already in container)..."
+pip install -q --no-deps -e .
 echo ""
 echo "Starting federated learning training..."
 echo ""
