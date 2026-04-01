@@ -154,6 +154,37 @@ cat > "$FLOWER_PROJECT/run_training.sh" << 'EOF'
 #!/bin/bash
 set -e
 cd /app
+
+echo "============================================"
+echo "GPU Detection Test"
+echo "============================================"
+python3 << 'PYEOF'
+import torch
+import sys
+
+print(f"Python version: {sys.version}")
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+
+if torch.cuda.is_available():
+    print(f"CUDA device count: {torch.cuda.device_count()}")
+    print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
+    print(f"CUDA version: {torch.version.cuda}")
+
+    # Test GPU with simple operation
+    print("\nTesting GPU with simple tensor operation...")
+    x = torch.randn(100, 100).cuda()
+    y = torch.randn(100, 100).cuda()
+    z = torch.matmul(x, y)
+    print(f"GPU test successful! Result shape: {z.shape}")
+else:
+    print("WARNING: No GPU detected - training will use CPU")
+
+print("")
+PYEOF
+echo "============================================"
+echo ""
+
 echo "Registering project package (dependencies already in container)..."
 pip install -q --no-deps -e .
 echo ""
