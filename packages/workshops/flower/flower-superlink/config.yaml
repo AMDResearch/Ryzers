@@ -7,9 +7,7 @@ gpu_support: true
 # No X11 needed
 x11_display: false
 
-# Environment variables for ROCm GPU support
-environment_variables:
-    - "HSA_OVERRIDE_GFX_VERSION=11.0.3"
+# Note: HSA_OVERRIDE_GFX_VERSION removed to let ROCm auto-detect GPU
 
 # Port mappings for Flower communication (network set via build script)
 docker_extra_run_flags:

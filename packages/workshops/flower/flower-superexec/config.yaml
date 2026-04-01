@@ -7,10 +7,10 @@ gpu_support: true
 # No X11 needed
 x11_display: false
 
-# Environment variables for ROCm GPU support
+# Environment variables for Flower
 environment_variables:
-    - "HSA_OVERRIDE_GFX_VERSION=11.0.3"
     - "FLWR_HOME=/app/.flwr"
+# Note: HSA_OVERRIDE_GFX_VERSION removed to let ROCm auto-detect GPU
 
 # Volume mount for Flower workspace (network set via build script)
 # Note: Start scripts export FLOWER_PROJECT environment variable

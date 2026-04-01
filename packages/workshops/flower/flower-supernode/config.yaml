@@ -7,8 +7,6 @@ gpu_support: true
 # No X11 needed
 x11_display: false
 
-# Environment variables for ROCm GPU support
-environment_variables:
-    - "HSA_OVERRIDE_GFX_VERSION=11.0.3"
+# Note: HSA_OVERRIDE_GFX_VERSION removed to let ROCm auto-detect GPU
 
 # Network will be set to flwr-network via build script (replaces default --network=host)
