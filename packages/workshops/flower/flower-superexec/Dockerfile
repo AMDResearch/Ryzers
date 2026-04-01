@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /ryzers
 
 # Install torchvision and other ML dependencies (torch already in base image)
-RUN pip install --no-cache-dir \
+RUN pip install --no-cache-dir --no-deps \
     torchvision \
     numpy \
     pillow
