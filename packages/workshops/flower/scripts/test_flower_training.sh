@@ -97,15 +97,26 @@ echo "Running Flower project code test in SuperExec container..."
 echo ""
 
 cd "$RYZERS_ROOT"
+
+# Create a wrapper script to avoid quoting issues
+cat > "$FLOWER_PROJECT/run_test.sh" << 'WRAPPER'
+#!/bin/bash
+set -e
+cd /app
+pip install -q --no-deps -e .
+python3 /app/test_direct.py
+WRAPPER
+chmod +x "$FLOWER_PROJECT/run_test.sh"
+
 # Create interactive version for better output
 TEMP_TEST_SCRIPT="/tmp/ryzers.test.flower.sh.tmp"
 sed 's/ -d / -it --rm /g' "ryzers.run.$SUPEREXEC_SERVER_NAME.sh" > "$TEMP_TEST_SCRIPT"
 chmod +x "$TEMP_TEST_SCRIPT"
 
-bash "$TEMP_TEST_SCRIPT" "/bin/bash -c 'cd /app && pip install -q --no-deps -e . && python3 /app/test_direct.py'"
+bash "$TEMP_TEST_SCRIPT" /app/run_test.sh
 TEST_RESULT=$?
 
-rm -f "$TEMP_TEST_SCRIPT" "$FLOWER_PROJECT/test_direct.py"
+rm -f "$TEMP_TEST_SCRIPT" "$FLOWER_PROJECT/test_direct.py" "$FLOWER_PROJECT/run_test.sh"
 
 if [ $TEST_RESULT -eq 0 ]; then
     echo ""
