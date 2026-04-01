@@ -8,9 +8,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /ryzers
 
-# Install torchvision and other ML dependencies (torch already in base image)
-RUN pip install --no-cache-dir --no-deps \
-    torchvision \
+# Ensure render and video groups exist and root is a member
+RUN getent group render || groupadd -g 109 render
+RUN getent group video || groupadd -g 44 video
+RUN usermod -aG render,video root
+
+# Install other ML dependencies (torch and torchvision already in base image)
+RUN pip install --no-cache-dir \
     numpy \
     pillow
 
