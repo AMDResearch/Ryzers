@@ -12,3 +12,4 @@ x11_display: false
 docker_extra_run_flags:
     - "-v $FLOWER_PROJECT:/app"
     - "-e FLWR_HOME=/app/.flwr"
+    - "-e HSA_OVERRIDE_GFX_VERSION=11.0.3"
