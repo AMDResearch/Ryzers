@@ -1,10 +1,14 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# No GPU needed for SuperNode (client manager)
-gpu_support: false
+# GPU support for SuperNode
+gpu_support: true
 
 # No X11 needed
 x11_display: false
+
+# Environment variables for ROCm GPU support
+environment_variables:
+    - "HSA_OVERRIDE_GFX_VERSION=11.0.3"
 
 # Network will be set to flwr-network via build script (replaces default --network=host)

@@ -1,11 +1,15 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# No GPU needed for SuperLink (coordinator)
-gpu_support: false
+# GPU support for SuperLink
+gpu_support: true
 
 # No X11 needed
 x11_display: false
+
+# Environment variables for ROCm GPU support
+environment_variables:
+    - "HSA_OVERRIDE_GFX_VERSION=11.0.3"
 
 # Port mappings for Flower communication (network set via build script)
 docker_extra_run_flags:
