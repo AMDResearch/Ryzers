@@ -5,6 +5,12 @@
 
 source "$(dirname "$0")/env.sh"
 
+# Export FLOWER_PROJECT so it's available to docker run scripts
+export FLOWER_PROJECT
+
+# Create workspace directory if it doesn't exist (needed for volume mount)
+mkdir -p "$FLOWER_WORKSPACE"
+
 echo "========================================="
 echo "  Testing Flower Ryzers"
 echo "========================================="
