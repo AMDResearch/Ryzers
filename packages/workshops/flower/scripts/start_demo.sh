@@ -159,22 +159,22 @@ pip install -q -e .
 echo ""
 echo "Starting federated learning training..."
 echo ""
-flwr run . local-deployment --stream
+# Use exec to replace shell with flwr command for proper output forwarding
+exec flwr run . local-deployment --stream
 EOF
 chmod +x "$FLOWER_PROJECT/run_training.sh"
 
 # Run the script inside the container using ryzers-generated script (interactive mode)
 echo "Installing project and running federated learning..."
 echo ""
-# Create interactive version (replace -d with -it for foreground)
+# Create interactive version (replace -d with -it --rm for foreground with cleanup)
 TEMP_TRAINING_SCRIPT="/tmp/ryzers.run.training.sh.tmp"
-sed 's/ -d / -it /g' "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_SERVER_NAME.sh" > "$TEMP_TRAINING_SCRIPT"
+sed 's/ -d / -it --rm /g' "$RYZERS_ROOT/ryzers.run.$SUPEREXEC_SERVER_NAME.sh" > "$TEMP_TRAINING_SCRIPT"
 chmod +x "$TEMP_TRAINING_SCRIPT"
 bash "$TEMP_TRAINING_SCRIPT" /app/run_training.sh
-rm -f "$TEMP_TRAINING_SCRIPT"
 
 # Cleanup
-rm -f "$FLOWER_PROJECT/run_training.sh"
+rm -f "$TEMP_TRAINING_SCRIPT" "$FLOWER_PROJECT/run_training.sh"
 
 echo ""
 echo "========================================="
