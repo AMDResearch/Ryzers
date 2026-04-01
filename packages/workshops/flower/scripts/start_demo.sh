@@ -21,6 +21,36 @@ if [ ! -d "$FLOWER_PROJECT" ]; then
     exit 1
 fi
 
+# Check for ROCm PyTorch on host
+echo "Checking for ROCm PyTorch on host..."
+if ! python3 -c "import torch" 2>/dev/null; then
+    echo "ERROR: PyTorch not found on host system."
+    echo ""
+    echo "Please install ROCm PyTorch with:"
+    echo "  pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm7.2"
+    echo ""
+    exit 1
+fi
+
+if ! python3 -c "import torch; assert torch.cuda.is_available(), 'CUDA not available'" 2>/dev/null; then
+    echo "WARNING: PyTorch found but CUDA/ROCm support not detected on host."
+    echo ""
+    echo "You may need to install ROCm PyTorch with:"
+    echo "  pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm7.2"
+    echo ""
+    read -p "Continue anyway? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+else
+    TORCH_VERSION=$(python3 -c "import torch; print(torch.__version__)")
+    GPU_NAME=$(python3 -c "import torch; print(torch.cuda.get_device_name(0))" 2>/dev/null || echo "Unknown")
+    echo "✓ ROCm PyTorch detected: $TORCH_VERSION"
+    echo "✓ GPU: $GPU_NAME"
+fi
+echo ""
+
 # Export FLOWER_PROJECT for use in docker run flags (config.yaml uses $FLOWER_PROJECT)
 export FLOWER_PROJECT
 
