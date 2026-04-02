@@ -102,9 +102,15 @@ except Exception as e:
 EOF
 
 cd "$RYZERS_ROOT"
-bash "ryzers.run.$SUPEREXEC_SERVER_NAME.sh" "python3 /tmp/gpu_diagnostic.py"
 
-rm -f /tmp/gpu_diagnostic.py
+# Create temp script to avoid quoting issues and ensure output
+TEMP_DIAG_SCRIPT="/tmp/ryzers.diag.sh.tmp"
+sed 's/ -d / -it --rm /g' "ryzers.run.$SUPEREXEC_SERVER_NAME.sh" > "$TEMP_DIAG_SCRIPT"
+chmod +x "$TEMP_DIAG_SCRIPT"
+
+bash "$TEMP_DIAG_SCRIPT" "python3 /tmp/gpu_diagnostic.py"
+
+rm -f "$TEMP_DIAG_SCRIPT" /tmp/gpu_diagnostic.py
 
 echo ""
 echo "========================================="
