@@ -10,12 +10,14 @@ gpu_support: true
 # No X11 needed
 x11_display: false
 
-# Environment variables for Flower
+# Environment variables for ROCm gfx1151 (Strix Halo) compatibility
 environment_variables:
+    - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
     - "FLWR_HOME=/app/.flwr"
-# Note: HSA_OVERRIDE_GFX_VERSION removed to let ROCm auto-detect GPU
 
 # Volume mount for Flower workspace (network set via build script)
 # Note: Start scripts export FLOWER_PROJECT environment variable
 docker_extra_run_flags:
     - "-v $FLOWER_PROJECT:/app"
+    - "--privileged"
+    - "--shm-size=128GB"

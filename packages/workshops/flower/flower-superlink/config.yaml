@@ -10,7 +10,9 @@ gpu_support: true
 # No X11 needed
 x11_display: false
 
-# Note: HSA_OVERRIDE_GFX_VERSION removed to let ROCm auto-detect GPU
+# Environment variables for ROCm gfx1151 (Strix Halo) compatibility
+environment_variables:
+    - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
 
 # Port mappings for Flower communication (network set via build script)
 docker_extra_run_flags:
@@ -18,3 +20,5 @@ docker_extra_run_flags:
     - "-p 9091:9091"
     - "-p 9092:9092"
     - "-p 9093:9093"
+    - "--privileged"
+    - "--shm-size=128GB"

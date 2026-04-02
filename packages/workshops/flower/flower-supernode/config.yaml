@@ -10,6 +10,12 @@ gpu_support: true
 # No X11 needed
 x11_display: false
 
-# Note: HSA_OVERRIDE_GFX_VERSION removed to let ROCm auto-detect GPU
+# Environment variables for ROCm gfx1151 (Strix Halo) compatibility
+environment_variables:
+    - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
 
 # Network will be set to flwr-network via build script (replaces default --network=host)
+
+docker_extra_run_flags:
+    - "--privileged"
+    - "--shm-size=128GB"
