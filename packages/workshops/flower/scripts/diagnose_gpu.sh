@@ -26,7 +26,8 @@ RYZERS_ROOT="$(cd "$FLOWER_PATH/../../.." && pwd)"
 echo "=== Container GPU Information ==="
 echo ""
 
-cat > /tmp/gpu_diagnostic.py << 'EOF'
+# Create diagnostic in mounted workspace so container can access it
+cat > "$FLOWER_PROJECT/gpu_diagnostic.py" << 'EOF'
 import subprocess
 import os
 
@@ -103,14 +104,21 @@ EOF
 
 cd "$RYZERS_ROOT"
 
-# Create temp script to avoid quoting issues and ensure output
+# Create wrapper script in mounted volume
+cat > "$FLOWER_PROJECT/run_diagnostic.sh" << 'WRAPPER'
+#!/bin/bash
+python3 /app/gpu_diagnostic.py
+WRAPPER
+chmod +x "$FLOWER_PROJECT/run_diagnostic.sh"
+
+# Create temp script for interactive mode
 TEMP_DIAG_SCRIPT="/tmp/ryzers.diag.sh.tmp"
 sed 's/ -d / -it --rm /g' "ryzers.run.$SUPEREXEC_SERVER_NAME.sh" > "$TEMP_DIAG_SCRIPT"
 chmod +x "$TEMP_DIAG_SCRIPT"
 
-bash "$TEMP_DIAG_SCRIPT" "python3 /tmp/gpu_diagnostic.py"
+bash "$TEMP_DIAG_SCRIPT" /app/run_diagnostic.sh
 
-rm -f "$TEMP_DIAG_SCRIPT" /tmp/gpu_diagnostic.py
+rm -f "$TEMP_DIAG_SCRIPT" "$FLOWER_PROJECT/gpu_diagnostic.py" "$FLOWER_PROJECT/run_diagnostic.sh"
 
 echo ""
 echo "========================================="
