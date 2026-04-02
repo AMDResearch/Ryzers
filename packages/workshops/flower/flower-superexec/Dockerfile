@@ -13,12 +13,7 @@ RUN getent group render || groupadd -g 109 render
 RUN getent group video || groupadd -g 44 video
 RUN usermod -aG render,video root
 
-# Upgrade to ROCm 7.2 PyTorch for Strix Halo compatibility
-RUN pip install --upgrade --no-cache-dir \
-    torch torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/nightly/rocm7.2
-
-# Install other ML dependencies
+# Install other ML dependencies (PyTorch with ROCm 7.2 already in base image)
 RUN pip install --no-cache-dir \
     numpy \
     pillow
