@@ -18,4 +18,3 @@ environment_variables:
 
 docker_extra_run_flags:
     - "--privileged"
-    - "--shm-size=128GB"

@@ -21,4 +21,3 @@ docker_extra_run_flags:
     - "-p 9092:9092"
     - "-p 9093:9093"
     - "--privileged"
-    - "--shm-size=128GB"

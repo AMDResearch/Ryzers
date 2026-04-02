@@ -20,4 +20,3 @@ environment_variables:
 docker_extra_run_flags:
     - "-v $FLOWER_PROJECT:/app"
     - "--privileged"
-    - "--shm-size=128GB"
