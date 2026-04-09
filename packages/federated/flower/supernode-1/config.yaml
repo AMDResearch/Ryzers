@@ -1,0 +1,19 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# Port mapping for supernode-1
+port_mappings:
+- "9094:9094"
+
+# Enable AMD GPU support
+gpu_support: true
+
+# GPU environment variables for AMD ROCm
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"
+
+# Use custom Docker network for Flower communication
+docker_network: flwr-network
+
+# Run in detached mode (background) instead of interactive
+detached_mode: true
