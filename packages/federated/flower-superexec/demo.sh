@@ -181,19 +181,22 @@ echo "  2 clients, 3 rounds, FedAvg"
 echo "========================================"
 echo ""
 
-# Run flwr from the quickstart directory
-cd "$SCRIPT_DIR/quickstart"
-
-# Configure flwr to connect to our SuperLink
-mkdir -p ~/.flwr
-cat > ~/.flwr/config.toml << EOF
+# Run flwr from inside a container connected to the network
+log_info "Submitting federated learning job..."
+docker run --rm \
+    --network="$NETWORK_NAME" \
+    -e PYTHONPATH="/ryzers" \
+    ryzers:flower-superexec \
+    /bin/bash -c "
+        mkdir -p ~/.flwr && \
+        cat > ~/.flwr/config.toml << 'TOMLEOF'
 [superlink.local-deployment]
-address = "127.0.0.1:9093"
+address = \"superlink:9093\"
 insecure = true
-EOF
-
-# Run the federated learning job
-flwr run . local-deployment --stream
+TOMLEOF
+        cd /ryzers/quickstart && \
+        flwr run . local-deployment --stream
+    "
 
 echo ""
 echo "========================================"
