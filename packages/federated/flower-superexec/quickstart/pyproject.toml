@@ -4,20 +4,17 @@ build-backend = "hatchling.build"
 
 [project]
 name = "amd-ryzers-quickstart"
-version = "1.0.5"
+version = "1.0.6"
 description = "Federated Learning with PyTorch and Flower on AMD GPUs"
 license = "MIT"
 dependencies = []
-
-[tool.hatch.build.targets.wheel]
-packages = ["quickstart"]
 
 [tool.flwr.app]
 publisher = "amd-ryzers"
 
 [tool.flwr.app.components]
-serverapp = "quickstart.server_app:app"
-clientapp = "quickstart.client_app:app"
+serverapp = "server_app:app"
+clientapp = "client_app:app"
 
 [tool.flwr.app.config]
 num-server-rounds = 3
