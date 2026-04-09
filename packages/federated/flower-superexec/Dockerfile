@@ -25,10 +25,10 @@ RUN pip install --no-cache-dir \
     "datasets"
 
 # Copy the quickstart Flower project
-COPY quickstart/ /ryzers/quickstart/
+COPY app/ /ryzers/app/
 
 # Install the quickstart project
-WORKDIR /ryzers/quickstart
+WORKDIR /ryzers/app
 RUN pip install --no-cache-dir -e .
 
 WORKDIR /ryzers
