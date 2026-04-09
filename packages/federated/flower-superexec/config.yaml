@@ -1,0 +1,20 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# GPU support enabled for AMD GPU acceleration via ROCm
+# gpu_support: true  # default
+
+# No X11 display needed
+x11_display: false
+
+# No camera needed
+camera_support: false
+
+### ryzers run options
+
+# HSA override for AMD GPU compatibility
+# Common values: 11.0.0 (RDNA 3), 10.3.0 (RDNA 2), 9.0.0 (Vega)
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.0.0"

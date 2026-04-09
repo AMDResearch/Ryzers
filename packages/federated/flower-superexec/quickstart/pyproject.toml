@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quickstart"
+version = "1.0.0"
+description = "Federated Learning with PyTorch and Flower on AMD GPUs"
+license = "MIT"
+dependencies = [
+    "flwr>=1.26.0",
+    "flwr-datasets[vision]>=0.5.0",
+]
+# Note: torch and torchvision are provided by the ROCm base image
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.flwr.app]
+publisher = "amd-ryzers"
+
+[tool.flwr.app.components]
+serverapp = "quickstart.server_app:app"
+clientapp = "quickstart.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 3
+fraction-evaluate = 0.5
+local-epochs = 1
+learning-rate = 0.1
+batch-size = 32

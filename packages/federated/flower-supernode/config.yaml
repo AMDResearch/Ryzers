@@ -1,0 +1,19 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# No GPU needed for node coordination
+gpu_support: false
+
+# No X11 display needed
+x11_display: false
+
+# No camera needed
+camera_support: false
+
+### ryzers run options
+
+# SuperNode ClientAppIO API port
+port_mappings:
+- "9094:9094"
