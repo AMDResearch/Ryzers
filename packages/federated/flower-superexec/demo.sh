@@ -155,9 +155,20 @@ echo "  2 clients, 3 rounds, FedAvg"
 echo "========================================"
 echo ""
 
+# Create flwr config file for the job submission
+FLWR_CONFIG_DIR=$(mktemp -d)
+cat > "$FLWR_CONFIG_DIR/config.toml" << 'EOF'
+[superlink.local-deployment]
+address = "superlink:9093"
+insecure = true
+EOF
+
 # Run flwr using the generated script (interactive, not detached)
 log_info "Submitting federated learning job..."
-bash ryzers.run.flower-superexec.sh "--network=$NETWORK_NAME" '/bin/bash -c "mkdir -p ~/.flwr && echo -e \"[superlink.local-deployment]\naddress = \\\"superlink:9093\\\"\ninsecure = true\" > ~/.flwr/config.toml && cd /ryzers/quickstart && flwr run . local-deployment --stream"'
+bash ryzers.run.flower-superexec.sh "--network=$NETWORK_NAME -v $FLWR_CONFIG_DIR:/root/.flwr" "bash -c 'cd /ryzers/quickstart && flwr run . local-deployment --stream'"
+
+# Cleanup temp config
+rm -rf "$FLWR_CONFIG_DIR"
 
 echo ""
 echo "========================================"
