@@ -51,17 +51,29 @@ fi
 
 cd "$RYZERS_DIR"
 
-# Step 1: Build containers using ryzers build
+# Get base image (ryzers build doesn't support --network=host, so we build directly)
+BASE_IMAGE="${BASE_IMAGE:-rocm/pytorch:rocm7.2.1_ubuntu24.04_py3.12_pytorch_release_2.9.1}"
+
+# Step 1: Build containers with --network=host for pip to reach PyPI
 log_info "Building flower-superlink..."
-ryzers build flower-superlink
+docker build --network=host \
+    --build-arg BASE_IMAGE="$BASE_IMAGE" \
+    -t ryzers:flower-superlink \
+    "$RYZERS_DIR/packages/federated/flower-superlink"
 log_success "flower-superlink built"
 
 log_info "Building flower-supernode..."
-ryzers build flower-supernode
+docker build --network=host \
+    --build-arg BASE_IMAGE="$BASE_IMAGE" \
+    -t ryzers:flower-supernode \
+    "$RYZERS_DIR/packages/federated/flower-supernode"
 log_success "flower-supernode built"
 
 log_info "Building flower-superexec..."
-ryzers build flower-superexec
+docker build --network=host \
+    --build-arg BASE_IMAGE="$BASE_IMAGE" \
+    -t ryzers:flower-superexec \
+    "$RYZERS_DIR/packages/federated/flower-superexec"
 log_success "flower-superexec built"
 
 # Step 2: Create bridge network for container-to-container communication
