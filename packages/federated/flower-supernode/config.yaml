@@ -9,9 +9,6 @@ gpu_support: false
 # No X11 display needed
 x11_display: false
 
-# No camera needed
-camera_support: false
-
 ### ryzers run options
 
 # SuperNode ClientAppIO API port
