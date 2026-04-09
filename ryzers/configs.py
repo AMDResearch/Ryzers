@@ -6,7 +6,7 @@ import yaml
 import glob
 from typing import List, Tuple
 
-from . import RYZERS_DEFAULT_RUN_FLAGS
+from . import RYZERS_DEFAULT_RUN_FLAGS, RYZERS_DEFAULT_RUN_FLAGS_BASE
 from . import RYZERS_DEFAULT_INIT_IMAGE
 
 class ConfigKeyValueEntry():
@@ -42,6 +42,7 @@ class ConfigManager:
         "gpu_support",
         "x11_display",
         "camera_support",
+        "host_network",
         "build_arguments",
         "environment_variables",
         "port_mappings",
@@ -84,28 +85,46 @@ class ConfigManager:
         return f"{buildargs}{extra_build_flags}".strip()
 
     def configs_to_runflags(self):
-        runflags = RYZERS_DEFAULT_RUN_FLAGS
         gpu = True
         x11 = True
         cameras = True
+        host_network = True  # Default to host network for backwards compatibility
         extra_run_flags = ""
 
         for c in self.configentries:
             print(str(c))
             if c.key == "port_mappings":
-                runflags += f" -p {c}" 
+                pass  # handled below after network decision
             if c.key == "volume_mappings":
-                runflags += f" -v {c}"                 
+                pass  # handled below
             if c.key == "environment_variables":
-                runflags += f" -e {c}"  
+                pass  # handled below
             if c.key == "gpu_support":
                 gpu = c.value
             if c.key == "x11_display":
                 x11 = c.value
             if c.key == "camera_support":
-                cameras = c.value                
+                cameras = c.value
+            if c.key == "host_network":
+                host_network = c.value
             if c.key == "docker_extra_run_flags":
                 extra_run_flags += f" {c.value}"
+
+        # Start with base flags, add network if using host network
+        if host_network:
+            runflags = RYZERS_DEFAULT_RUN_FLAGS
+        else:
+            runflags = RYZERS_DEFAULT_RUN_FLAGS_BASE
+
+        # Add port/volume/env mappings
+        for c in self.configentries:
+            if c.key == "port_mappings":
+                runflags += f" -p {c}"
+            if c.key == "volume_mappings":
+                runflags += f" -v {c}"
+            if c.key == "environment_variables":
+                runflags += f" -e {c}"
+
         if gpu:
             runflags += " --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --group-add render "
         if x11:

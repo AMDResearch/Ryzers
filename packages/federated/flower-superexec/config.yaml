@@ -21,5 +21,5 @@ environment_variables:
 - "GPU_MAX_HEAP_SIZE=40"
 - "PYTHONPATH=/ryzers"
 
-# Note: Network and detach mode are set at runtime via demo.sh
-# docker_extra_run_flags: "--network=flwr-network"
+# Disable host network to allow bridge network for container-to-container DNS
+host_network: false

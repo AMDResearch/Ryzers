@@ -18,5 +18,5 @@ docker_extra_build_flags: "--network=host"
 port_mappings:
 - "9094:9094"
 
-# Note: Network and detach mode are set at runtime via demo.sh
-# docker_extra_run_flags: "--network=flwr-network"
+# Disable host network to allow bridge network for container-to-container DNS
+host_network: false
