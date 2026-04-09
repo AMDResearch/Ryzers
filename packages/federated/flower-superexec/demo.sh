@@ -93,15 +93,15 @@ sleep 2
 
 # Step 5: Start SuperExec containers
 log_info "Starting SuperExec (ServerApp)..."
-bash ryzers.run.flower-superexec.sh "--name=superexec-server --network=$NETWORK_NAME -d" "flower-superexec --insecure --executor flwr.superexec.deployment:executor --executor-config superlink=\"superlink:9091\""
+bash ryzers.run.flower-superexec.sh "--name=superexec-server --network=$NETWORK_NAME -d" "flower-superexec --insecure --plugin-type serverapp --appio-api-address superlink:9091"
 log_success "SuperExec ServerApp started"
 
 log_info "Starting SuperExec (ClientApp 1)..."
-bash ryzers.run.flower-superexec.sh "--name=superexec-client-1 --network=$NETWORK_NAME -d" "flower-superexec --insecure --executor flwr.superexec.deployment:executor --executor-config superlink=\"supernode-1:9094\""
+bash ryzers.run.flower-superexec.sh "--name=superexec-client-1 --network=$NETWORK_NAME -d" "flower-superexec --insecure --plugin-type clientapp --appio-api-address supernode-1:9094"
 log_success "SuperExec ClientApp 1 started"
 
 log_info "Starting SuperExec (ClientApp 2)..."
-bash ryzers.run.flower-superexec.sh "--name=superexec-client-2 --network=$NETWORK_NAME -d" "flower-superexec --insecure --executor flwr.superexec.deployment:executor --executor-config superlink=\"supernode-2:9095\""
+bash ryzers.run.flower-superexec.sh "--name=superexec-client-2 --network=$NETWORK_NAME -d" "flower-superexec --insecure --plugin-type clientapp --appio-api-address supernode-2:9095"
 log_success "SuperExec ClientApp 2 started"
 
 # Wait for all components to be ready
