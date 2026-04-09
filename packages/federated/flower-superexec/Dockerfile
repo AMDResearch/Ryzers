@@ -30,6 +30,9 @@ COPY quickstart/ /ryzers/quickstart/
 # Add quickstart to PYTHONPATH
 ENV PYTHONPATH="/ryzers:$PYTHONPATH"
 
+# Pre-download CIFAR-10 dataset during build to avoid timeout during runtime
+RUN python3 -c "from datasets import load_dataset; load_dataset('uoft-cs/cifar10')"
+
 # Copy test script
 COPY test.sh /ryzers/test_flower_superexec.sh
 RUN chmod +x /ryzers/test_flower_superexec.sh
