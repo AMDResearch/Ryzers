@@ -52,9 +52,17 @@ class FlowerClient(NumPyClient):
 
 def client_fn(context):
     """Create a Flower client for the federation."""
-    partition_id = context.node_config["partition-id"]
-    num_partitions = context.node_config["num-partitions"]
-    batch_size = context.run_config["batch-size"]
+    # Debug: print available config keys
+    print(f"[DEBUG] node_config keys: {list(context.node_config.keys())}")
+    print(f"[DEBUG] node_config: {dict(context.node_config)}")
+    print(f"[DEBUG] run_config: {dict(context.run_config)}")
+
+    # Get partition info with defaults (for deployment mode compatibility)
+    partition_id = context.node_config.get("partition-id", 0)
+    num_partitions = context.node_config.get("num-partitions", 2)
+    batch_size = context.run_config.get("batch-size", 32)
+
+    print(f"[CLIENT] partition_id={partition_id}, num_partitions={num_partitions}, batch_size={batch_size}")
     return FlowerClient(partition_id, num_partitions, batch_size).to_client()
 
 
