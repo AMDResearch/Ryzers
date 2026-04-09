@@ -51,29 +51,17 @@ fi
 
 cd "$RYZERS_DIR"
 
-# Get base image (ryzers build doesn't support --network=host, so we build directly)
-BASE_IMAGE="${BASE_IMAGE:-rocm/pytorch:rocm7.2.1_ubuntu24.04_py3.12_pytorch_release_2.9.1}"
-
-# Step 1: Build containers with --network=host for pip to reach PyPI
+# Step 1: Build containers using ryzers build
 log_info "Building flower-superlink..."
-docker build --network=host \
-    --build-arg BASE_IMAGE="$BASE_IMAGE" \
-    -t ryzers:flower-superlink \
-    "$RYZERS_DIR/packages/federated/flower-superlink"
+ryzers build flower-superlink
 log_success "flower-superlink built"
 
 log_info "Building flower-supernode..."
-docker build --network=host \
-    --build-arg BASE_IMAGE="$BASE_IMAGE" \
-    -t ryzers:flower-supernode \
-    "$RYZERS_DIR/packages/federated/flower-supernode"
+ryzers build flower-supernode
 log_success "flower-supernode built"
 
 log_info "Building flower-superexec..."
-docker build --network=host \
-    --build-arg BASE_IMAGE="$BASE_IMAGE" \
-    -t ryzers:flower-superexec \
-    "$RYZERS_DIR/packages/federated/flower-superexec"
+ryzers build flower-superexec
 log_success "flower-superexec built"
 
 # Step 2: Create bridge network for container-to-container communication
@@ -82,95 +70,61 @@ docker network rm "$NETWORK_NAME" 2>/dev/null || true
 docker network create --driver bridge "$NETWORK_NAME"
 log_success "Network created"
 
-# Step 3: Start SuperLink
-# Note: We use docker run directly here because we need:
-#   - Custom network (--network) for container DNS
-#   - Container naming (--name) for DNS resolution
-#   - Detached mode (-d) for background execution
+# Step 3: Start SuperLink using ryzers run with instance overrides
 log_info "Starting SuperLink..."
-docker run --rm -d \
-    --network="$NETWORK_NAME" \
-    --name=superlink \
-    -p 9091:9091 -p 9092:9092 -p 9093:9093 \
-    ryzers:flower-superlink \
-    flower-superlink --insecure --isolation process
+ryzers run --name ryzers:flower-superlink \
+    --container-name superlink \
+    --extra-flags "--network=$NETWORK_NAME" \
+    -d \
+    "flower-superlink --insecure --isolation process"
 log_success "SuperLink started (ports 9091-9093)"
 
 # Wait for SuperLink to be ready
 sleep 2
 
-# Step 4: Start SuperNodes
+# Step 4: Start SuperNodes using ryzers run with instance overrides
 log_info "Starting SuperNode 1 (partition 0/2)..."
-docker run --rm -d \
-    --network="$NETWORK_NAME" \
-    --name=supernode-1 \
-    -p 9094:9094 \
-    ryzers:flower-supernode \
-    flower-supernode --insecure \
-    --superlink superlink:9092 \
-    --node-config "partition-id=0 num-partitions=2" \
-    --clientappio-api-address 0.0.0.0:9094 \
-    --isolation process
+ryzers run --name ryzers:flower-supernode \
+    --container-name supernode-1 \
+    --extra-flags "--network=$NETWORK_NAME -p 9094:9094" \
+    -d \
+    "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process"
 log_success "SuperNode 1 started (port 9094)"
 
 log_info "Starting SuperNode 2 (partition 1/2)..."
-docker run --rm -d \
-    --network="$NETWORK_NAME" \
-    --name=supernode-2 \
-    -p 9095:9095 \
-    ryzers:flower-supernode \
-    flower-supernode --insecure \
-    --superlink superlink:9092 \
-    --node-config "partition-id=1 num-partitions=2" \
-    --clientappio-api-address 0.0.0.0:9095 \
-    --isolation process
+ryzers run --name ryzers:flower-supernode \
+    --container-name supernode-2 \
+    --extra-flags "--network=$NETWORK_NAME -p 9095:9095" \
+    -d \
+    "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process"
 log_success "SuperNode 2 started (port 9095)"
 
 # Wait for SuperNodes to connect
 sleep 2
 
-# Step 5: Start SuperExec containers
+# Step 5: Start SuperExec containers using ryzers run
 log_info "Starting SuperExec (ServerApp)..."
-docker run --rm -d \
-    --network="$NETWORK_NAME" \
-    --name=superexec-server \
-    -e PYTHONPATH="/ryzers" \
-    ryzers:flower-superexec \
-    flower-superexec --insecure \
-    --plugin-type serverapp \
-    --appio-api-address superlink:9091
+ryzers run --name ryzers:flower-superexec \
+    --container-name superexec-server \
+    --extra-flags "--network=$NETWORK_NAME" \
+    -d \
+    "flower-superexec --insecure --plugin-type serverapp --appio-api-address superlink:9091"
 log_success "SuperExec ServerApp started"
 
 log_info "Starting SuperExec (ClientApp 1)..."
-docker run --rm -d \
-    --network="$NETWORK_NAME" \
-    --name=superexec-client-1 \
-    --device=/dev/kfd --device=/dev/dri \
-    --security-opt seccomp=unconfined \
-    --group-add video --group-add render \
-    -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
-    -e GPU_MAX_HEAP_SIZE=40 \
-    -e PYTHONPATH="/ryzers" \
-    ryzers:flower-superexec \
-    flower-superexec --insecure \
-    --plugin-type clientapp \
-    --appio-api-address supernode-1:9094
+ryzers run --name ryzers:flower-superexec \
+    --container-name superexec-client-1 \
+    --extra-flags "--network=$NETWORK_NAME" \
+    -d \
+    "flower-superexec --insecure --plugin-type clientapp --appio-api-address supernode-1:9094"
 log_success "SuperExec ClientApp 1 started"
 
 log_info "Starting SuperExec (ClientApp 2)..."
-docker run --rm -d \
-    --network="$NETWORK_NAME" \
-    --name=superexec-client-2 \
-    --device=/dev/kfd --device=/dev/dri \
-    --security-opt seccomp=unconfined \
-    --group-add video --group-add render \
-    -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
-    -e GPU_MAX_HEAP_SIZE=40 \
-    -e PYTHONPATH="/ryzers" \
-    ryzers:flower-superexec \
-    flower-superexec --insecure \
-    --plugin-type clientapp \
-    --appio-api-address supernode-2:9095
+ryzers run --name ryzers:flower-superexec \
+    --container-name superexec-client-2 \
+    --extra-flags "--network=$NETWORK_NAME" \
+    -d \
+    "flower-superexec --insecure --plugin-type clientapp --appio-api-address supernode-2:9095"
 log_success "SuperExec ClientApp 2 started"
 
 # Wait for all components to be ready
@@ -184,21 +138,11 @@ echo ""
 # Step 6: Verify connectivity
 log_info "Verifying container connectivity..."
 
-# Check SuperLink is responding
 echo -n "  SuperLink (9093): "
 if docker run --rm --network="$NETWORK_NAME" busybox nc -z superlink 9093 2>/dev/null; then
     echo "OK"
 else
     echo "FAILED"
-    log_error "Cannot reach SuperLink on port 9093"
-fi
-
-echo -n "  SuperLink (9092): "
-if docker run --rm --network="$NETWORK_NAME" busybox nc -z superlink 9092 2>/dev/null; then
-    echo "OK"
-else
-    echo "FAILED"
-    log_error "Cannot reach SuperLink on port 9092"
 fi
 
 echo -n "  SuperNode-1 (9094): "
@@ -206,7 +150,6 @@ if docker run --rm --network="$NETWORK_NAME" busybox nc -z supernode-1 9094 2>/d
     echo "OK"
 else
     echo "FAILED"
-    log_error "Cannot reach SuperNode-1 on port 9094"
 fi
 
 echo -n "  SuperNode-2 (9095): "
@@ -214,25 +157,16 @@ if docker run --rm --network="$NETWORK_NAME" busybox nc -z supernode-2 9095 2>/d
     echo "OK"
 else
     echo "FAILED"
-    log_error "Cannot reach SuperNode-2 on port 9095"
 fi
 
 echo ""
 
 # Show container logs for any errors
-log_info "Recent container logs (last 5 lines each):"
-echo "--- superlink ---"
-docker logs --tail 5 superlink 2>&1 || true
-echo "--- supernode-1 ---"
-docker logs --tail 5 supernode-1 2>&1 || true
-echo "--- supernode-2 ---"
-docker logs --tail 5 supernode-2 2>&1 || true
-echo "--- superexec-server ---"
-docker logs --tail 5 superexec-server 2>&1 || true
-echo "--- superexec-client-1 ---"
-docker logs --tail 5 superexec-client-1 2>&1 || true
-echo "--- superexec-client-2 ---"
-docker logs --tail 5 superexec-client-2 2>&1 || true
+log_info "Recent container logs (last 3 lines each):"
+for container in superlink supernode-1 supernode-2 superexec-server superexec-client-1 superexec-client-2; do
+    echo "--- $container ---"
+    docker logs --tail 3 "$container" 2>&1 || echo "(not running)"
+done
 echo ""
 
 # Step 7: Run federated learning
@@ -244,22 +178,11 @@ echo "  2 clients, 3 rounds, FedAvg"
 echo "========================================"
 echo ""
 
-# Run flwr from inside a container connected to the network
+# Run flwr using ryzers run (interactive, not detached)
 log_info "Submitting federated learning job..."
-docker run --rm -it \
-    --network="$NETWORK_NAME" \
-    -e PYTHONPATH="/ryzers" \
-    ryzers:flower-superexec \
-    /bin/bash -c "
-        mkdir -p ~/.flwr && \
-        cat > ~/.flwr/config.toml << 'TOMLEOF'
-[superlink.local-deployment]
-address = \"superlink:9093\"
-insecure = true
-TOMLEOF
-        cd /ryzers/quickstart && \
-        flwr run . local-deployment --stream
-    "
+ryzers run --name ryzers:flower-superexec \
+    --extra-flags "--network=$NETWORK_NAME" \
+    '/bin/bash -c "mkdir -p ~/.flwr && echo -e \"[superlink.local-deployment]\naddress = \\\"superlink:9093\\\"\ninsecure = true\" > ~/.flwr/config.toml && cd /ryzers/quickstart && flwr run . local-deployment --stream"'
 
 echo ""
 echo "========================================"
@@ -267,14 +190,8 @@ log_success "Federated learning complete!"
 echo "========================================"
 echo ""
 
-# Show container logs summary
-log_info "Container status:"
-docker ps --filter "network=$NETWORK_NAME" --format "table {{.Names}}\t{{.Status}}"
-
-echo ""
 log_info "To view logs: docker logs <container-name>"
 log_info "Containers will be cleaned up on exit (Ctrl+C)"
 echo ""
 
-# Keep running until user exits
 read -p "Press Enter to cleanup and exit..."

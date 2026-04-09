@@ -14,11 +14,9 @@ docker_extra_build_flags: "--network=host"
 
 ### ryzers run options
 
-# SuperNode ClientAppIO API port
+# SuperNode ClientAppIO API port (override with -p for multiple nodes)
 port_mappings:
 - "9094:9094"
 
-# Use bridge network for container-to-container DNS resolution
-# Create network first: docker network create flwr-network
-# Override --name for each supernode instance (e.g., --name=supernode-1)
-docker_extra_run_flags: "--network=flwr-network"
+# Note: Network and detach mode are set at runtime via demo.sh
+# docker_extra_run_flags: "--network=flwr-network"

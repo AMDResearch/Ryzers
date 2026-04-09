@@ -68,16 +68,20 @@ class ConfigManager:
 
         # get last unique build argument value for each key
         buildflags_dict = {}
+        extra_build_flags = ""
         for c in self.configentries:
             if c.key == "build_arguments":
-                buildflags_dict[c.key1] = c 
+                buildflags_dict[c.key1] = c
+            if c.key == "docker_extra_build_flags":
+                extra_build_flags += f" {c.value}"
 
         # overwrite with environment variables
         for e in os.environ:
             if e in buildflags_dict:
-                buildflags_dict[e] = ConfigKeyKeyValueEntry("build_arguments", e, os.environ[e], None)  
+                buildflags_dict[e] = ConfigKeyKeyValueEntry("build_arguments", e, os.environ[e], None)
 
-        return " ".join([f"--build-arg {configentry}" for _, configentry in buildflags_dict.items()])
+        buildargs = " ".join([f"--build-arg {configentry}" for _, configentry in buildflags_dict.items()])
+        return f"{buildargs}{extra_build_flags}".strip()
 
     def configs_to_runflags(self):
         runflags = RYZERS_DEFAULT_RUN_FLAGS

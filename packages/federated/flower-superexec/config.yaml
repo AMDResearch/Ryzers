@@ -18,7 +18,8 @@ docker_extra_build_flags: "--network=host"
 # Common values: 11.0.0 (RDNA 3), 10.3.0 (RDNA 2), 9.0.0 (Vega)
 environment_variables:
 - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
+- "GPU_MAX_HEAP_SIZE=40"
+- "PYTHONPATH=/ryzers"
 
-# Use bridge network for container-to-container DNS resolution
-# Create network first: docker network create flwr-network
-docker_extra_run_flags: "--network=flwr-network"
+# Note: Network and detach mode are set at runtime via demo.sh
+# docker_extra_run_flags: "--network=flwr-network"

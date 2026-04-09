@@ -17,3 +17,10 @@ fraction-evaluate = 0.5
 local-epochs = 1
 learning-rate = 0.1
 batch-size = 32
+
+[tool.flwr.federations]
+default = "local-deployment"
+
+[tool.flwr.federations.local-deployment]
+# Address is configured via ~/.flwr/config.toml in the container
+options.num-supernodes = 2
