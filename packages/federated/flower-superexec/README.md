@@ -33,9 +33,9 @@ The quickstart application trains a CNN on CIFAR-10:
 
 | Component | Description |
 |-----------|-------------|
-| `app/quickstart/task.py` | CNN model, data loading, train/test functions |
-| `app/quickstart/client_app.py` | ClientApp with fit/evaluate |
-| `app/quickstart/server_app.py` | ServerApp with FedAvg strategy |
+| `quickstart/task.py` | CNN model, data loading, train/test functions |
+| `quickstart/client_app.py` | ClientApp with fit/evaluate |
+| `quickstart/server_app.py` | ServerApp with FedAvg strategy |
 
 ## AMD GPU Support
 

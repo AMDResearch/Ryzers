@@ -181,8 +181,8 @@ echo "  2 clients, 3 rounds, FedAvg"
 echo "========================================"
 echo ""
 
-# Run flwr from the app directory
-cd "$SCRIPT_DIR/app"
+# Run flwr from the quickstart directory
+cd "$SCRIPT_DIR/quickstart"
 
 # Configure flwr to connect to our SuperLink
 mkdir -p ~/.flwr

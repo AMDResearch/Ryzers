@@ -1,4 +1,4 @@
-# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 ARG BASE_IMAGE
@@ -25,13 +25,10 @@ RUN pip install --no-cache-dir \
     "datasets"
 
 # Copy the quickstart Flower project
-COPY app/ /ryzers/app/
+COPY quickstart/ /ryzers/quickstart/
 
-# Install the quickstart project
-WORKDIR /ryzers/app
-RUN pip install --no-cache-dir -e .
-
-WORKDIR /ryzers
+# Add quickstart to PYTHONPATH
+ENV PYTHONPATH="/ryzers:$PYTHONPATH"
 
 # Copy test script
 COPY test.sh /ryzers/test_flower_superexec.sh
