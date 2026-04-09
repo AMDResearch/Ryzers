@@ -67,12 +67,15 @@ def apply_transforms(batch):
 def load_data(partition_id: int, num_partitions: int, batch_size: int):
     """Load partition of CIFAR-10 data for federated learning."""
     global fds
+    print(f"[DATA] Loading data for partition {partition_id}/{num_partitions}...")
     if fds is None:
+        print("[DATA] Creating FederatedDataset (downloading CIFAR-10 if needed)...")
         partitioner = IidPartitioner(num_partitions=num_partitions)
         fds = FederatedDataset(
             dataset="uoft-cs/cifar10",
             partitioners={"train": partitioner},
         )
+        print("[DATA] FederatedDataset created")
 
     partition = fds.load_partition(partition_id)
     # Split: 80% train, 20% validation

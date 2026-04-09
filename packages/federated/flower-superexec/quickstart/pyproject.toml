@@ -1,6 +1,6 @@
 [project]
 name = "quickstart"
-version = "1.0.1"
+version = "1.0.2"
 description = "Federated Learning with PyTorch and Flower on AMD GPUs"
 license = "MIT"
 
