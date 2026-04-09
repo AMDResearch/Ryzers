@@ -51,17 +51,17 @@ fi
 
 cd "$RYZERS_DIR"
 
-# Step 1: Build containers using ryzers build
+# Step 1: Build containers using ryzers build with explicit image names
 log_info "Building flower-superlink..."
-ryzers build flower-superlink
+ryzers build --name flower-superlink flower-superlink
 log_success "flower-superlink built"
 
 log_info "Building flower-supernode..."
-ryzers build flower-supernode
+ryzers build --name flower-supernode flower-supernode
 log_success "flower-supernode built"
 
 log_info "Building flower-superexec..."
-ryzers build flower-superexec
+ryzers build --name flower-superexec flower-superexec
 log_success "flower-superexec built"
 
 # Step 2: Create bridge network for container-to-container communication
@@ -70,61 +70,38 @@ docker network rm "$NETWORK_NAME" 2>/dev/null || true
 docker network create --driver bridge "$NETWORK_NAME"
 log_success "Network created"
 
-# Step 3: Start SuperLink using ryzers run with instance overrides
+# Step 3: Start SuperLink
+# ryzers run uses the generated script, we pass instance overrides via the script's $1 and $2
 log_info "Starting SuperLink..."
-ryzers run --name ryzers:flower-superlink \
-    --container-name superlink \
-    --extra-flags "--network=$NETWORK_NAME" \
-    -d \
-    "flower-superlink --insecure --isolation process"
+bash ryzers.run.flower-superlink.sh "--name=superlink --network=$NETWORK_NAME -d" "flower-superlink --insecure --isolation process"
 log_success "SuperLink started (ports 9091-9093)"
 
 # Wait for SuperLink to be ready
 sleep 2
 
-# Step 4: Start SuperNodes using ryzers run with instance overrides
+# Step 4: Start SuperNodes
 log_info "Starting SuperNode 1 (partition 0/2)..."
-ryzers run --name ryzers:flower-supernode \
-    --container-name supernode-1 \
-    --extra-flags "--network=$NETWORK_NAME -p 9094:9094" \
-    -d \
-    "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process"
+bash ryzers.run.flower-supernode.sh "--name=supernode-1 --network=$NETWORK_NAME -p 9094:9094 -d" "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process"
 log_success "SuperNode 1 started (port 9094)"
 
 log_info "Starting SuperNode 2 (partition 1/2)..."
-ryzers run --name ryzers:flower-supernode \
-    --container-name supernode-2 \
-    --extra-flags "--network=$NETWORK_NAME -p 9095:9095" \
-    -d \
-    "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process"
+bash ryzers.run.flower-supernode.sh "--name=supernode-2 --network=$NETWORK_NAME -p 9095:9095 -d" "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process"
 log_success "SuperNode 2 started (port 9095)"
 
 # Wait for SuperNodes to connect
 sleep 2
 
-# Step 5: Start SuperExec containers using ryzers run
+# Step 5: Start SuperExec containers
 log_info "Starting SuperExec (ServerApp)..."
-ryzers run --name ryzers:flower-superexec \
-    --container-name superexec-server \
-    --extra-flags "--network=$NETWORK_NAME" \
-    -d \
-    "flower-superexec --insecure --plugin-type serverapp --appio-api-address superlink:9091"
+bash ryzers.run.flower-superexec.sh "--name=superexec-server --network=$NETWORK_NAME -d" "flower-superexec --insecure --executor flwr.superexec.deployment:executor --executor-config superlink=\"superlink:9091\""
 log_success "SuperExec ServerApp started"
 
 log_info "Starting SuperExec (ClientApp 1)..."
-ryzers run --name ryzers:flower-superexec \
-    --container-name superexec-client-1 \
-    --extra-flags "--network=$NETWORK_NAME" \
-    -d \
-    "flower-superexec --insecure --plugin-type clientapp --appio-api-address supernode-1:9094"
+bash ryzers.run.flower-superexec.sh "--name=superexec-client-1 --network=$NETWORK_NAME -d" "flower-superexec --insecure --executor flwr.superexec.deployment:executor --executor-config superlink=\"supernode-1:9094\""
 log_success "SuperExec ClientApp 1 started"
 
 log_info "Starting SuperExec (ClientApp 2)..."
-ryzers run --name ryzers:flower-superexec \
-    --container-name superexec-client-2 \
-    --extra-flags "--network=$NETWORK_NAME" \
-    -d \
-    "flower-superexec --insecure --plugin-type clientapp --appio-api-address supernode-2:9095"
+bash ryzers.run.flower-superexec.sh "--name=superexec-client-2 --network=$NETWORK_NAME -d" "flower-superexec --insecure --executor flwr.superexec.deployment:executor --executor-config superlink=\"supernode-2:9095\""
 log_success "SuperExec ClientApp 2 started"
 
 # Wait for all components to be ready
@@ -178,11 +155,9 @@ echo "  2 clients, 3 rounds, FedAvg"
 echo "========================================"
 echo ""
 
-# Run flwr using ryzers run (interactive, not detached)
+# Run flwr using the generated script (interactive, not detached)
 log_info "Submitting federated learning job..."
-ryzers run --name ryzers:flower-superexec \
-    --extra-flags "--network=$NETWORK_NAME" \
-    '/bin/bash -c "mkdir -p ~/.flwr && echo -e \"[superlink.local-deployment]\naddress = \\\"superlink:9093\\\"\ninsecure = true\" > ~/.flwr/config.toml && cd /ryzers/quickstart && flwr run . local-deployment --stream"'
+bash ryzers.run.flower-superexec.sh "--network=$NETWORK_NAME" '/bin/bash -c "mkdir -p ~/.flwr && echo -e \"[superlink.local-deployment]\naddress = \\\"superlink:9093\\\"\ninsecure = true\" > ~/.flwr/config.toml && cd /ryzers/quickstart && flwr run . local-deployment --stream"'
 
 echo ""
 echo "========================================"
