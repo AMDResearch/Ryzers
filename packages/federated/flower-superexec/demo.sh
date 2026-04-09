@@ -172,7 +172,61 @@ log_info "All containers running:"
 docker ps --filter "network=$NETWORK_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 echo ""
 
-# Step 6: Run federated learning
+# Step 6: Verify connectivity
+log_info "Verifying container connectivity..."
+
+# Check SuperLink is responding
+echo -n "  SuperLink (9093): "
+if docker run --rm --network="$NETWORK_NAME" busybox nc -z superlink 9093 2>/dev/null; then
+    echo "OK"
+else
+    echo "FAILED"
+    log_error "Cannot reach SuperLink on port 9093"
+fi
+
+echo -n "  SuperLink (9092): "
+if docker run --rm --network="$NETWORK_NAME" busybox nc -z superlink 9092 2>/dev/null; then
+    echo "OK"
+else
+    echo "FAILED"
+    log_error "Cannot reach SuperLink on port 9092"
+fi
+
+echo -n "  SuperNode-1 (9094): "
+if docker run --rm --network="$NETWORK_NAME" busybox nc -z supernode-1 9094 2>/dev/null; then
+    echo "OK"
+else
+    echo "FAILED"
+    log_error "Cannot reach SuperNode-1 on port 9094"
+fi
+
+echo -n "  SuperNode-2 (9095): "
+if docker run --rm --network="$NETWORK_NAME" busybox nc -z supernode-2 9095 2>/dev/null; then
+    echo "OK"
+else
+    echo "FAILED"
+    log_error "Cannot reach SuperNode-2 on port 9095"
+fi
+
+echo ""
+
+# Show container logs for any errors
+log_info "Recent container logs (last 5 lines each):"
+echo "--- superlink ---"
+docker logs --tail 5 superlink 2>&1 || true
+echo "--- supernode-1 ---"
+docker logs --tail 5 supernode-1 2>&1 || true
+echo "--- supernode-2 ---"
+docker logs --tail 5 supernode-2 2>&1 || true
+echo "--- superexec-server ---"
+docker logs --tail 5 superexec-server 2>&1 || true
+echo "--- superexec-client-1 ---"
+docker logs --tail 5 superexec-client-1 2>&1 || true
+echo "--- superexec-client-2 ---"
+docker logs --tail 5 superexec-client-2 2>&1 || true
+echo ""
+
+# Step 7: Run federated learning
 log_info "Starting federated learning..."
 echo ""
 echo "========================================"
