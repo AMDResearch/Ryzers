@@ -18,6 +18,9 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+# Ensure all Python subprocesses use the venv
+ENV PYTHONHOME="$VIRTUAL_ENV"
+
 # Install Flower and dependencies for the quickstart app
 RUN pip install --no-cache-dir --upgrade \
     flwr \
