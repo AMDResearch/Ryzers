@@ -183,7 +183,7 @@ echo ""
 
 # Run flwr from inside a container connected to the network
 log_info "Submitting federated learning job..."
-docker run --rm \
+docker run --rm -it \
     --network="$NETWORK_NAME" \
     -e PYTHONPATH="/ryzers" \
     ryzers:flower-superexec \
