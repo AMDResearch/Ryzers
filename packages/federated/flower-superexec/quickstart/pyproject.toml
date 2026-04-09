@@ -22,4 +22,5 @@ batch-size = 32
 default = "local-deployment"
 
 [tool.flwr.federations.local-deployment]
-# Address is configured via ~/.flwr/config.toml in the container
+address = "superlink:9093"
+insecure = true
