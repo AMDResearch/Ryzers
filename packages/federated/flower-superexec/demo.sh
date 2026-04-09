@@ -70,7 +70,7 @@ docker build --network=host \
 log_success "flower-supernode built"
 
 log_info "Building flower-superexec..."
-docker build --network=host \
+docker build --network=host --no-cache \
     --build-arg BASE_IMAGE="$BASE_IMAGE" \
     -t ryzers:flower-superexec \
     "$RYZERS_DIR/packages/federated/flower-superexec"
