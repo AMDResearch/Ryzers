@@ -181,7 +181,7 @@ class ConfigManager:
         if key in ["port_mappings", "volume_mappings"]:
             key0, val0 = value.split(':', 1)
             return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=':')
-        if key in ["gpu_support", "x11_display", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
+        if key in ["gpu_support", "x11_display", "host_network", "camera_support", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
             return ConfigKeyValueEntry(key, value, config_path)
         else:
             raise ValueError(f"Invalid key: {key}. Must be one of {', '.join(self.CONFIG_KEYS)}")
