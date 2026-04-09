@@ -19,10 +19,9 @@ RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install Flower and dependencies for the quickstart app
-# Pin to specific version to avoid compatibility issues
-RUN pip install --no-cache-dir \
-    "flwr==1.17.0" \
-    "flwr-datasets[vision]>=0.5.0" \
+RUN pip install --no-cache-dir --upgrade \
+    flwr \
+    "flwr-datasets[vision]" \
     datasets
 
 # Copy the quickstart Flower project
