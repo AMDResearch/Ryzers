@@ -27,8 +27,8 @@ RUN pip install --no-cache-dir --upgrade \
 # Copy the quickstart Flower project
 COPY quickstart/ /ryzers/quickstart/
 
-# Add quickstart to PYTHONPATH
-ENV PYTHONPATH="/ryzers:$PYTHONPATH"
+# Add quickstart package to PYTHONPATH
+ENV PYTHONPATH="/ryzers/quickstart:$PYTHONPATH"
 
 # Pre-download CIFAR-10 dataset during build to avoid timeout during runtime
 RUN python3 -c "from datasets import load_dataset; load_dataset('uoft-cs/cifar10')"

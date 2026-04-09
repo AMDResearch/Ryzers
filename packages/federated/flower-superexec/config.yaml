@@ -19,7 +19,7 @@ docker_extra_build_flags: "--network=host"
 environment_variables:
 - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
 - "GPU_MAX_HEAP_SIZE=40"
-- "PYTHONPATH=/ryzers"
+- "PYTHONPATH=/ryzers/quickstart"
 
 # Disable host network to allow bridge network for container-to-container DNS
 host_network: false
