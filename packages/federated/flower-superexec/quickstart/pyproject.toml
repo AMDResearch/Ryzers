@@ -1,16 +1,17 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "quickstart-amd"
-version = "1.0.7"
+version = "1.0.8"
 description = "Federated Learning with PyTorch and Flower on AMD GPUs"
 license = "MIT"
 dependencies = []
 
-[tool.hatch.build.targets.wheel]
-packages = ["quickstart_amd"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["quickstart_amd*"]
 
 [tool.flwr.app]
 publisher = "amd-ryzers"
