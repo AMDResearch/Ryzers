@@ -18,8 +18,8 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install latest Flower
-RUN pip install --no-cache-dir --upgrade flwr
+# Install Flower - pin to specific version
+RUN pip install --no-cache-dir "flwr==1.17.0"
 
 # Copy test script
 COPY test.sh /ryzers/test_flower_superlink.sh
