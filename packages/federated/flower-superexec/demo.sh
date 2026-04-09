@@ -25,12 +25,13 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 cleanup() {
-    log_info "Cleaning up containers..."
+    log_info "Stopping containers (logs preserved with 'docker logs <container>')..."
     docker stop superlink supernode-1 supernode-2 superexec-server superexec-client-1 superexec-client-2 2>/dev/null || true
-    docker rm superlink supernode-1 supernode-2 superexec-server superexec-client-1 superexec-client-2 2>/dev/null || true
+    # Don't remove containers - preserve for debugging
+    # docker rm superlink supernode-1 supernode-2 superexec-server superexec-client-1 superexec-client-2 2>/dev/null || true
     log_info "Removing network..."
     docker network rm "$NETWORK_NAME" 2>/dev/null || true
-    log_success "Cleanup complete"
+    log_success "Cleanup complete (containers preserved for 'docker logs')"
 }
 
 # Handle Ctrl+C
