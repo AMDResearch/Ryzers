@@ -14,9 +14,8 @@ docker_extra_build_flags: "--network=host"
 
 ### ryzers run options
 
-# SuperNode ClientAppIO API port (override with -p for multiple nodes)
-port_mappings:
-- "9094:9094"
+# Port mappings are specified at runtime for each node instance
+# (e.g., -p 9094:9094 for node 1, -p 9095:9095 for node 2)
 
 # Disable host network to allow bridge network for container-to-container DNS
 host_network: false
