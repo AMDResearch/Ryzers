@@ -81,11 +81,11 @@ sleep 2
 
 # Step 4: Start SuperNodes
 log_info "Starting SuperNode 1 (partition 0/2)..."
-bash ryzers.run.flower-supernode.sh "--name=supernode-1 --network=$NETWORK_NAME -p 9094:9094 -d" "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=0 num-partitions=2' --clientappio-api-address 0.0.0.0:9094 --isolation process"
+bash ryzers.run.flower-supernode.sh "--name=supernode-1 --network=$NETWORK_NAME -p 9094:9094 -d" "flower-supernode --insecure --superlink superlink:9092 --node-config partition-id=0 --node-config num-partitions=2 --clientappio-api-address 0.0.0.0:9094 --isolation process"
 log_success "SuperNode 1 started (port 9094)"
 
 log_info "Starting SuperNode 2 (partition 1/2)..."
-bash ryzers.run.flower-supernode.sh "--name=supernode-2 --network=$NETWORK_NAME -p 9095:9095 -d" "flower-supernode --insecure --superlink superlink:9092 --node-config 'partition-id=1 num-partitions=2' --clientappio-api-address 0.0.0.0:9095 --isolation process"
+bash ryzers.run.flower-supernode.sh "--name=supernode-2 --network=$NETWORK_NAME -p 9095:9095 -d" "flower-supernode --insecure --superlink superlink:9092 --node-config partition-id=1 --node-config num-partitions=2 --clientappio-api-address 0.0.0.0:9095 --isolation process"
 log_success "SuperNode 2 started (port 9095)"
 
 # Wait for SuperNodes to connect
