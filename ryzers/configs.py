@@ -43,6 +43,7 @@ class ConfigManager:
         "x11_display",
         "camera_support",
         "host_network",
+        "keep_container",
         "build_arguments",
         "environment_variables",
         "port_mappings",
@@ -89,6 +90,7 @@ class ConfigManager:
         x11 = True
         cameras = True
         host_network = True  # Default to host network for backwards compatibility
+        keep_container = False  # Default to removing containers on exit
         extra_run_flags = ""
 
         for c in self.configentries:
@@ -107,6 +109,8 @@ class ConfigManager:
                 cameras = c.value
             if c.key == "host_network":
                 host_network = c.value
+            if c.key == "keep_container":
+                keep_container = c.value
             if c.key == "docker_extra_run_flags":
                 extra_run_flags += f" {c.value}"
 
@@ -115,6 +119,10 @@ class ConfigManager:
             runflags = RYZERS_DEFAULT_RUN_FLAGS
         else:
             runflags = RYZERS_DEFAULT_RUN_FLAGS_BASE
+
+        # Override --rm if keep_container is set
+        if keep_container:
+            runflags = runflags.replace("--rm", "")
 
         # Add port/volume/env mappings
         for c in self.configentries:
@@ -181,7 +189,7 @@ class ConfigManager:
         if key in ["port_mappings", "volume_mappings"]:
             key0, val0 = value.split(':', 1)
             return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=':')
-        if key in ["gpu_support", "x11_display", "host_network", "camera_support", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
+        if key in ["gpu_support", "x11_display", "host_network", "camera_support", "keep_container", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
             return ConfigKeyValueEntry(key, value, config_path)
         else:
             raise ValueError(f"Invalid key: {key}. Must be one of {', '.join(self.CONFIG_KEYS)}")

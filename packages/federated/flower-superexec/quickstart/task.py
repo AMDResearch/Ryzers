@@ -15,9 +15,16 @@ from torchvision.transforms import Compose, Normalize, ToTensor
 # Global device - ROCm exposes AMD GPUs as CUDA devices
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# Limit GPU memory to 40% per worker to allow multiple workers to share GPU
+# Log GPU status
+print(f"[GPU INFO] PyTorch version: {torch.__version__}")
+print(f"[GPU INFO] CUDA available: {torch.cuda.is_available()}")
+print(f"[GPU INFO] Using device: {DEVICE}")
 if torch.cuda.is_available():
+    print(f"[GPU INFO] GPU name: {torch.cuda.get_device_name(0)}")
+    print(f"[GPU INFO] GPU count: {torch.cuda.device_count()}")
+    # Limit GPU memory to 40% per worker to allow multiple workers to share GPU
     torch.cuda.set_per_process_memory_fraction(0.4, device=DEVICE)
+    print(f"[GPU INFO] Memory fraction limited to 40%")
 
 
 class Net(nn.Module):

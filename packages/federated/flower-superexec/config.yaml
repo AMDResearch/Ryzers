@@ -23,3 +23,6 @@ environment_variables:
 
 # Disable host network to allow bridge network for container-to-container DNS
 host_network: false
+
+# Keep containers after exit for debugging (docker logs <container>)
+keep_container: true
