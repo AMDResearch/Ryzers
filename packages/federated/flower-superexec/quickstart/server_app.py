@@ -3,9 +3,8 @@
 
 """Flower Quickstart: Server application for federated learning."""
 
-import torch
 from flwr.common import ndarrays_to_parameters
-from flwr.server import ServerApp, ServerConfig
+from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedAvg
 
 from quickstart.task import Net
@@ -39,7 +38,8 @@ def server_fn(context):
     # Server configuration
     config = ServerConfig(num_rounds=num_rounds)
 
-    return strategy, config
+    # Return ServerAppComponents (not a tuple)
+    return ServerAppComponents(strategy=strategy, config=config)
 
 
 # Create the ServerApp

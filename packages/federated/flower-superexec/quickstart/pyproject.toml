@@ -2,6 +2,7 @@
 name = "quickstart"
 version = "1.0.0"
 description = "Federated Learning with PyTorch and Flower on AMD GPUs"
+license = "MIT"
 
 [tool.flwr.app]
 publisher = "amd-ryzers"

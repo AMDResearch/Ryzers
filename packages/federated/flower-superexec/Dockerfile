@@ -18,11 +18,11 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install Flower and dependencies for the quickstart app
-RUN pip install --no-cache-dir \
-    "flwr>=1.26.0" \
-    "flwr-datasets[vision]>=0.5.0" \
-    "datasets"
+# Install latest Flower and dependencies for the quickstart app
+RUN pip install --no-cache-dir --upgrade \
+    flwr \
+    "flwr-datasets[vision]" \
+    datasets
 
 # Copy the quickstart Flower project
 COPY quickstart/ /ryzers/quickstart/
