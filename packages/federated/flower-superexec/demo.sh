@@ -149,6 +149,7 @@ docker run --rm -d \
     --security-opt seccomp=unconfined \
     --group-add video --group-add render \
     -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
+    -e GPU_MAX_HEAP_SIZE=40 \
     -e PYTHONPATH="/ryzers" \
     ryzers:flower-superexec \
     flower-superexec --insecure \
@@ -164,6 +165,7 @@ docker run --rm -d \
     --security-opt seccomp=unconfined \
     --group-add video --group-add render \
     -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
+    -e GPU_MAX_HEAP_SIZE=40 \
     -e PYTHONPATH="/ryzers" \
     ryzers:flower-superexec \
     flower-superexec --insecure \

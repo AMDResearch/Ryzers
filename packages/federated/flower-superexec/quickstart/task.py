@@ -15,6 +15,10 @@ from torchvision.transforms import Compose, Normalize, ToTensor
 # Global device - ROCm exposes AMD GPUs as CUDA devices
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# Limit GPU memory to 40% per worker to allow multiple workers to share GPU
+if torch.cuda.is_available():
+    torch.cuda.set_per_process_memory_fraction(0.4, device=DEVICE)
+
 
 class Net(nn.Module):
     """Simple CNN for CIFAR-10 classification."""
