@@ -51,38 +51,30 @@ fi
 
 cd "$RYZERS_DIR"
 
-# Get default base image from ryzers
-BASE_IMAGE="${BASE_IMAGE:-rocm/pytorch:rocm7.2.1_ubuntu24.04_py3.12_pytorch_release_2.9.1}"
-
-# Step 1: Build containers (using --network=host for DNS resolution during build)
+# Step 1: Build containers using ryzers build
 log_info "Building flower-superlink..."
-docker build --network=host --no-cache \
-    --build-arg BASE_IMAGE="$BASE_IMAGE" \
-    -t ryzers:flower-superlink \
-    "$RYZERS_DIR/packages/federated/flower-superlink"
+ryzers build flower-superlink
 log_success "flower-superlink built"
 
 log_info "Building flower-supernode..."
-docker build --network=host --no-cache \
-    --build-arg BASE_IMAGE="$BASE_IMAGE" \
-    -t ryzers:flower-supernode \
-    "$RYZERS_DIR/packages/federated/flower-supernode"
+ryzers build flower-supernode
 log_success "flower-supernode built"
 
 log_info "Building flower-superexec..."
-docker build --network=host --no-cache \
-    --build-arg BASE_IMAGE="$BASE_IMAGE" \
-    -t ryzers:flower-superexec \
-    "$RYZERS_DIR/packages/federated/flower-superexec"
+ryzers build flower-superexec
 log_success "flower-superexec built"
 
-# Step 2: Create bridge network
+# Step 2: Create bridge network for container-to-container communication
 log_info "Creating Docker bridge network: $NETWORK_NAME"
 docker network rm "$NETWORK_NAME" 2>/dev/null || true
 docker network create --driver bridge "$NETWORK_NAME"
 log_success "Network created"
 
 # Step 3: Start SuperLink
+# Note: We use docker run directly here because we need:
+#   - Custom network (--network) for container DNS
+#   - Container naming (--name) for DNS resolution
+#   - Detached mode (-d) for background execution
 log_info "Starting SuperLink..."
 docker run --rm -d \
     --network="$NETWORK_NAME" \
@@ -130,10 +122,11 @@ log_info "Starting SuperExec (ServerApp)..."
 docker run --rm -d \
     --network="$NETWORK_NAME" \
     --name=superexec-server \
+    -e PYTHONPATH="/ryzers" \
     ryzers:flower-superexec \
     flower-superexec --insecure \
-    --executor-type serverapp \
-    --executor-config 'superlink="superlink:9091"'
+    --plugin-type serverapp \
+    --appio-api-address superlink:9091
 log_success "SuperExec ServerApp started"
 
 log_info "Starting SuperExec (ClientApp 1)..."
@@ -144,10 +137,11 @@ docker run --rm -d \
     --security-opt seccomp=unconfined \
     --group-add video --group-add render \
     -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
+    -e PYTHONPATH="/ryzers" \
     ryzers:flower-superexec \
     flower-superexec --insecure \
-    --executor-type clientapp \
-    --executor-config 'supernode="supernode-1:9094"'
+    --plugin-type clientapp \
+    --appio-api-address supernode-1:9094
 log_success "SuperExec ClientApp 1 started"
 
 log_info "Starting SuperExec (ClientApp 2)..."
@@ -158,10 +152,11 @@ docker run --rm -d \
     --security-opt seccomp=unconfined \
     --group-add video --group-add render \
     -e HSA_OVERRIDE_GFX_VERSION=11.0.0 \
+    -e PYTHONPATH="/ryzers" \
     ryzers:flower-superexec \
     flower-superexec --insecure \
-    --executor-type clientapp \
-    --executor-config 'supernode="supernode-2:9095"'
+    --plugin-type clientapp \
+    --appio-api-address supernode-2:9095
 log_success "SuperExec ClientApp 2 started"
 
 # Wait for all components to be ready
