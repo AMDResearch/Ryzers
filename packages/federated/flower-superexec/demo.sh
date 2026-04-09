@@ -52,7 +52,7 @@ fi
 cd "$RYZERS_DIR"
 
 # Get default base image from ryzers
-BASE_IMAGE="${BASE_IMAGE:-rocm/pytorch:rocm6.3.1_ubuntu24.04_py3.12_pytorch_release_2.6.0}"
+BASE_IMAGE="${BASE_IMAGE:-rocm/pytorch:rocm7.2.1_ubuntu24.04_py3.12_pytorch_release_2.9.1}"
 
 # Step 1: Build containers (using --network=host for DNS resolution during build)
 log_info "Building flower-superlink..."
