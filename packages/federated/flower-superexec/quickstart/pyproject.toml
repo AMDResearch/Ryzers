@@ -1,0 +1,18 @@
+[project]
+name = "quickstart"
+version = "1.0.0"
+description = "Federated Learning with PyTorch and Flower on AMD GPUs"
+
+[tool.flwr.app]
+publisher = "amd-ryzers"
+
+[tool.flwr.app.components]
+serverapp = "quickstart.server_app:app"
+clientapp = "quickstart.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 3
+fraction-evaluate = 0.5
+local-epochs = 1
+learning-rate = 0.1
+batch-size = 32
