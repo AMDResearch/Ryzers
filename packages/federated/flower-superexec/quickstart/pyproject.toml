@@ -23,4 +23,3 @@ default = "local-deployment"
 
 [tool.flwr.federations.local-deployment]
 # Address is configured via ~/.flwr/config.toml in the container
-options.num-supernodes = 2
