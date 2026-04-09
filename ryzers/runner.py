@@ -93,11 +93,16 @@ class DockerRunner:
 # Enable X11 forwarding
 xhost +local:docker 2>/dev/null || true
 
-# Instance-specific flags passed as $1, docker command as $2
+# Instance-specific flags passed as $1, docker command as remaining args
 INSTANCE_FLAGS="${{1:-}}"
-DOCKER_CMD="${{2:-}}"
+shift 2>/dev/null || true
 
-docker run {runflags} $INSTANCE_FLAGS {self.container_name} $DOCKER_CMD
+# Use eval to properly handle the docker command with its arguments
+if [ $# -gt 0 ]; then
+    eval "docker run {runflags} $INSTANCE_FLAGS {self.container_name} $@"
+else
+    docker run {runflags} $INSTANCE_FLAGS {self.container_name}
+fi
 """
 
         # Write the script to the specified file
