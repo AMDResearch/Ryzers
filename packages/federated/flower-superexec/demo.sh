@@ -56,14 +56,14 @@ BASE_IMAGE="${BASE_IMAGE:-rocm/pytorch:rocm7.2.1_ubuntu24.04_py3.12_pytorch_rele
 
 # Step 1: Build containers (using --network=host for DNS resolution during build)
 log_info "Building flower-superlink..."
-docker build --network=host \
+docker build --network=host --no-cache \
     --build-arg BASE_IMAGE="$BASE_IMAGE" \
     -t ryzers:flower-superlink \
     "$RYZERS_DIR/packages/federated/flower-superlink"
 log_success "flower-superlink built"
 
 log_info "Building flower-supernode..."
-docker build --network=host \
+docker build --network=host --no-cache \
     --build-arg BASE_IMAGE="$BASE_IMAGE" \
     -t ryzers:flower-supernode \
     "$RYZERS_DIR/packages/federated/flower-supernode"
