@@ -2,6 +2,14 @@
 
 The SuperNode coordinates ClientApp execution in Flower federated learning. Each SuperNode manages a partition of the federated clients.
 
+## Network Setup
+
+Ensure the Docker bridge network exists (created by flower-superlink):
+
+```bash
+docker network create flwr-network  # if not already created
+```
+
 ## Build & Run
 
 ```bash
@@ -9,15 +17,16 @@ The SuperNode coordinates ClientApp execution in Flower federated learning. Each
 ryzers build flower-supernode
 
 # Run SuperNode 1 (partition 0 of 2)
+# Note: Add --name=supernode-1 to docker_extra_run_flags or use docker run directly
 ryzers run flower-supernode --insecure \
-  --superlink <superlink-host>:9092 \
+  --superlink superlink:9092 \
   --node-config "partition-id=0 num-partitions=2" \
   --clientappio-api-address 0.0.0.0:9094 \
   --isolation process
 
 # Run SuperNode 2 (partition 1 of 2) - use different port
 ryzers run flower-supernode --insecure \
-  --superlink <superlink-host>:9092 \
+  --superlink superlink:9092 \
   --node-config "partition-id=1 num-partitions=2" \
   --clientappio-api-address 0.0.0.0:9095 \
   --isolation process
@@ -63,5 +72,5 @@ ryzers run flower-supernode --insecure \
 - [Flower Framework](https://flower.ai/)
 - [Flower Docker Tutorial](https://flower.ai/docs/framework/docker/tutorial-quickstart-docker.html)
 
-Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 SPDX-License-Identifier: MIT

@@ -1,4 +1,4 @@
-# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 ### ryzers build options
@@ -18,3 +18,7 @@ camera_support: false
 # Common values: 11.0.0 (RDNA 3), 10.3.0 (RDNA 2), 9.0.0 (Vega)
 environment_variables:
 - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
+
+# Use bridge network for container-to-container DNS resolution
+# Create network first: docker network create flwr-network
+docker_extra_run_flags: "--network=flwr-network"

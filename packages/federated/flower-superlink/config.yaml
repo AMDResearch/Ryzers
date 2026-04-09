@@ -1,4 +1,4 @@
-# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 ### ryzers build options
@@ -19,3 +19,7 @@ port_mappings:
 - "9091:9091"  # ServerAppIO API
 - "9092:9092"  # Fleet API
 - "9093:9093"  # Control API
+
+# Use bridge network for container-to-container DNS resolution
+# Create network first: docker network create flwr-network
+docker_extra_run_flags: "--network=flwr-network --name=superlink"
