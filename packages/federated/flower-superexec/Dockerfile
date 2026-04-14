@@ -8,19 +8,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /ryzers
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-venv \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create virtual environment with system site packages (inherit torch from ROCm base)
-ENV VIRTUAL_ENV=/opt/venv
-RUN python3 -m venv --system-site-packages $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# Ensure all Python subprocesses use the venv
-ENV PYTHONHOME="$VIRTUAL_ENV"
-
 # Install Flower and dependencies for the quickstart app
 RUN pip install --no-cache-dir --upgrade \
     flwr \
