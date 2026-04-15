@@ -4,9 +4,6 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-# Set the environment variable required for HIP kernel compilation
-#ENV HSA_OVERRIDE_GFX_VERSION=11.0.0
-    
 WORKDIR /ryzers
 
 RUN apt update
