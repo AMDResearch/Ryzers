@@ -7,7 +7,8 @@
 # Usage: ./build_and_test_all_parallel.sh [--build-only] [--test-only] [--parallel N] [--skip PACKAGE] [--only PACKAGE]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$SCRIPT_DIR/.venv"
+REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+VENV_DIR="$REPO_DIR/.venv"
 LOG_DIR="$SCRIPT_DIR/build_logs"
 RESULTS_DIR="$LOG_DIR/results"
 RESULTS_FILE="$LOG_DIR/results_summary.txt"
@@ -20,60 +21,21 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# All available packages (extracted from packages directory)
-ALL_PACKAGES=(
-    # LLM
-    "ollama"
-    "llamacpp"
-    "lmstudio"
-    "lemonade-sdk"
-    "gepa"
-    # VLM
-    "gemma3"
-    "smolvlm"
-    "phi4"
-    "lfm2vl"
-    # VLA
-    "openvla"
-    "smolvla"
-    "gr00t"
-    "openpi"
-    "cogact"
-    "molmoact"
-    # Graphics
-    "o3de"
-    # Robotics
-    "genesis"
-    "act"
-    "lerobot"
-    "rai"
-    # ROS
-    "ros"
-    "gazebo"
-    # Vision
-    "opencv"
-    "sam"
-    "mobilesam"
-    "sam3"
-    "ncnn"
-    "dinov3"
-    "ultralytics"
-    "opensplat"
-    # NPU
-    "xdna"
-    "iron"
-    "npueval"
-    "ryzenai_cvml"
-    # Adaptive SoCs
-    "pynq-remote"
-    # Utilities
-    "jupyterlab"
-    "amdgpu_top"
-    # Workshops
-    "roscon25-dt"
-    "roscon25-gpu"
-    "roscon25-npu"
-)
+# Find all packages (directories containing a Dockerfile, excluding ryzer_env/ryzer_blank)
+find_packages() {
+    local packages=()
+    while IFS= read -r dockerfile; do
+        local pkg_dir=$(dirname "$dockerfile")
+        local pkg_name=$(basename "$pkg_dir")
+        # Skip init packages (ryzer_env, ryzer_blank) as they're base layers
+        if [[ "$pkg_name" != "ryzer_env" && "$pkg_name" != "ryzer_blank" ]]; then
+            packages+=("$pkg_name")
+        fi
+    done < <(find "$REPO_DIR/packages" -name "Dockerfile" -type f 2>/dev/null | sort)
+    echo "${packages[@]}"
+}
+
+ALL_PACKAGES=($(find_packages))
 
 # Default options
 BUILD_ONLY=false
@@ -171,7 +133,7 @@ setup_venv() {
         echo -e "${YELLOW}Creating virtual environment...${NC}"
         python3 -m venv "$VENV_DIR"
         source "$VENV_DIR/bin/activate"
-        pip install -e "$SCRIPT_DIR"
+        pip install -e "$REPO_DIR"
     else
         source "$VENV_DIR/bin/activate"
     fi
@@ -301,15 +263,15 @@ clean_all() {
         rm -rf "$LOG_DIR"
     fi
 
-    # Remove generated run scripts and build logs in script dir
+    # Remove generated run scripts and build logs in repo dir
     echo "  Removing generated run scripts and build logs..."
-    rm -f "$SCRIPT_DIR"/ryzers.run.*.sh
-    rm -f "$SCRIPT_DIR"/ryzers.build.*.log
+    rm -f "$REPO_DIR"/ryzers.run.*.sh
+    rm -f "$REPO_DIR"/ryzers.build.*.log
 
     # Remove _ryzers.yaml tracking file
-    if [[ -f "$SCRIPT_DIR/ryzers/_ryzers.yaml" ]]; then
+    if [[ -f "$REPO_DIR/ryzers/_ryzers.yaml" ]]; then
         echo "  Removing ryzers state file"
-        rm -f "$SCRIPT_DIR/ryzers/_ryzers.yaml"
+        rm -f "$REPO_DIR/ryzers/_ryzers.yaml"
     fi
 
     # Remove Docker images
