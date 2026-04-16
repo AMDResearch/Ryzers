@@ -15,8 +15,8 @@ RUN git clone https://github.com/ChaoningZhang/MobileSAM.git && \
     pip3 install -e . && \
     pip3 install timm gradio matplotlib opencv-python
 
-#RUN pip3 uninstall -y torch torchvision torchaudio
-#RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm7.2/
+RUN pip3 uninstall -y torch torchvision torchaudio
+RUN pip3 install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm7.2/
 
 COPY test.sh /ryzers/test_mobilesam.sh
 RUN chmod +x /ryzers/test_mobilesam.sh
