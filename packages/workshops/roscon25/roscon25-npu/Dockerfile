@@ -20,4 +20,9 @@ RUN echo '#!/bin/bash' > /entrypoint.sh && \
     echo 'exec python3 -m jupyter lab --ip=0.0.0.0 --port=8888 --allow-root "$@"' >> /entrypoint.sh && \
     chmod +x /entrypoint.sh
 
-CMD ["/bin/bash", "/entrypoint.sh"]
+# Copy test script
+COPY test.sh /ryzers/test_roscon25_npu.sh
+RUN chmod +x /ryzers/test_roscon25_npu.sh
+
+# Default command runs test (for interactive use: /bin/bash /entrypoint.sh)
+CMD ["/ryzers/test_roscon25_npu.sh"]

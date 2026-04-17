@@ -3,24 +3,32 @@
 
 # Example adapted from: https://huggingface.co/facebook/sam3
 
-from transformers import Sam3Processor, Sam3Model
 import torch
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"CUDA device: {torch.cuda.get_device_name(0)}")
+
+from transformers import Sam3Processor, Sam3Model
 from PIL import Image
 import numpy as np
 import matplotlib
-from nicegui import ui
-import base64
-import io
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device}")
 
+print("Loading SAM3 model...")
 model = Sam3Model.from_pretrained("facebook/sam3").to(device)
 processor = Sam3Processor.from_pretrained("facebook/sam3")
+print("Model loaded successfully")
 
 # Load image
+print("Loading test image...")
 image = Image.open("/ryzers/data/toucan.jpg").convert("RGB")
+print(f"Image size: {image.size}")
 
 # Segment using text prompt
+print("Running segmentation with text prompt 'bird'...")
 inputs = processor(images=image, text="bird", return_tensors="pt").to(device)
 
 with torch.no_grad():
@@ -40,6 +48,9 @@ print(f"Found {len(results['masks'])} objects")
 # - boxes: Bounding boxes in absolute pixel coordinates (xyxy format)
 # - scores: Confidence scores
 
+for i, (mask, score) in enumerate(zip(results['masks'], results['scores'])):
+    print(f"  Object {i+1}: score={score:.3f}, mask shape={mask.shape}")
+
 # Function to overlay masks on the image
 def overlay_masks(image, masks):
     image = image.convert("RGBA")
@@ -55,25 +66,11 @@ def overlay_masks(image, masks):
         image = Image.alpha_composite(image, overlay)
     return image
 
+# Save result image instead of displaying via NiceGUI
+print("Generating segmentation overlay...")
 image_with_mask = overlay_masks(image, results["masks"])
+output_path = "/ryzers/data/sam3_result.png"
+image_with_mask.save(output_path)
+print(f"Result saved to: {output_path}")
 
-# Convert PIL images to base64 data URIs for NiceGUI
-def pil_to_base64(pil_image):
-    buf = io.BytesIO()
-    pil_image.save(buf, format='PNG')
-    buf.seek(0)
-    return f"data:image/png;base64,{base64.b64encode(buf.read()).decode()}"
-
-# Create NiceGUI page to display results
-@ui.page('/')
-def index():
-    ui.label('SAM3 segmentation results').classes('text-2xl font-bold mb-4')
-    with ui.row().classes('w-full gap-4'):
-        with ui.column().classes('w-[45%]'):
-            ui.label('Original image')
-            ui.image(pil_to_base64(image.convert("RGB"))).classes('w-full')
-        with ui.column().classes('w-[45%]'):
-            ui.label('Segmentation result')
-            ui.image(pil_to_base64(image_with_mask.convert("RGB"))).classes('w-full')
-
-ui.run()
+print("SUCCESS: SAM3 segmentation test passed")
