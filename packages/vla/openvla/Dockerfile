@@ -14,6 +14,8 @@ RUN mkdir -p /ryzers/data/ && \
     wget https://github.com/AMDResearch/Riallto/blob/main/notebooks/images/jpg/toucan.jpg?raw=true -O /ryzers/data/toucan.jpg
 
 RUN pip install -r https://raw.githubusercontent.com/openvla/openvla/refs/heads/main/requirements-min.txt
+RUN pip uninstall -y torch torchvision torchaudio
+RUN pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/rocm7.2/
 
 RUN pip install accelerate
 
