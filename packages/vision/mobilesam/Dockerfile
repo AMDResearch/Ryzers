@@ -7,7 +7,7 @@ FROM ${BASE_IMAGE}
 WORKDIR /ryzers
 
 RUN apt-get update
-RUN apt install -y python3-pip
+RUN apt install -y python3-pip wget
 
 # Clone the repository and install segment-anything
 RUN git clone https://github.com/ChaoningZhang/MobileSAM.git && \
