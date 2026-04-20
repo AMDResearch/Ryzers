@@ -389,15 +389,37 @@ clean_all() {
     echo -e "${GREEN}Clean complete.${NC}"
 }
 
-# Print summary
+# Print summary (to stdout and report file)
 print_summary() {
     # Merge results first
     merge_results
 
-    echo ""
-    echo "=============================================="
-    echo "                  SUMMARY"
-    echo "=============================================="
+    local REPORT_FILE="$LOG_DIR/report.txt"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+
+    # Function to output to both stdout and report file
+    output() {
+        echo -e "$1"
+        # Strip color codes for the file
+        echo -e "$1" | sed 's/\x1b\[[0-9;]*m//g' >> "$REPORT_FILE"
+    }
+
+    # Start report file
+    cat > "$REPORT_FILE" << EOF
+===============================================
+     RYZERS BUILD AND TEST REPORT
+===============================================
+Generated: $timestamp
+Build only: $BUILD_ONLY
+Test only: $TEST_ONLY
+Parallel jobs: $PARALLEL
+
+EOF
+
+    output ""
+    output "=============================================="
+    output "                  SUMMARY"
+    output "=============================================="
 
     if [[ -f "$RESULTS_FILE" ]]; then
         local build_success=$(grep "^BUILD,.*,SUCCESS" "$RESULTS_FILE" | wc -l)
@@ -408,46 +430,86 @@ print_summary() {
         local test_timeout=$(grep "^TEST,.*,TIMEOUT" "$RESULTS_FILE" | wc -l)
         local test_skipped=$(grep "^TEST,.*,SKIPPED" "$RESULTS_FILE" | wc -l)
 
-        echo ""
-        echo "Build Results:"
-        echo -e "  ${GREEN}Success:${NC}     $build_success"
-        echo -e "  ${RED}Failed:${NC}      $build_failed"
-        echo -e "  ${YELLOW}Dep Failed:${NC}  $build_dep_failed"
+        output ""
+        output "Build Results:"
+        output "  ${GREEN}Success:${NC}     $build_success"
+        output "  ${RED}Failed:${NC}      $build_failed"
+        output "  ${YELLOW}Dep Failed:${NC}  $build_dep_failed"
 
         if ! $BUILD_ONLY; then
-            echo ""
-            echo "Test Results:"
-            echo -e "  ${GREEN}Success:${NC} $test_success"
-            echo -e "  ${RED}Failed:${NC}  $test_failed"
-            echo -e "  ${YELLOW}Timeout:${NC} $test_timeout"
-            echo -e "  ${YELLOW}Skipped:${NC} $test_skipped"
+            output ""
+            output "Test Results:"
+            output "  ${GREEN}Success:${NC} $test_success"
+            output "  ${RED}Failed:${NC}  $test_failed"
+            output "  ${YELLOW}Timeout:${NC} $test_timeout"
+            output "  ${YELLOW}Skipped:${NC} $test_skipped"
         fi
 
-        echo ""
-        echo "Failed builds:"
+        output ""
+        output "Failed builds:"
         grep "^BUILD,.*,FAILED" "$RESULTS_FILE" | cut -d',' -f2 | while read pkg; do
-            echo -e "  ${RED}- $pkg${NC}"
+            output "  ${RED}- $pkg${NC}"
         done
 
         if [[ $build_dep_failed -gt 0 ]]; then
-            echo ""
-            echo "Skipped due to dependency failure:"
+            output ""
+            output "Skipped due to dependency failure:"
             grep "^BUILD,.*,DEP_FAILED" "$RESULTS_FILE" | cut -d',' -f2 | while read pkg; do
-                echo -e "  ${YELLOW}- $pkg${NC}"
+                output "  ${YELLOW}- $pkg${NC}"
             done
         fi
 
         if ! $BUILD_ONLY; then
-            echo ""
-            echo "Failed tests:"
+            output ""
+            output "Failed tests:"
             grep "^TEST,.*,FAILED" "$RESULTS_FILE" | cut -d',' -f2 | while read pkg; do
-                echo -e "  ${RED}- $pkg${NC}"
+                output "  ${RED}- $pkg${NC}"
             done
+
+            if [[ $test_timeout -gt 0 ]]; then
+                output ""
+                output "Timed out tests:"
+                grep "^TEST,.*,TIMEOUT" "$RESULTS_FILE" | cut -d',' -f2 | while read pkg; do
+                    output "  ${YELLOW}- $pkg${NC}"
+                done
+            fi
         fi
 
-        echo ""
-        echo "Full results: $RESULTS_FILE"
-        echo "Build logs: $LOG_DIR/"
+        # Add detailed results table to report file
+        echo "" >> "$REPORT_FILE"
+        echo "===============================================" >> "$REPORT_FILE"
+        echo "              DETAILED RESULTS" >> "$REPORT_FILE"
+        echo "===============================================" >> "$REPORT_FILE"
+        echo "" >> "$REPORT_FILE"
+        printf "%-25s %-12s %-12s %s\n" "PACKAGE" "BUILD" "TEST" "DURATION" >> "$REPORT_FILE"
+        echo "---------------------------------------------------------------" >> "$REPORT_FILE"
+
+        for pkg in "${ALL_PACKAGES[@]}"; do
+            local build_status="N/A"
+            local test_status="N/A"
+            local build_dur=""
+            local test_dur=""
+
+            if grep -q "^BUILD,$pkg," "$RESULTS_FILE" 2>/dev/null; then
+                build_status=$(grep "^BUILD,$pkg," "$RESULTS_FILE" | cut -d',' -f3)
+                build_dur=$(grep "^BUILD,$pkg," "$RESULTS_FILE" | cut -d',' -f4)
+            fi
+            if grep -q "^TEST,$pkg," "$RESULTS_FILE" 2>/dev/null; then
+                test_status=$(grep "^TEST,$pkg," "$RESULTS_FILE" | cut -d',' -f3)
+                test_dur=$(grep "^TEST,$pkg," "$RESULTS_FILE" | cut -d',' -f4)
+            fi
+
+            local duration=""
+            [[ -n "$build_dur" ]] && duration="${build_dur}s"
+            [[ -n "$test_dur" ]] && duration="${duration:+$duration/}${test_dur}s"
+
+            printf "%-25s %-12s %-12s %s\n" "$pkg" "$build_status" "$test_status" "$duration" >> "$REPORT_FILE"
+        done
+
+        output ""
+        output "Full results: $RESULTS_FILE"
+        output "Report file: $REPORT_FILE"
+        output "Build logs: $LOG_DIR/"
     fi
 }
 
