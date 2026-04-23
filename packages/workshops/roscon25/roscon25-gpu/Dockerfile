@@ -6,7 +6,7 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers
 
-RUN pip install jupyterlab "numpy<2" matplotlib catkin_pkg empy ipywidgets "datasets<3"
+RUN pip install jupyterlab "numpy<2" matplotlib catkin_pkg "empy==3.3.4" ipywidgets "datasets<3"
 
 COPY notebooks /ryzers/notebooks/
 
