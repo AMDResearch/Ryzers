@@ -24,6 +24,7 @@ NC='\033[0m' # No Color
 # Associative arrays for dependency tracking
 declare -A PACKAGE_DEPS      # package -> space-separated list of dependencies
 declare -A FAILED_PACKAGES   # package -> 1 if failed
+declare -A BUILD_CHAINS      # package -> full build chain command
 
 # Find all packages (directories containing a Dockerfile, excluding ryzer_env/ryzer_blank)
 find_packages() {
@@ -43,6 +44,9 @@ ALL_PACKAGES=($(find_packages))
 
 # Build dependency map by scanning Dockerfiles for ARG BASE_IMAGE=<package>
 build_dependency_map() {
+    # Define special build chains (packages that need to be built with specific chains)
+    BUILD_CHAINS["roscon25-gpu"]="llamacpp ros smolvla amdgpu_top roscon25-gpu"
+
     for pkg in "${ALL_PACKAGES[@]}"; do
         # Find the Dockerfile for this package
         local dockerfile
@@ -70,6 +74,16 @@ build_dependency_map() {
                     fi
                 fi
             fi
+        fi
+    done
+
+    # For packages with build chains, set their dependency to the first package in the chain
+    # (excluding themselves) so they get built in the right layer
+    for pkg in "${!BUILD_CHAINS[@]}"; do
+        local chain="${BUILD_CHAINS[$pkg]}"
+        local first_pkg=$(echo "$chain" | awk '{print $1}')
+        if [[ "$first_pkg" != "$pkg" ]]; then
+            PACKAGE_DEPS["$pkg"]="$first_pkg"
         fi
     done
 }
@@ -265,15 +279,23 @@ build_package() {
         return 1
     fi
 
-    log_message "${BLUE}[BUILD]${NC} Building $pkg..."
+    # Check if this package has a special build chain
+    local build_cmd
+    if [[ -n "${BUILD_CHAINS[$pkg]}" ]]; then
+        build_cmd="ryzers build --name ryzer-$pkg ${BUILD_CHAINS[$pkg]}"
+        log_message "${BLUE}[BUILD]${NC} Building $pkg (with chain: ${BUILD_CHAINS[$pkg]})..."
+    else
+        build_cmd="ryzers build --name ryzer-$pkg $pkg"
+        log_message "${BLUE}[BUILD]${NC} Building $pkg..."
+    fi
 
     if $DRY_RUN; then
-        log_message "  DRY RUN: ryzers build --name ryzer-$pkg $pkg"
+        log_message "  DRY RUN: $build_cmd"
         echo "BUILD,$pkg,DRYRUN,0" > "$result_file"
         return 0
     fi
 
-    if ryzers build --name "ryzer-$pkg" "$pkg" > "$log_file" 2>&1; then
+    if $build_cmd > "$log_file" 2>&1; then
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
         log_message "${GREEN}[BUILD]${NC} $pkg - SUCCESS (${duration}s)"
