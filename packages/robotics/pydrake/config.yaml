@@ -1,28 +1,11 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-### ryzers build options
-
-# GPU support enabled (default)
-# gpu_support: true
-
-# X11 display for visualization
-# x11_display: true
-
-### ryzers run options
-
-# Strix Point gfx1150 HSA override
+# Strix Point gfx1150 compatibility
 environment_variables:
   - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
   - "PYOPENGL_PLATFORM=egl"
 
-# Meshcat web visualization
+# Meshcat visualization
 port_mappings:
   - "7000:7000"
-
-# Cache HuggingFace models and Drake assets
-volume_mappings:
-  - "$PWD/workspace/.cache:/root/.cache"
-
-# Extra shared memory for large simulations
-docker_extra_run_flags: "--shm-size=4g"

@@ -8,9 +8,6 @@ PyDrake Hello World: Falling objects simulation with MP4 output.
 Demonstrates MultibodyPlant, SceneGraph, and video rendering.
 """
 
-import os
-os.environ["PYOPENGL_PLATFORM"] = "egl"
-
 import numpy as np
 from pydrake.geometry import Box, Sphere, MakeRenderEngineVtk, RenderEngineVtkParams
 from pydrake.math import RigidTransform, RollPitchYaw, RotationMatrix
