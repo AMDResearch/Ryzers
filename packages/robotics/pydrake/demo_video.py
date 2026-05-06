@@ -9,7 +9,11 @@ Demonstrates MultibodyPlant, SceneGraph, and video rendering.
 """
 
 import numpy as np
-from pydrake.geometry import Box, Sphere, MakeRenderEngineVtk, RenderEngineVtkParams
+from pydrake.geometry import (
+    Box, Sphere, GeometryInstance,
+    MakePhongIllustrationProperties,
+    MakeRenderEngineVtk, RenderEngineVtkParams
+)
 from pydrake.math import RigidTransform, RollPitchYaw, RotationMatrix
 from pydrake.multibody.plant import AddMultibodyPlantSceneGraph, CoulombFriction
 from pydrake.multibody.tree import SpatialInertia, UnitInertia
@@ -19,22 +23,42 @@ from pydrake.visualization import VideoWriter
 
 
 def add_ground(plant):
-    """Add a ground plane."""
+    """Add a ground plane with MuJoCo-style blue gradient checkerboard."""
     ground_friction = CoulombFriction(static_friction=1.0, dynamic_friction=0.8)
+
+    # Main ground collision
     plant.RegisterCollisionGeometry(
         plant.world_body(),
-        RigidTransform([0, 0, -0.05]),
-        Box(10, 10, 0.1),
+        RigidTransform([0, 0, -0.01]),
+        Box(20, 20, 0.02),
         "ground_collision",
         ground_friction,
     )
-    plant.RegisterVisualGeometry(
-        plant.world_body(),
-        RigidTransform([0, 0, -0.05]),
-        Box(10, 10, 0.1),
-        "ground_visual",
-        np.array([0.3, 0.3, 0.3, 1.0]),
-    )
+
+    # Checkerboard grid with blue gradient (MuJoCo style)
+    grid_size = 1.0
+    num_cells = 6
+
+    for i in range(-num_cells, num_cells + 1):
+        for j in range(-num_cells, num_cells + 1):
+            # Blue gradient checkerboard (brighter, more visible)
+            if (i + j) % 2 == 0:
+                # Light blue-grey
+                color = [0.65, 0.75, 0.85, 1.0]
+            else:
+                # Medium blue-grey
+                color = [0.50, 0.60, 0.72, 1.0]
+
+            # Create geometry instance with illustration properties
+            instance = GeometryInstance(
+                RigidTransform([i * grid_size, j * grid_size, -0.005]),
+                Box(grid_size * 0.98, grid_size * 0.98, 0.005),
+                f"grid_{i}_{j}"
+            )
+            instance.set_illustration_properties(
+                MakePhongIllustrationProperties(color)
+            )
+            plant.RegisterVisualGeometry(plant.world_body(), instance)
 
 
 def add_falling_box(plant, name, size, mass, color, initial_pos):
@@ -144,30 +168,27 @@ def create_simulation():
         initial_pos=[-0.2, -0.4, 2.8]
     ))
 
-    plant.Finalize()
-
-    # Add VTK renderer with proper settings
+    # Add VTK renderer BEFORE finalizing so geometry is registered with it
     vtk_params = RenderEngineVtkParams()
     scene_graph.AddRenderer("vtk", MakeRenderEngineVtk(vtk_params))
 
+    plant.Finalize()
+
     # Camera positioned to view the falling objects
-    # Drake camera looks along +Z in camera frame
-    # Place camera behind and above, looking toward origin
     camera_pos = np.array([0.0, -5.0, 2.0])
     target_pos = np.array([0.0, 0.0, 1.5])
 
-    # Compute rotation: camera +Z should point from camera to target
+    # Compute camera orientation
     forward = target_pos - camera_pos
     forward = forward / np.linalg.norm(forward)
 
-    # World up
     world_up = np.array([0.0, 0.0, 1.0])
     right = np.cross(forward, world_up)
     right = right / np.linalg.norm(right)
-    cam_up = np.cross(right, forward)
+    up = np.cross(right, forward)
 
-    # Camera frame: X=right, Y=up, Z=forward (optical axis)
-    R = np.column_stack([right, cam_up, forward])
+    # Drake camera: +Z forward, -Y up (negate to flip image right-side up)
+    R = np.column_stack([right, -up, forward])
 
     video_writer = VideoWriter.AddToBuilder(
         filename="/output/drake_hello_world.mp4",
