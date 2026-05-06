@@ -15,8 +15,9 @@
 
 ### ryzers run options
 
-# environment_variables:              # List of environment variables to set in the container
-# - "ENV_VARIABLE=VALUE"              # E.g. "PYTHONPATH=/path/to/python"
+# Headless rendering support (fixes issue #66)
+environment_variables:
+  - "PYOPENGL_PLATFORM=egl"
 
 # port_mappings:  
 # - "host_portnum:container_portnum"  # List of port mappings to expose from the docker 
