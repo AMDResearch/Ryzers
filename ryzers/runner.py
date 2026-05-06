@@ -14,17 +14,19 @@ class DockerRunner:
         script_name (str): The name of the bash script to run the docker image.
     """
 
-    def __init__(self, container_name = None, docker_cmd=None, script_name: str = None):
+    def __init__(self, container_name = None, docker_cmd=None, script_name: str = None, interactive: bool = False):
         """
         Initializes the DockerRunner with the container name and optional script name.
 
         Args:
             container_name (str): The name of the container.
             script_name (str, optional): The name of the script to execute. Defaults to None.
+            interactive (bool): Whether to run with TTY allocation (-it flag).
         """
         self.container_name = self.get_last_container_name() if container_name is None else container_name
         self.script_name = f"ryzers.run.{self.container_name}.sh" if script_name is None else script_name
         self.docker_cmdstr = docker_cmd if docker_cmd is not None else ""
+        self.interactive = interactive
 
 
     def __call__(self):
@@ -36,12 +38,22 @@ class DockerRunner:
         # Check if the script exists
         if not os.path.exists(self.script_name):
             raise FileNotFoundError(f"Script {self.script_name} not found.")
-        
+
+        # Read and optionally modify the script for interactive mode
+        with open(self.script_name, 'r') as f:
+            script_content = f.read()
+
+        # If interactive flag is set, ensure -it is used instead of just -i
+        if self.interactive:
+            script_content = script_content.replace("docker run -i ", "docker run -it ")
+
+        # Replace $1 with the actual command
+        script_content = script_content.replace("$1", self.docker_cmdstr)
+
         # Execute the script
         try:
-
             result = subprocess.run(
-                ["bash", self.script_name, self.docker_cmdstr], check=True
+                ["bash", "-c", script_content], check=True
             )
             print(f"Script output:\n{result.stdout}")
         except subprocess.CalledProcessError as e:

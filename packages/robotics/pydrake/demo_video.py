@@ -8,7 +8,12 @@ PyDrake Hello World: Falling objects simulation with MP4 output.
 Demonstrates MultibodyPlant, SceneGraph, and video rendering.
 """
 
+import os
 import numpy as np
+
+# Ensure output directory exists (synced to host via /workspace mount)
+OUTPUT_DIR = "/workspace/output" if os.path.exists("/workspace") else "/output"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 from pydrake.geometry import (
     Box, Sphere, HalfSpace,
     MakeRenderEngineVtk, RenderEngineVtkParams
@@ -174,7 +179,7 @@ def create_simulation():
     R = np.column_stack([right, -up, forward])
 
     video_writer = VideoWriter.AddToBuilder(
-        filename="/output/drake_hello_world.mp4",
+        filename=f"{OUTPUT_DIR}/drake_hello_world.mp4",
         builder=builder,
         sensor_pose=RigidTransform(RotationMatrix(R), camera_pos),
         width=1280,
@@ -219,7 +224,7 @@ def run_simulation(duration=5.0):
     video_writer.Save()
 
     print("Simulation complete!")
-    print("Video saved to: /output/drake_hello_world.mp4")
+    print(f"Video saved to: {OUTPUT_DIR}/drake_hello_world.mp4")
 
 
 if __name__ == "__main__":

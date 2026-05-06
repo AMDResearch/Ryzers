@@ -1,6 +1,10 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+# Headless mode (no X11/TTY required, works over SSH)
+x11_display: false
+interactive: false
+
 # Strix Point gfx1150 compatibility
 environment_variables:
   - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
@@ -9,3 +13,7 @@ environment_variables:
 # Meshcat visualization
 port_mappings:
   - "7000:7000"
+
+# Mount working directory for output sync
+volume_mappings:
+  - ".:/workspace"

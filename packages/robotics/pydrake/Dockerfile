@@ -22,7 +22,9 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 # Copy test and demo scripts
 COPY test.py /ryzers/test_pydrake.py
 COPY demo.py /ryzers/demo_pydrake.py
-RUN chmod +x /ryzers/test_pydrake.py /ryzers/demo_pydrake.py
+COPY demo.sh /ryzers/demo_pydrake.sh
+COPY demo_video.py /ryzers/demo_video_pydrake.py
+RUN chmod +x /ryzers/test_pydrake.py /ryzers/demo_pydrake.py /ryzers/demo_pydrake.sh /ryzers/demo_video_pydrake.py
 
 EXPOSE 7000
 

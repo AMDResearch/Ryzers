@@ -14,21 +14,31 @@ Drake is a planning, control, and analysis toolbox for nonlinear dynamical syste
 
 ```sh
 ryzers build pydrake
-ryzers run
+ryzers run  # Runs default test
 ```
 
 ### Run the demo (pendulum simulation with visualization)
 
 ```sh
-ryzers run python3 /ryzers/demo_pydrake.py
+ryzers run /ryzers/demo_pydrake.sh
 ```
 
 Then open http://localhost:7000 to view the Meshcat visualization.
 
-### Interactive shell
+### Run the video demo (falling objects with MP4 output)
 
 ```sh
-ryzers run bash
+ryzers run /ryzers/demo_video_pydrake.py
+```
+
+Output video saved to `./output/drake_hello_world.mp4`.
+
+### Interactive shell
+
+This package runs in headless mode by default to support SSH. For an interactive shell with TTY, use the `-it` flag:
+
+```sh
+ryzers run -it bash
 ```
 
 ## GPU Acceleration

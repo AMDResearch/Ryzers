@@ -20,15 +20,16 @@ def build(base_path, name, packages, init_image):
     mgr = RyzerManager(base_path, name, packages, init_image)
     mgr.build()
 
-def run(name, docker_cmd):
+def run(name, docker_cmd, interactive=False):
     """
     Runs the Docker container with the specified name.
 
     Args:
         name (str): The name of the Docker image to run.
         docker_cmd (str): The command to run with the Docker run call
+        interactive (bool): Whether to run with TTY allocation (-it flag)
     """
-    runner = DockerRunner(name, docker_cmd)
+    runner = DockerRunner(name, docker_cmd, interactive=interactive)
     runner()
 
 def main():
@@ -54,6 +55,7 @@ def main():
     # 'run' command
     run_parser = subparsers.add_parser("run", help="Run the project")
     run_parser.add_argument("--name", default=None, help="Name of the docker image to run")
+    run_parser.add_argument("-it", "--interactive", action="store_true", help="Run with interactive TTY (for bash shells)")
     run_parser.add_argument("docker_cmd", nargs="?", default="", help="Overwrite the Docker CMD to run this command (optional)")
 
     # Parse the arguments
@@ -62,7 +64,7 @@ def main():
     if args.command == "build":
         build(args.base_path, args.name, args.dockerfiles, args.init_image)
     elif args.command == "run":
-        run(args.name, args.docker_cmd)
+        run(args.name, args.docker_cmd, args.interactive)
     else:
         print(f"Unknown command: {args.command}", file=sys.stderr)
         sys.exit(1)

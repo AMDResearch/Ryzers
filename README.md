@@ -23,8 +23,8 @@ These dockerfiles will also be pushed and actively maintained in their original 
 | VLM                     | [`Gemma3`](packages/vlm/gemma3), [`SmolVLM`](packages/vlm/smolvlm), [`Phi-4`](packages/vlm/phi4), [`LFM2-VL`](packages/vlm/lfm2vl) |
 | VLA                     | [`OpenVLA`](packages/vla/openvla), [`SmolVLA`](packages/vla/smolvla), [`GR00T-N1.5`](packages/vla/gr00t), [`openpi`](packages/vla/openpi), [`CogACT`](packages/vla/cogact), [`MolmoAct`](packages/vla/molmoact) |
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
-| Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot), [`ACT`](packages/robotics/act), [`RAI`](packages/robotics/rai), [`PyDrake`](packages/robotics/pydrake)    |
-| Simulation                |  [`Genesis`](packages/robotics/genesis)  |
+| Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot), [`ACT`](packages/robotics/act), [`RAI`](packages/robotics/rai)    |
+| Simulation                |  [`Genesis`](packages/robotics/genesis), [`PyDrake`](packages/robotics/pydrake)  |
 | Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam), [`ncnn`](packages/vision/ncnn), [`DINOv3`](packages/vision/dinov3), [`SAM3`](packages/vision/sam3), [`Ultralytics`](packages/vision/ultralytics) |
 | Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval), [`Ryzen AI CVML`](packages/npu/ryzenai_cvml)  |
 | Adaptive SoCs           | [`PYNQ.remote`](packages/adaptive-socs/pynq-remote) |

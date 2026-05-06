@@ -42,6 +42,7 @@ class ConfigManager:
         "gpu_support",
         "x11_display",
         "camera_support",
+        "interactive",
         "build_arguments",
         "environment_variables",
         "port_mappings",
@@ -84,24 +85,32 @@ class ConfigManager:
         gpu = True
         x11 = True
         cameras = True
+        interactive = True
         extra_run_flags = ""
 
         for c in self.configentries:
             print(str(c))
             if c.key == "port_mappings":
-                runflags += f" -p {c}" 
+                runflags += f" -p {c}"
             if c.key == "volume_mappings":
-                runflags += f" -v {c}"                 
+                runflags += f" -v {c}"
             if c.key == "environment_variables":
-                runflags += f" -e {c}"  
+                runflags += f" -e {c}"
             if c.key == "gpu_support":
                 gpu = c.value
             if c.key == "x11_display":
                 x11 = c.value
             if c.key == "camera_support":
-                cameras = c.value                
+                cameras = c.value
+            if c.key == "interactive":
+                interactive = c.value
             if c.key == "docker_extra_run_flags":
                 extra_run_flags += f" {c.value}"
+
+        # Remove -it flag if interactive is false (for headless/SSH use)
+        if not interactive:
+            runflags = runflags.replace("-it ", "-i ")
+
         if gpu:
             runflags += " --device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined --group-add video --group-add render "
         if x11:
@@ -158,7 +167,7 @@ class ConfigManager:
         if key in ["port_mappings", "volume_mappings"]:
             key0, val0 = value.split(':', 1)
             return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=':')
-        if key in ["gpu_support", "x11_display", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
+        if key in ["gpu_support", "x11_display", "interactive", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
             return ConfigKeyValueEntry(key, value, config_path)
         else:
             raise ValueError(f"Invalid key: {key}. Must be one of {', '.join(self.CONFIG_KEYS)}")

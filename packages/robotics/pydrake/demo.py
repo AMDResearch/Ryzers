@@ -29,13 +29,14 @@ def create_pendulum():
     # Pendulum parameters
     length = 1.0
     mass = 1.0
-    radius = 0.05
+    radius = 0.1
 
-    # Add pendulum body
-    M_link = SpatialInertia(
+    # Add pendulum body as point mass at the end
+    # Use SolidSphere for inertia calculation about center of mass
+    M_link = SpatialInertia.MakeFromCentralInertia(
         mass=mass,
-        p_PScm_E=[0, 0, -length / 2],
-        G_SP_E=UnitInertia.SolidCylinder(radius, length, [0, 0, 1])
+        p_PScm_E=[0, 0, -length],  # COM is at bottom
+        I_SScm_E=UnitInertia.SolidSphere(radius)  # Small sphere inertia
     )
     pendulum = plant.AddRigidBody("pendulum", M_link)
 
@@ -47,11 +48,11 @@ def create_pendulum():
         [1, 0, 0],  # Rotate around X axis
     ))
 
-    # Add visual geometry
+    # Add visual geometry (sphere at the end)
     plant.RegisterVisualGeometry(
         pendulum,
-        RigidTransform([0, 0, -length / 2]),
-        Sphere(radius * 2),
+        RigidTransform([0, 0, -length]),
+        Sphere(radius),
         "pendulum_visual",
         [0.8, 0.2, 0.2, 1.0]  # Red color
     )
