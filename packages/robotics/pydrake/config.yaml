@@ -1,0 +1,18 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# Headless mode (no X11 display needed)
+x11_display: false
+
+# Strix Point gfx1150 compatibility
+environment_variables:
+  - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
+  - "PYOPENGL_PLATFORM=egl"
+
+# Meshcat visualization
+port_mappings:
+  - "7000:7000"
+
+# Mount working directory for output sync
+volume_mappings:
+  - ".:/workspace"
