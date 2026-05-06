@@ -10,8 +10,7 @@ Demonstrates MultibodyPlant, SceneGraph, and video rendering.
 
 import numpy as np
 from pydrake.geometry import (
-    Box, Sphere, GeometryInstance,
-    MakePhongIllustrationProperties,
+    Box, Sphere, HalfSpace,
     MakeRenderEngineVtk, RenderEngineVtkParams
 )
 from pydrake.math import RigidTransform, RollPitchYaw, RotationMatrix
@@ -23,42 +22,26 @@ from pydrake.visualization import VideoWriter
 
 
 def add_ground(plant):
-    """Add a ground plane with MuJoCo-style blue gradient checkerboard."""
+    """Add a ground plane with MuJoCo-style blue color."""
     ground_friction = CoulombFriction(static_friction=1.0, dynamic_friction=0.8)
 
-    # Main ground collision
+    # Use HalfSpace for infinite ground (standard Drake approach)
     plant.RegisterCollisionGeometry(
         plant.world_body(),
-        RigidTransform([0, 0, -0.01]),
-        Box(20, 20, 0.02),
-        "ground_collision",
+        RigidTransform(),
+        HalfSpace(),
+        "ground",
         ground_friction,
     )
 
-    # Checkerboard grid with blue gradient (MuJoCo style)
-    grid_size = 1.0
-    num_cells = 6
-
-    for i in range(-num_cells, num_cells + 1):
-        for j in range(-num_cells, num_cells + 1):
-            # Blue gradient checkerboard (brighter, more visible)
-            if (i + j) % 2 == 0:
-                # Light blue-grey
-                color = [0.65, 0.75, 0.85, 1.0]
-            else:
-                # Medium blue-grey
-                color = [0.50, 0.60, 0.72, 1.0]
-
-            # Create geometry instance with illustration properties
-            instance = GeometryInstance(
-                RigidTransform([i * grid_size, j * grid_size, -0.005]),
-                Box(grid_size * 0.98, grid_size * 0.98, 0.005),
-                f"grid_{i}_{j}"
-            )
-            instance.set_illustration_properties(
-                MakePhongIllustrationProperties(color)
-            )
-            plant.RegisterVisualGeometry(plant.world_body(), instance)
+    # Visual ground with blue-grey color
+    plant.RegisterVisualGeometry(
+        plant.world_body(),
+        RigidTransform(),
+        HalfSpace(),
+        "ground_visual",
+        np.array([0.55, 0.65, 0.75, 1.0]),  # Light blue-grey
+    )
 
 
 def add_falling_box(plant, name, size, mass, color, initial_pos):
