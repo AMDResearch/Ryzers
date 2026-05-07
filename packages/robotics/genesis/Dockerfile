@@ -14,12 +14,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     HSA_OVERRIDE_GFX_VERSION=11.0.0
 
-# System packages: Vulkan + FFmpeg + minimal GUI dependencies
+# System packages: Vulkan + FFmpeg + EGL for headless rendering
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl wget git ca-certificates locales \
     libvulkan1 mesa-vulkan-drivers vulkan-tools \
     ffmpeg \
     libgl1 libglib2.0-0 \
+    libegl1-mesa-dev libgles2-mesa-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # pip configuration (system-wide inside the container)

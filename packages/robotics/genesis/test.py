@@ -4,13 +4,16 @@
 # SPDX-License-Identifier: MIT
 
 import os
-os.environ['PYOPENGL_PLATFORM'] = 'glx'
- 
+# Use EGL for headless rendering (issue #66)
+if 'PYOPENGL_PLATFORM' not in os.environ:
+    os.environ['PYOPENGL_PLATFORM'] = 'egl'
+
 import genesis as gs
 
 gs.init(backend=gs.vulkan)
 
-scene = gs.Scene(show_viewer=True)
+# Headless mode by default (set show_viewer=True if X11 display available)
+scene = gs.Scene(show_viewer=False)
 plane = scene.add_entity(gs.morphs.Plane())
 franka = scene.add_entity(
     gs.morphs.MJCF(file='xml/franka_emika_panda/panda.xml'),
