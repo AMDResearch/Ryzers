@@ -2,31 +2,6 @@
 # SPDX-License-Identifier: MIT
 
 from setuptools import setup, find_packages
-import os
-
-# Path to the directory of this setup.py file
-setup_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Path to the ryzers package
-ryzer_dir = os.path.join(setup_dir, 'ryzers')
-
-# Path to the __init__.py file in the ryzers package
-init_file = os.path.join(ryzer_dir, '__init__.py')
-
-if os.name == 'nt':  # Windows
-    setup_dir = setup_dir.replace('\\', '\\\\')
-
-
-# Read the current contents of the file
-with open(init_file, 'r') as file:
-    lines = file.readlines()
-
-# Modify the line starting with RYZER_PACKAGES_PATH =
-with open(init_file, 'w') as file:
-    for line in lines:
-        if line.startswith('RYZER_PACKAGES_PATH ='):
-            line = f'RYZER_PACKAGES_PATH = "{setup_dir}"\n'
-        file.write(line)
 
 setup(
     name="ryzers",
@@ -48,4 +23,3 @@ setup(
     ],
     python_requires='>=3.8',
 )
-
