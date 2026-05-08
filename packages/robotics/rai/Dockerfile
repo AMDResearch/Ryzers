@@ -1,14 +1,16 @@
 # Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-ARG BASE_IMAGE
+ARG BASE_IMAGE=ros
 FROM ${BASE_IMAGE}
+ARG ROS_DISTRO=jazzy
+ENV ROS_DISTRO=${ROS_DISTRO}
 
 # Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install additional dependencies for RAI
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     unzip \
     ffmpeg \
@@ -23,6 +25,12 @@ RUN apt-get update && apt-get install -y \
     ros-${ROS_DISTRO}-sdformat-urdf \
  && rm -rf /var/lib/apt/lists/*
 
+# Install Rust toolchain. The colcon build below compiles rai_interfaces__rs
+# (a Rust ROS2 package) which needs cargo and rustc on PATH.
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+    | sh -s -- -y --default-toolchain stable --no-modify-path
+ENV PATH=/root/.cargo/bin:$PATH
+
 # Configure linker to find sdformat vendor libraries
 RUN echo "/opt/ros/${ROS_DISTRO}/opt/sdformat_vendor/lib" > /etc/ld.so.conf.d/ros-sdformat.conf && \
     ldconfig
@@ -32,35 +40,38 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN echo "source $VIRTUAL_ENV/bin/activate" >> /root/.bashrc
 
-# Install Poetry into the venv
-RUN pip install --upgrade pip "setuptools<82" poetry empy lark && \
+# Install Poetry into the venv. Pin empy<4 here (not after poetry install)
+# so that rosidl_generator_rs sees the empy 3.x parser API everywhere; the
+# 4.x API removed Parser.chop and breaks ROS2 idl generation with
+# "TransientParseError: not enough data to read".
+RUN pip install --upgrade pip "setuptools<82" poetry "empy<4" lark && \
     pip install --no-build-isolation openai-whisper==20231117
 
-# Clone and install RAI framework
+# Clone and install RAI framework. Pinned at a097617, the last commit
+# verified to build green against torch 2.10 / ROS2 jazzy / ROCm 7.2.2.
 WORKDIR /ryzers
 RUN git clone https://github.com/RobotecAI/rai.git
-
 WORKDIR /ryzers/rai
-RUN git checkout a097617 # pin working commit
+RUN git checkout a097617
 RUN vcs import < ros_deps.repos
 RUN vcs import < demos.repos
 
+# Drop --all-groups: the ML extras pull a pinned onnxruntime that collides
+# with the preinstalled venv copy. The default group is enough for the
+# colcon/ROS2 build that follows; runtime users add the extras explicitly.
 RUN poetry config virtualenvs.create false && \
-    poetry install --all-groups
+    poetry install --no-interaction
 
 RUN rosdep init && \
     rosdep update && \
     rosdep install --from-paths src/examples/rai-manipulation-demo/ros2_ws/src --ignore-src -r -y
 
-# Download demo
+# Download manipulation demo assets
 RUN . ./scripts/download_demo.sh manipulation
 
 # Build ROS 2 packages (need to source ROS environment first)
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     colcon build --symlink-install
-
-# Re-install torch
-RUN pip install --force-reinstall --no-deps /torch*.whl
 
 # Copy test scripts
 WORKDIR /ryzers

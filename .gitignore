@@ -70,3 +70,7 @@ dist/
 
 # docs
 docs/_build/
+ryzers/_ryzers.yaml
+ryzers.run.*.sh
+tests/build_logs/
+.venv/

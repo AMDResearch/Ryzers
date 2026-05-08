@@ -4,10 +4,14 @@
 ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE}
 
-# add dependencies
+# add dependencies. zstd is required because the ollama install.sh tarball is
+# .tar.gz.zst since v0.6.
 RUN apt-get update && \
-    apt-get install -y \
-	curl
+    apt-get install -y --no-install-recommends \
+	curl \
+	ca-certificates \
+	zstd && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN python3 -m pip install ollama
@@ -21,4 +25,5 @@ RUN chmod +x /ryzers/test_ollama.sh
 EXPOSE 11434
 
 # Run ollama prompt/reply test
+
 CMD /ryzers/test_ollama.sh

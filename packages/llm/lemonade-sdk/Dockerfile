@@ -12,13 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         wget \
         git
 
-# Install lemonade-server via official Debian package
-RUN wget -q -O /tmp/lemonade-server.deb \
-        https://github.com/lemonade-sdk/lemonade/releases/latest/download/lemonade-server_10.0.0_amd64.deb \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends /tmp/lemonade-server.deb \
-    && rm -f /tmp/lemonade-server.deb \
-    && rm -rf /var/lib/apt/lists/*
+# Install lemonade-sdk from PyPI. The Debian release was discontinued in v10.x
+# upstream (only .pkg / .rpm / .tar.gz / .msi are published now), so the
+# previous releases/latest/download/lemonade-server_10.0.0_amd64.deb URL
+# 404s. PyPI is the canonical Linux distribution channel.
+RUN python3 -m pip install --no-cache-dir --break-system-packages "lemonade-sdk"
 
 # Copy test script
 WORKDIR /ryzers
