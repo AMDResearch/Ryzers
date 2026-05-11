@@ -38,7 +38,11 @@ To get started, clone the repository and install the required dependencies:
 
 ```bash
 git clone https://github.com/AMDResearch/Ryzers
-pip install Ryzers/
+cd Ryzers/
+
+# Recomment to use uv to setup th venv , https://docs.astral.sh/uv/getting-started/installation/
+uv venv --python 3.12
+uv pip install -e .
 ```
 
 For detailed installation instructions and requirements, refer to the [included documentation](https://amdresearch.github.io/Ryzers/installation.html).
