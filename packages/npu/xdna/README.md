@@ -55,16 +55,20 @@ Validation completed. Please run the command '--verbose' option for more details
 
 NPU firmware (`.sbin` files) is loaded by the **host kernel**, not inside the container. The container's `extract_npu_firmware.sh` pulls firmware from Ubuntu's `linux-firmware` package (stable, permanent URLs) and places it in `/lib/firmware/amdnpu/`.
 
-Required firmware paths (loaded by `amdxdna.ko`):
+### NPU Device Table
 
-| Device ID | Platform | Firmware versions |
-|-----------|----------|-------------------|
-| `1502_00` | Strix Point | `npu.sbin.1.5.2.380`, `npu.sbin.1.5.5.391` |
-| `17f0_10` | Strix Halo (10) | `npu.sbin.1.0.0.63`, `npu.sbin.1.1.2.64` |
-| `17f0_11` | Strix Halo (11) | `npu.sbin.1.0.0.166`, `npu.sbin.1.1.2.65` |
-| `17f0_20` | Strix Halo (20) | `npu.sbin` |
+Firmware lives under `/lib/firmware/amdnpu/<device_id>/`. The XDNA driver selects the correct directory automatically based on PCI device/revision ID.
 
-All live under `/lib/firmware/amdnpu/<device_id>/`.
+| PCI Device ID | Platform | Ryzen Series | Firmware dir |
+|---------------|----------|-------------|--------------|
+| `0x1502` | Phoenix / Hawk Point | Ryzen 7040 / 8040 | `1502_00` |
+| `0x17f0` rev 10 | Strix Point | Ryzen AI 300 | `17f0_10` |
+| `0x17f0` rev 11 | Strix Point (B0) | Ryzen AI 300 | `17f0_11` |
+| `0x17f0` rev 20 | Strix Halo | Ryzen AI Max / Max+ 300 | `17f0_20` |
+
+Each directory contains `npu.sbin` (symlink to latest FW) and versioned files like `npu.sbin.1.5.2.380`.
+
+For the authoritative device ID list, see [`amdxdna_pci.c`](https://github.com/amd/xdna-driver/blob/main/src/driver/amdxdna/amdxdna_pci.c) in the xdna-driver repo.
 
 To update firmware on the host:
 

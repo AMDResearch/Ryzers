@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
 	bash \
 	wget \
 	cmake \
-	build-essential
+	build-essential \
+	libboost-all-dev \
+	pkg-config
 
 RUN git clone https://github.com/amd/xdna-driver && \
     cd xdna-driver && \
