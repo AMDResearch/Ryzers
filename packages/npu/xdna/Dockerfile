@@ -9,6 +9,7 @@ WORKDIR /ryzers
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# XRT build deps (these were available in conda before we nuked it)
 RUN apt-get update && apt-get install -y \
 	git \
 	curl \
@@ -17,7 +18,20 @@ RUN apt-get update && apt-get install -y \
 	cmake \
 	build-essential \
 	libboost-all-dev \
-	pkg-config
+	pkg-config \
+	libssl-dev \
+	libprotobuf-dev \
+	protobuf-compiler \
+	uuid-dev \
+	libdrm-dev \
+	ocl-icd-opencl-dev \
+	opencl-headers \
+	python3-dev \
+	libyaml-dev \
+	libelf-dev \
+	libudev-dev \
+	libsystemd-dev \
+	pciutils
 
 RUN git clone https://github.com/amd/xdna-driver && \
     cd xdna-driver && \
