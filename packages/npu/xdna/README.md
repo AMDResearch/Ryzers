@@ -44,4 +44,33 @@ Validation completed. Please run the command '--verbose' option for more details
 
 ---
 
+## Pinned Versions
+
+| Component | Version / Commit | Notes |
+|-----------|-----------------|-------|
+| xdna-driver | `854ff04` | [amd/xdna-driver](https://github.com/amd/xdna-driver) |
+| NPU firmware | Ubuntu `linux-firmware` | Extracted via `extract_npu_firmware.sh` |
+
+### Firmware
+
+NPU firmware (`.sbin` files) is loaded by the **host kernel**, not inside the container. The container's `extract_npu_firmware.sh` pulls firmware from Ubuntu's `linux-firmware` package (stable, permanent URLs) and places it in `/lib/firmware/amdnpu/`.
+
+Required firmware paths (loaded by `amdxdna.ko`):
+
+```
+/lib/firmware/amdnpu/1502_00/npu.sbin      (Strix Point)
+/lib/firmware/amdnpu/17f0_10/npu.sbin
+/lib/firmware/amdnpu/17f0_11/npu.sbin
+```
+
+To update firmware on the host:
+
+```bash
+# From the xdna container or standalone:
+sudo ./extract_npu_firmware.sh /lib/firmware/amdnpu
+sudo modprobe -r amdxdna && sudo modprobe amdxdna
+```
+
+---
+
 For further details, refer to the official [xdna-driver](https://github.com/amd/xdna-driver) repository.
