@@ -4,8 +4,7 @@
 ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE}
 
-# add dependencies. zstd is required because the ollama install.sh tarball is
-# .tar.gz.zst since v0.6.
+# add dependencies (zstd needed for ollama v0.6+ installer)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
 	curl \

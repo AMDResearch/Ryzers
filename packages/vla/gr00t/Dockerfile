@@ -6,8 +6,6 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers
 
-# Install deps. Drop python3-pybind11 and hipcc (not packaged on Ubuntu 24.04
-# under those names; pybind11-dev is sufficient and hipcc ships with rocm-dev).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     wget \
@@ -25,14 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
  && rm -rf /var/lib/apt/lists/*
 
-# torchcodec build script needs the `cmake` python package on PATH (in addition
-# to the apt cmake binary).
+# Upgrade pip/setuptools for modern pyproject.toml support
+RUN pip install --upgrade pip setuptools
+
 RUN pip install zmq diffusers decord cmake
 
-# Build pytorch3d v0.7.9 (no python3.12 wheel; build from source). Pinned to
-# the latest tagged release. Its HIP kernels reference bare cub::BlockReduce
-# and #include <cub/cub.cuh>; on ROCm those symbols live in hipcub. Rewrite
-# both before the build.
+# pytorch3d: patch HIP namespace for ROCm compatibility
 ENV FORCE_CUDA=1
 RUN git clone --depth 1 -b v0.7.9 https://github.com/facebookresearch/pytorch3d.git /ryzers/pytorch3d && \
     cd /ryzers/pytorch3d && \
@@ -42,22 +38,20 @@ RUN git clone --depth 1 -b v0.7.9 https://github.com/facebookresearch/pytorch3d.
         '#include <cub/cub.cuh>' . | xargs -r sed -i 's|#include <cub/cub.cuh>|#include <hipcub/hipcub.hpp>|g' && \
     pip install --no-build-isolation -e .
 
-# Install flash attention
+# ROCm flash-attention (triton backend)
 ENV FLASH_ATTENTION_TRITON_AMD_ENABLE="TRUE"
 ENV BUILD_TYPE="rocm"
 RUN git clone --recursive https://github.com/ROCm/flash-attention && \
     cd flash-attention && \
     git checkout main_perf && \
-    python setup.py install
+    pip install .
 
-# Build torchcodec v0.7.0 from source. The HEAD branch tracks PyTorch nightly
-# and uses a torch::stable::from_blob signature that doesn't exist in the
-# torch 2.10 shipped with the base image; v0.7.0 is the matching release.
+# torchcodec: strip -Werror for ROCm build
 ENV PYTORCH_ROCM_ARCH="gfx1151"
 RUN git clone --depth 1 -b v0.7.0 https://github.com/pytorch/torchcodec.git && \
     cd /ryzers/torchcodec && \
     sed -i 's/-Werror//g' src/torchcodec/_core/CMakeLists.txt && \
-    pip install -e . --no-build-isolation
+    pip install --no-build-isolation -e .
 
 RUN git clone https://github.com/NVIDIA/Isaac-GR00T && \
     cd Isaac-GR00T && \

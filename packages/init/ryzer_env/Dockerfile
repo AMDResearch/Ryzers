@@ -4,56 +4,31 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-SHELL ["/bin/bash", "-lc"]
+# Use non-login shell to prevent conda auto-activation.
+# The base ROCm image ships system Python 3.12 with ROCm PyTorch;
+# conda's py_3.10 env overrides it and must be removed.
+SHELL ["/bin/bash", "-c"]
 
+# Remove conda so every ryzer uses the system Python + ROCm PyTorch.
+# Without this, login-shell profile scripts activate conda py_3.10
+# which ships an older torch and incompatible numpy.
+RUN if [ -d /opt/conda ]; then \
+        rm -rf /opt/conda /opt/miniconda* && \
+        find /etc/profile.d -name '*conda*' -delete 2>/dev/null || true && \
+        sed -i '/conda/d' /root/.bashrc 2>/dev/null || true && \
+        sed -i '/conda/d' /etc/bash.bashrc 2>/dev/null || true; \
+    fi && hash -r
 
 RUN getent group render || groupadd render
 RUN getent group video || groupadd video
 RUN getent group kvm || groupadd kvm
 
-
 RUN usermod -aG render root
 RUN usermod -aG video root
 RUN usermod -aG kvm root
 
-#################################
-# Install ROCm Using ROCm Docker
-#################################
-
-
-
-
-#####################################
-# Install ROCm Using TheRock Steps
-#####################################
-
-# add dependencies
-# RUN apt-get update && \
-#     apt-get install -y \
-# 	python3 \
-#     	python3.12 \
-# 	python3.12-dev \
-# 	python3.12-venv \
-# 	python3-pip
-
-# RUN python3 -m venv /ryzers/venv_ryzers
-# ENV PATH="/ryzers/venv_ryzers/bin:$PATH"
-
-# RUN  python3 -m pip install \
-#   --index-url https://rocm.nightlies.amd.com/v2/gfx1151/ \
-#   rocm[libraries,devel]
-
-# # install torch
-# RUN  python3 -m pip install \
-#   --index-url https://rocm.nightlies.amd.com/v2/gfx1151/ \
-#   torch torchaudio torchvision
-
-
-
-# add a sign-of-life test
 WORKDIR /ryzers
 COPY test.sh /ryzers/test_init.sh
 RUN chmod +x /ryzers/test_init.sh
 
-# Command to run a test
-CMD /ryzers/test_init.sh  
+CMD /ryzers/test_init.sh

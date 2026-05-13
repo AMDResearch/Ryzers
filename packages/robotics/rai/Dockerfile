@@ -25,8 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-sdformat-urdf \
  && rm -rf /var/lib/apt/lists/*
 
-# Install Rust toolchain. The colcon build below compiles rai_interfaces__rs
-# (a Rust ROS2 package) which needs cargo and rustc on PATH.
+# Rust toolchain for rai_interfaces__rs build
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     | sh -s -- -y --default-toolchain stable --no-modify-path
 ENV PATH=/root/.cargo/bin:$PATH
@@ -40,15 +39,11 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN echo "source $VIRTUAL_ENV/bin/activate" >> /root/.bashrc
 
-# Install Poetry into the venv. Pin empy<4 here (not after poetry install)
-# so that rosidl_generator_rs sees the empy 3.x parser API everywhere; the
-# 4.x API removed Parser.chop and breaks ROS2 idl generation with
-# "TransientParseError: not enough data to read".
+# Pin empy<4 (empy 4.x breaks ROS2 idl generation)
 RUN pip install --upgrade pip "setuptools<82" poetry "empy<4" lark && \
     pip install --no-build-isolation openai-whisper==20231117
 
-# Clone and install RAI framework. Pinned at a097617, the last commit
-# verified to build green against torch 2.10 / ROS2 jazzy / ROCm 7.2.2.
+# Clone RAI framework (pinned at verified commit)
 WORKDIR /ryzers
 RUN git clone https://github.com/RobotecAI/rai.git
 WORKDIR /ryzers/rai
@@ -56,9 +51,7 @@ RUN git checkout a097617
 RUN vcs import < ros_deps.repos
 RUN vcs import < demos.repos
 
-# Drop --all-groups: the ML extras pull a pinned onnxruntime that collides
-# with the preinstalled venv copy. The default group is enough for the
-# colcon/ROS2 build that follows; runtime users add the extras explicitly.
+# Install without ML extras to avoid onnxruntime conflicts
 RUN poetry config virtualenvs.create false && \
     poetry install --no-interaction
 

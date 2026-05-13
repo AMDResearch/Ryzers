@@ -7,10 +7,9 @@ COPY test.sh /ryzers/
 
 # Install NPUEval
 RUN git clone https://github.com/amdresearch/npueval
-# Source /ryzers/setup.sh only if it's present. The iron base provides it but
-# we want this Dockerfile to also work when built directly on ryzer_env.
+# Source setup.sh if present (provided by iron base)
 RUN if [ -f /ryzers/setup.sh ]; then \
-        bash -lc "source /ryzers/setup.sh && cd /ryzers/npueval && python3 -m pip install -e ."; \
+        bash -c "source /ryzers/setup.sh && cd /ryzers/npueval && python3 -m pip install -e ."; \
     else \
         cd /ryzers/npueval && python3 -m pip install -e .; \
     fi
