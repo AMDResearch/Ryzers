@@ -3,12 +3,10 @@ FROM ${BASE_IMAGE}
 
 ARG DRIVER_VERSION="854ff04"
 
-# required by rocm driver
 RUN groupadd -f render && usermod -aG render root
 
 WORKDIR /ryzers
 
-# Suppress prompts in scripts
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
@@ -22,7 +20,6 @@ RUN git clone https://github.com/amd/xdna-driver && \
     git checkout $DRIVER_VERSION && \
     git submodule update --init --recursive
 
-# Install build dependencies
 RUN cd /ryzers/xdna-driver/tools && \
     apt-get update && \
     ./amdxdna_deps.sh -docker
@@ -36,15 +33,17 @@ RUN cd /ryzers/xdna-driver/build && \
     ./build.sh -release && \
     ./build.sh -package
 
-# Finally, save and install the XRT/XDNA debian packages
-# these will also need to be installed on the host system
-# if they haven't been already
+# Install XRT/XDNA debs (also needed on host via install_xdna.sh)
 RUN mkdir /ryzers/debs && \
     cp /ryzers/xdna-driver/build/Release/xrt_plugin*amd64-amdxdna.deb /ryzers/debs/ && \
     cp /ryzers/xdna-driver/xrt/build/Release/xrt*-amd64-base.deb /ryzers/debs/ && \
 	dpkg -i /ryzers/debs/*.deb
 
-# Cleanup
+# Extract NPU firmware from Ubuntu's linux-firmware deb
+COPY extract_npu_firmware.sh /ryzers/extract_npu_firmware.sh
+RUN chmod +x /ryzers/extract_npu_firmware.sh && \
+    /ryzers/extract_npu_firmware.sh
+
 ENV SHELL=/bin/bash
 
 COPY test.sh /ryzers/
