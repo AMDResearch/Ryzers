@@ -5,7 +5,7 @@
 
 set -e
 
-DRIVER_VERSION=51b9400
+DRIVER_VERSION=854ff04
 USE_RYZER=true
 ROOT_DIR=$(pwd)
 CURRENT_USER=$(whoami)
@@ -84,4 +84,15 @@ else
     if ! sudo dpkg -i ./xrt_plugin*-amdxdna.deb; then
         sudo apt -y install --fix-broken
     fi
+
+    # Install NPU firmware from Ubuntu's linux-firmware deb
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -f "$SCRIPT_DIR/extract_npu_firmware.sh" ]; then
+        echo "Extracting NPU firmware..."
+        sudo bash "$SCRIPT_DIR/extract_npu_firmware.sh" /lib/firmware/amdnpu
+    fi
+
+    echo "Reloading amdxdna driver..."
+    sudo modprobe -r amdxdna 2>/dev/null || true
+    sudo modprobe amdxdna
 fi
