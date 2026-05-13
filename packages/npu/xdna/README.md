@@ -57,11 +57,14 @@ NPU firmware (`.sbin` files) is loaded by the **host kernel**, not inside the co
 
 Required firmware paths (loaded by `amdxdna.ko`):
 
-```
-/lib/firmware/amdnpu/1502_00/npu.sbin      (Strix Point)
-/lib/firmware/amdnpu/17f0_10/npu.sbin
-/lib/firmware/amdnpu/17f0_11/npu.sbin
-```
+| Device ID | Platform | Firmware versions |
+|-----------|----------|-------------------|
+| `1502_00` | Strix Point | `npu.sbin.1.5.2.380`, `npu.sbin.1.5.5.391` |
+| `17f0_10` | Strix Halo (10) | `npu.sbin.1.0.0.63`, `npu.sbin.1.1.2.64` |
+| `17f0_11` | Strix Halo (11) | `npu.sbin.1.0.0.166`, `npu.sbin.1.1.2.65` |
+| `17f0_20` | Strix Halo (20) | `npu.sbin` |
+
+All live under `/lib/firmware/amdnpu/<device_id>/`.
 
 To update firmware on the host:
 
