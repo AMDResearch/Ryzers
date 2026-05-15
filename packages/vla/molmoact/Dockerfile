@@ -17,4 +17,7 @@ RUN pip install einops accelerate "transformers==4.52"
 # Copy test script
 COPY test.py /ryzers/test_molmoact.py
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD python /ryzers/test_molmoact.py

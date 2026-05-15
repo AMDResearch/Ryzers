@@ -43,5 +43,8 @@ COPY test.sh /ryzers/opensplat_test.sh
 RUN chmod +x /ryzers/opensplat_test.sh
 
 # Set the entrypoint to the test script
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD /ryzers/opensplat_test.sh
 

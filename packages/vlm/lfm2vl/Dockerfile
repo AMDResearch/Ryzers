@@ -11,4 +11,7 @@ RUN pip install transformers==4.57.3 accelerate pillow
 COPY test.py /ryzers/test.py
 COPY test.sh /ryzers/test.sh
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD ["/bin/bash", "-c", "/ryzers/test.sh"]

@@ -17,4 +17,7 @@ RUN pip install 'transformers==4.48.2' soundfile scipy peft backoff
 # Copy test script
 COPY test.py /ryzers/test_phi4.py
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD python /ryzers/test_phi4.py

@@ -72,4 +72,7 @@ COPY test.sh /ryzers/opencv_test.sh
 RUN chmod +x /ryzers/opencv_test.sh
 
 # Set the entrypoint to the test script
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD "/ryzers/opencv_test.sh"

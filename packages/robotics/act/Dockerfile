@@ -27,4 +27,7 @@ RUN pip install matplotlib && \
 COPY test.sh /ryzers/
 RUN chmod +x /ryzers/
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD ["/bin/bash", "-c", "/ryzers/test.sh"]

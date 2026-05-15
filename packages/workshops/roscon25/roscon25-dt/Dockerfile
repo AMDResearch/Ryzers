@@ -25,5 +25,8 @@ COPY test.sh /ryzers/test_roscon25_dt.sh
 RUN chmod +x /ryzers/test_roscon25_dt.sh
 
 # Default command runs test (for interactive use: jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root)
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD ["/ryzers/test_roscon25_dt.sh"]
 

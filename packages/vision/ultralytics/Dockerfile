@@ -21,4 +21,7 @@ RUN wget https://ultralytics.com/images/bus.jpg -O /ryzers/data_ultralytics/bus.
 # Copy test scripts
 COPY test_ultralytics.py /ryzers/test_ultralytics.py
 COPY demo_ultralytics.py /ryzers/demo_ultralytics.py
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD ["python3", "/ryzers/test_ultralytics.py"]

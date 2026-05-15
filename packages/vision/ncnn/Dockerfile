@@ -32,5 +32,8 @@ COPY benchmark.sh /ryzers/benchmark.sh
 RUN chmod +x /ryzers/benchmark.sh
 
 # Set the entrypoint to the test script
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD /ryzers/test.sh
 

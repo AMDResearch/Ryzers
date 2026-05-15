@@ -45,4 +45,7 @@ echo "🚀 Logged in as $HF_USER"\n\
 exec "$@"' > /ryzers/entrypoint.sh && chmod +x /ryzers/entrypoint.sh
 
 ENTRYPOINT ["/ryzers/entrypoint.sh"]
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD /ryzers/test_dinov3.sh

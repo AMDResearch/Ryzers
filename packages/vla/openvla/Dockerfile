@@ -22,4 +22,7 @@ COPY test.py /ryzers/test.py
 COPY test.sh /ryzers/test_openvla.sh
 RUN chmod +x /ryzers/test_openvla.sh
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD ["/bin/bash", "-c", "/ryzers/test_openvla.sh"]

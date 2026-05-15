@@ -19,4 +19,7 @@ COPY test_hf.py /ryzers/test_gemma3_hf.py
 COPY demo.sh /ryzers/demo_gemma3.sh
 RUN chmod +x /ryzers/test_gemma3.sh /ryzers/demo_gemma3.sh
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD /ryzers/test_gemma3.sh

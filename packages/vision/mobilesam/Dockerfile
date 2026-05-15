@@ -21,5 +21,8 @@ RUN pip3 install --pre torch torchvision torchaudio --index-url https://download
 COPY test.sh /ryzers/test_mobilesam.sh
 RUN chmod +x /ryzers/test_mobilesam.sh
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD /ryzers/test_mobilesam.sh
 

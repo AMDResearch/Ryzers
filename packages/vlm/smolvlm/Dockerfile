@@ -13,4 +13,7 @@ RUN chmod +x /ryzers/test_smolvlm.sh /ryzers/demo_smolvlm.sh
 
 RUN cd /ryzers
 
+# Validate ROCm torch
+RUN /ryzers/test_init.sh
+
 CMD /ryzers/test_smolvlm.sh
