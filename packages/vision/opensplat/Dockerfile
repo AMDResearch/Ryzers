@@ -31,7 +31,7 @@ RUN mkdir build && cd build && \
         -DCMAKE_BUILD_TYPE=Release \
         -DGPU_RUNTIME=HIP \
         -DHIP_ROOT_DIR=/opt/rocm \
-        -DHIP_PATH=/opt/rocm-7.0.0/lib/llvm \
+        -DHIP_PATH=/opt/rocm/lib/llvm \
         -DOPENSPLAT_BUILD_SIMPLE_TRAINER=ON \
         -DCMAKE_PREFIX_PATH=/opt/venv/lib/python3.12/site-packages/torch \
         -DTorch_DIR=/opt/venv/lib/python3.12/site-packages/torch/share/cmake/Torch \
