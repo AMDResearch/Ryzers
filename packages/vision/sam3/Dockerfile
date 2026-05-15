@@ -3,6 +3,7 @@
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /ryzers
 
@@ -23,6 +24,7 @@ RUN mkdir -p /ryzers/data/ && \
 RUN pip install -U matplotlib nicegui huggingface_hub
 
 # Install transformers package from github
+SHELL ["/bin/bash", "-c"]
 RUN git clone https://github.com/huggingface/transformers.git /ryzers/transformers && \
     cd /ryzers/transformers && \
     pip install -e '.[torch]'

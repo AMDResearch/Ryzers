@@ -22,7 +22,7 @@ RUN git clone --recursive https://github.com/xilinx/mlir-aie.git /ryzers/mlir-ai
     git submodule update --recursive
 
 # Comment out NPU check - we don't have access to /dev/accel during docker build
-RUN sed -i '31s/^/#/' /ryzers/mlir-aie/utils/quick_setup.sh
+RUN sed -i '31s/"/#/' /ryzers/mlir-aie/utils/quick_setup.sh
 
 # Lock down wheels
 RUN sed -i '61s|.*|pip install mlir_aie -f https://github.com/Xilinx/mlir-aie/releases/download/latest-wheels/mlir_aie-0.0.1.2025051904+c105c0b-cp312-cp312-manylinux_2_35_x86_64.whl|' /ryzers/mlir-aie/utils/quick_setup.sh

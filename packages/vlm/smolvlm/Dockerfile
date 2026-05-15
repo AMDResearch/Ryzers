@@ -3,6 +3,7 @@
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}  
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /ryzers
 

@@ -3,6 +3,7 @@
 
 ARG BASE_IMAGE=ubuntu:24.04
 FROM ${BASE_IMAGE}
+SHELL ["/bin/bash", "-c"]
 
 # Set the OpenCV version as an argument (set in config.yaml)
 ARG OPENCV_VERSION

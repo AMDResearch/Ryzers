@@ -3,6 +3,7 @@
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /ryzers
 
@@ -58,13 +59,13 @@ RUN git clone https://github.com/Physical-Intelligence/openpi && \
 COPY openpi.patch /ryzers/openpi
 RUN cd openpi && \
     git apply ./openpi.patch && \
-    sed -i '/^override-dependencies = \[/ s/\]/, "av==13.1.0"]/' pyproject.toml && \
+    sed -i '/"override-dependencies = \[/ s/\]/, "av==13.1.0"]/' pyproject.toml && \
     GIT_LFS_SKIP_SMUDGE=1 uv sync && \
     GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 
 # Download model checkpoint
 RUN cd openpi && \
-    uv run scripts/serve_policy.py --download-only policy:checkpoint --policy.config=pi0_droid --policy.dir=gs://openpi-assets/checkpoints/pi0_droid
+    uv run scripts/serve_policy.py --download-only policy:checkpoint --policy.config=pi0_libero --policy.dir=gs://openpi-assets/checkpoints/pi0_libero
 
 # Apply PyTorch support patch
 RUN cd openpi && \
@@ -73,9 +74,9 @@ RUN cd openpi && \
 # Convert JAX models to PyTorch
 RUN cd openpi && \
     uv run examples/convert_jax_model_to_pytorch.py \
-    --checkpoint_dir /root/.cache/openpi/openpi-assets/checkpoints/pi0_droid \
-    --config_name pi0_droid \
-    --output_path /root/.cache/openpi/openpi-assets/checkpoints/pi0_droid
+    --checkpoint_dir /root/.cache/openpi/openpi-assets/checkpoints/pi0_libero \
+    --config_name pi0_libero \
+    --output_path /root/.cache/openpi/openpi-assets/checkpoints/pi0_libero
 
 RUN echo "export LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm-6.4.4/lib:$LD_LIBRARY_PATH" >> /root/.bashrc
 

@@ -3,10 +3,10 @@
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /ryzers
 
-# Install deps
 RUN apt-get update && apt-get install -y git \
 	vim \
 	wget \
@@ -23,8 +23,10 @@ RUN pip install matplotlib && \
 	pip install dm_control && \
 	pip install pyquaternion
 
-
 COPY test.sh /ryzers/
 RUN chmod +x /ryzers/
+
+# Validate ROCm torch not overridden
+RUN /ryzers/test_init.sh
 
 CMD ["/bin/bash", "-c", "/ryzers/test.sh"]

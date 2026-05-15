@@ -3,6 +3,7 @@
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /ryzers
 
@@ -10,7 +11,7 @@ RUN apt-get update
 RUN apt install -y python3-pip wget
 
 # Clone the repository and install segment-anything
-RUN git clone https://github.com/ChaoningZhang/MobileSAM.git && \
+RUN git clone https://github.com/chaoningzhang/MobileSAM.git && \
     cd MobileSAM && \
     pip3 install -e . && \
     pip3 install timm gradio matplotlib opencv-python
@@ -22,4 +23,3 @@ COPY test.sh /ryzers/test_mobilesam.sh
 RUN chmod +x /ryzers/test_mobilesam.sh
 
 CMD /ryzers/test_mobilesam.sh
-

@@ -3,6 +3,8 @@
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
+# Use system python (ROCm PyTorch), not conda
+SHELL ["/bin/bash", "-c"]
 
 # Set the environment variable required for HIP kernel compilation
 ENV HSA_OVERRIDE_GFX_VERSION=11.0.0
@@ -14,8 +16,8 @@ RUN git clone https://github.com/facebookresearch/segment-anything.git && \
     cd segment-anything && \
     git checkout dca509fe793f601edb92606367a655c15ac00fdf && \
     sed -i 's|, "onnx.*"||' setup.py && \
-    sed -i 's|, "torchvision[^"]*"||g' setup.py && \
-    sed -i 's|, "torch[^"]*"||g' setup.py && \
+    sed -i 's|, "torchvision[""]*"||g' setup.py && \
+    sed -i 's|, "torch[""]*"||g' setup.py && \
     pip3 install .
 
 RUN apt-get install -y libjpeg-dev python3-dev python3-pip 

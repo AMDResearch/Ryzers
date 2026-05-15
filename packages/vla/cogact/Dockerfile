@@ -3,6 +3,7 @@
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /ryzers
 
@@ -13,14 +14,14 @@ RUN apt-get update && apt-get install -y git vim wget
 # we patch and install separately to preserve rocm-native install
 RUN git clone https://github.com/openvla/openvla && \
     cd openvla && \
-    sed -i -E '/^\s*dependencies\s*=\s*\[/,/^\s*\]/{ /^\s*"(torch|torchvision|torchaudio)[^"]*",?\s*(#.*)?$/d }' pyproject.toml && \
+    sed -i -E '/"\s*dependencies\s*=\s*\[/,/"\s*\]/{ /"\s*"(torch|torchvision|torchaudio)[""]*",?\s*(#.*)?$/d }' pyproject.toml && \
     pip install -e .
 
 # Installed patched CogACT
 RUN git clone https://github.com/microsoft/CogACT && \
     cd CogACT && \
-    sed -i -E '/^\s*dependencies\s*=\s*\[/,/^\s*\]/{ /^\s*"(torch|torchvision|torchaudio)[^"]*",?\s*(#.*)?$/d }' pyproject.toml && \
-    sed -i -E 's/"openvla @[^"]*"/"openvla"/' pyproject.toml && \
+    sed -i -E '/"\s*dependencies\s*=\s*\[/,/"\s*\]/{ /"\s*"(torch|torchvision|torchaudio)[""]*",?\s*(#.*)?$/d }' pyproject.toml && \
+    sed -i -E 's/"openvla @[""]*"/"openvla"/' pyproject.toml && \
     pip install -e .
 
 # Download test image
