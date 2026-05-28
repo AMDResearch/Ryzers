@@ -1,0 +1,35 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+x11_display: false
+
+build_arguments:
+- "WAN22_COMMIT=42bf4cfaa384bc21833865abc2f9e6c0e67233dc"
+
+### ryzers run options
+
+environment_variables:
+- "PYTHONPATH=/opt/wan22-overlay/python:/opt/Wan2.2"
+- "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
+- "CKPT_DIR=/models/Wan2.2-TI2V-5B"
+- "OUT_DIR=/outputs"
+- "AUTO_DOWNLOAD=1"
+- 'PROMPT="${PROMPT:-}"'
+- 'PROMPT_FILE="${PROMPT_FILE:-}"'
+- 'SIZE="${SIZE:-}"'
+- 'FRAME_NUM="${FRAME_NUM:-}"'
+- 'DURATION_SECONDS="${DURATION_SECONDS:-}"'
+- 'WAN_SECONDS="${WAN_SECONDS:-}"'
+- 'SAMPLE_STEPS="${SAMPLE_STEPS:-}"'
+- 'SEED="${SEED:-}"'
+- 'SAVE_FILE="${SAVE_FILE:-}"'
+
+volume_mappings:
+- "$PWD/workspace/wan22/models:/models"
+- "$PWD/workspace/wan22/outputs:/outputs"
+- "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
+
+docker_extra_run_flags: "--ipc=host --shm-size=8g"
+
