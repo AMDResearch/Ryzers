@@ -48,4 +48,35 @@ Validation completed
 
 ---
 
+## Host firmware
+
+The `amdxdna` kernel driver loads the NPU firmware (`*.sbin`) from `/lib/firmware/amdnpu/` on the **host**. If it is missing, the device never enumerates and you will not see `/dev/accel/accel0` (so `xrt-smi examine` finds no NPU). On Ubuntu 24.04+ this firmware ships in the `linux-firmware` package.
+
+Install it on the host using one of the following:
+
+```bash
+# Option A: from the distro package (simplest on Ubuntu 24.04+)
+sudo apt-get update && sudo apt-get install -y linux-firmware
+
+# Option B: extract just the amdnpu blobs with the helper script (no full package install)
+sudo ./extract_npu_firmware.sh /lib/firmware/amdnpu
+
+# Option C: copy the firmware out of the built xdna image
+docker run --rm -v "$PWD:/host" xdna:latest \
+    bash -c "cp -a /lib/firmware/amdnpu /host/amdnpu"
+sudo cp -a ./amdnpu /lib/firmware/
+```
+
+After installing the firmware, reload the driver (or reboot) so it picks up the blobs:
+
+```bash
+sudo modprobe -r amdxdna && sudo modprobe amdxdna
+# then confirm the device shows up
+xrt-smi examine
+```
+
+The same `extract_npu_firmware.sh` runs automatically inside the container build, so the firmware is present in the image; this section is only about the host kernel driver. The driver's own firmware fetch (`download_npufws`, which pulls `.sbin` blobs from `repo.radeon.com`) is stubbed out during the build, so the image's firmware comes **exclusively** from the `linux-firmware` deb.
+
+---
+
 For further details, refer to the official [xdna-driver](https://github.com/amd/xdna-driver) repository.
