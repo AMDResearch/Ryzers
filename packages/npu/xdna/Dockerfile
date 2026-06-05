@@ -25,11 +25,8 @@ RUN git clone https://github.com/amd/xdna-driver && \
     git checkout $DRIVER_VERSION && \
     git submodule update --init --recursive
 
-# Install build dependencies. amdxdna_deps.sh does not forward -docker to
-# xrtdeps.sh, so xrtdeps tries to install linux-headers-$(uname -r) (the HOST
-# kernel) and the whole apt batch fails, taking Boost and friends with it.
-# Call xrtdeps.sh directly with -docker so kernel headers are skipped, and
-# install jq (the only extra thing amdxdna_deps.sh adds) ourselves.
+# Install build dependencies (xrtdeps.sh -docker skips host kernel headers; jq
+# is the only extra package amdxdna_deps.sh would add)
 RUN cd /ryzers/xdna-driver && \
     apt-get update && \
     apt-get install -y jq && \
@@ -39,12 +36,8 @@ RUN cd /ryzers/xdna-driver && \
 RUN cd /ryzers/xdna-driver/xrt/build/ && \
     ./build.sh -npu -opt -noctest
 
-# Build the XDNA userspace (-release generates the xrt_plugin .deb). We pass
-# -nokmod so the in-container build does NOT try to compile the amdxdna kernel
-# module against linux-headers-$(uname -r): inside a container uname -r is the
-# HOST kernel, so the headers are unavailable on non-Ubuntu hosts (Arch,
-# Fedora, custom kernels) and the module cannot be loaded from a container
-# anyway. The kernel driver is installed/loaded on the host (see README).
+# Build the XDNA userspace (-release generates the xrt_plugin .deb); -nokmod
+# skips the kernel module, which is built and loaded on the host (see README)
 RUN cd /ryzers/xdna-driver/build && \
     ./build.sh -release -nokmod
 
