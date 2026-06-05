@@ -20,10 +20,16 @@ export PEANOWRAP2_FLAGS="-O2 -std=c++20 --target=aie2-none-unknown-elf ${WARNING
 export PEANOWRAP2P_FLAGS="-O2 -std=c++20 --target=aie2p-none-unknown-elf ${WARNING_FLAGS} -DNDEBUG -I ${MLIR_AIE_INSTALL_DIR}/include "
 
 examine_output=$(xrt-smi examine)
-if echo $examine_output | grep -E "Phoenix|Hawk" > /dev/null; then
-    export NPU=npu1
-elif echo $examine_output | grep -E "Strix|Krackan" > /dev/null; then
+# Newer xrt-smi (XRT >= 2.20, shipped with ROCm 7.2.x) reports the part by
+# architecture and a generic device name (e.g. "RyzenAI-npu4", "aie2p") instead
+# of the marketing name, so match on the AIE architecture as the stable signal:
+#   aie2  -> Phoenix / Hawk Point  -> npu1
+#   aie2p -> Strix / Strix Halo / Krackan -> npu2
+# Check aie2p (npu2) first since "aie2p" also contains the substring "aie2".
+if echo "$examine_output" | grep -Eiq "Strix|Krackan|aie2p"; then
     export NPU=npu2
+elif echo "$examine_output" | grep -Eiq "Phoenix|Hawk|aie2"; then
+    export NPU=npu1
 else
     echo "No recognized NPU found"
 fi
