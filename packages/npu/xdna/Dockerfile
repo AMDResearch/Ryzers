@@ -31,12 +31,8 @@ RUN cd /ryzers/xdna-driver/tools && \
 RUN cd /ryzers/xdna-driver/xrt/build/ && \
     ./build.sh -npu -opt -noctest
 
-# NPU firmware is sourced exclusively from Ubuntu's linux-firmware deb (see
-# extract_npu_firmware.sh below). Replace the driver's download_npufws() with
-# an empty stub so the build never fetches .sbin blobs from AMD-hosted
-# (repo.radeon.com) URLs. (download_vtd_archives, which fetches the xrt-smi
-# validate data, is left intact.)
-# Build XDNA driver (-release also generates the .deb package)
+# Build XDNA driver (-release also generates the .deb); stub download_npufws so
+# firmware comes only from the linux-firmware deb, not repo.radeon.com
 RUN cd /ryzers/xdna-driver/build && \
     sed -i '/^download_npufws()/,/^}/c\download_npufws() { :; } # firmware via Ubuntu linux-firmware deb (extract_npu_firmware.sh)' build.sh && \
     ./build.sh -release
