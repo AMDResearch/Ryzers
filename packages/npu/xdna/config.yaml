@@ -1,11 +1,8 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# ROCm 7.2.2 natively supports the Ryzen AI iGPUs (gfx1150 Strix Point,
-# gfx1151 Strix Halo), so no HSA_OVERRIDE_GFX_VERSION is set by default.
-# If you are on an older ROCm stack or hit GPU detection issues, set it for
-# your silicon (see README "Supported silicon"): Phoenix=11.0.0,
-# Strix Point=11.5.0, Strix Halo=11.5.1, Krackan Point=11.5.2.
+# HSA_OVERRIDE_GFX_VERSION is not set: ROCm 7.2.2 detects the iGPUs natively.
+# On older ROCm, set it per silicon (see README "Supported silicon").
 
 docker_extra_run_flags:
     - "--device=/dev/accel/accel0:/dev/accel/accel0"
