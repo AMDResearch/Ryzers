@@ -17,9 +17,8 @@ ryzers build flower-base flower-superexec
 
 ## Run
 
-`ryzers run` only accepts a single-token CMD override, so all superexec
-flags are wrapped by `/ryzers/run-superexec.sh`, which reads env vars
-declared (with shell-expansion defaults) in `config.yaml`. The role
+SuperExec flags are driven by environment variables declared in
+`config.yaml` (with shell-expansion defaults). The role
 (`serverapp` vs `clientapp`) is selected via `FLOWER_PLUGIN_TYPE`.
 
 ### Run as ServerApp (server machine)
@@ -27,7 +26,7 @@ declared (with shell-expansion defaults) in `config.yaml`. The role
 ```sh
 export FLOWER_PLUGIN_TYPE=serverapp
 export FLOWER_APPIO_ADDR=127.0.0.1:9091      # local SuperLink
-ryzers run /ryzers/run-superexec.sh
+ryzers run
 ```
 
 ### Run as ClientApp (client machine)
@@ -35,7 +34,7 @@ ryzers run /ryzers/run-superexec.sh
 ```sh
 export FLOWER_PLUGIN_TYPE=clientapp
 export FLOWER_APPIO_ADDR=127.0.0.1:9094      # local SuperNode
-ryzers run /ryzers/run-superexec.sh
+ryzers run
 ```
 
 ## Putting it together (mirrors the upstream tutorial)
@@ -46,13 +45,13 @@ ryzers run /ryzers/run-superexec.sh
 ryzers build flower-base flower-superlink
 ryzers build flower-base flower-superexec
 
-# Terminal 1 — SuperLink
-ryzers run /ryzers/run-superlink.sh
+# Terminal 1 — SuperLink (last built image)
+ryzers run --name flower-superlink
 
 # Terminal 2 — ServerApp superexec
 export FLOWER_PLUGIN_TYPE=serverapp
 export FLOWER_APPIO_ADDR=127.0.0.1:9091
-ryzers run /ryzers/run-superexec.sh
+ryzers run --name flower-superexec
 ```
 
 **On each client machine** (SuperNode + ClientApp superexec):
@@ -65,12 +64,12 @@ ryzers build flower-base flower-superexec
 export SUPERLINK_IP=192.168.2.33
 export FLOWER_PARTITION_ID=0
 export FLOWER_NUM_PARTITIONS=2
-ryzers run /ryzers/run-supernode.sh
+ryzers run --name flower-supernode
 
 # Terminal 2 — ClientApp superexec (runs the PyTorch training)
 export FLOWER_PLUGIN_TYPE=clientapp
 export FLOWER_APPIO_ADDR=127.0.0.1:9094
-ryzers run /ryzers/run-superexec.sh
+ryzers run --name flower-superexec
 ```
 
 Then from any machine with the `flwr` CLI installed:

@@ -15,19 +15,14 @@ ryzers build flower-base flower-superlink
 
 ## Run
 
-`ryzers run` only accepts a single-token CMD override, so all SuperLink
-flags are wrapped by an entry-point script (`/ryzers/run-superlink.sh`)
-that reads its config from environment variables. The relevant env vars
-are declared in `config.yaml` with shell-expansion defaults — override
-them by exporting in your shell before `ryzers run`.
-
-The default `CMD` runs `test_flower-superlink.sh`, a one-shot install
-check. For a real launch, use the entry-point script:
+SuperLink flags are driven by environment variables declared in
+`config.yaml` (with shell-expansion defaults). Export them in your
+shell before `ryzers run` to override.
 
 ### Insecure (local testing)
 
 ```sh
-ryzers run /ryzers/run-superlink.sh
+ryzers run
 ```
 
 ### With TLS (real deployment)
@@ -49,7 +44,7 @@ ryzers run /ryzers/run-superlink.sh
 
    ```sh
    export FLOWER_INSECURE=0
-   ryzers run /ryzers/run-superlink.sh
+   ryzers run
    ```
 
    To override the cert paths inside the container, also export

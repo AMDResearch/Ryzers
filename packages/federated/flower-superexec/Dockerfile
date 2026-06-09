@@ -22,4 +22,7 @@ RUN mkdir -p /app/certificates
 # at supernode:9094; when running --plugin-type serverapp it connects out
 # to the SuperLink at superlink:9091. No inbound ports are exposed.
 
-CMD /ryzers/test_flower-superexec.sh
+# Default CMD is the role launcher (reads FLOWER_PLUGIN_TYPE etc. from
+# config.yaml). To run the install-validation smoke test instead:
+#   ryzers run /ryzers/test_flower-superexec.sh
+CMD /ryzers/run-superexec.sh

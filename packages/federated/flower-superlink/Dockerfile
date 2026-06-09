@@ -24,4 +24,7 @@ RUN mkdir -p /app/state /app/certificates
 # 9093 = ServerAppIo (legacy / Exec API TLS)
 EXPOSE 9091 9092 9093
 
-CMD /ryzers/test_flower-superlink.sh
+# Default CMD is the role launcher (reads env vars from config.yaml).
+# To run the install-validation smoke test instead:
+#   ryzers run /ryzers/test_flower-superlink.sh
+CMD /ryzers/run-superlink.sh

@@ -14,4 +14,7 @@ RUN mkdir -p /app/certificates
 # ClientAppIo port — a paired superexec (clientapp plugin) connects here.
 EXPOSE 9094
 
-CMD /ryzers/test_flower-supernode.sh
+# Default CMD is the role launcher (reads env vars from config.yaml).
+# To run the install-validation smoke test instead:
+#   ryzers run /ryzers/test_flower-supernode.sh
+CMD /ryzers/run-supernode.sh

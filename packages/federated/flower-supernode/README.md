@@ -17,13 +17,9 @@ ryzers build flower-base flower-supernode
 
 ## Run
 
-`ryzers run` only accepts a single-token CMD override, so the SuperNode
-flags are wrapped by `/ryzers/run-supernode.sh`, which reads env vars
-declared (with shell-expansion defaults) in `config.yaml`. Export them
-in your shell before `ryzers run` to override.
-
-The default `CMD` runs `test_flower-supernode.sh`, an install check.
-For a real launch:
+SuperNode flags are driven by environment variables declared in
+`config.yaml` (with shell-expansion defaults). Export them in your
+shell before `ryzers run` to override.
 
 ### Insecure (testing)
 
@@ -31,7 +27,7 @@ For a real launch:
 export SUPERLINK_IP=192.168.2.33
 export FLOWER_PARTITION_ID=0
 export FLOWER_NUM_PARTITIONS=2
-ryzers run /ryzers/run-supernode.sh
+ryzers run
 ```
 
 ### With TLS
@@ -45,7 +41,7 @@ export SUPERLINK_IP=192.168.2.33
 export FLOWER_INSECURE=0
 export FLOWER_PARTITION_ID=0
 export FLOWER_NUM_PARTITIONS=2
-ryzers run /ryzers/run-supernode.sh
+ryzers run
 ```
 
 ### Env-var reference
