@@ -26,6 +26,13 @@ The default `CMD` runs `test_flower-base.sh`, which verifies the CLI
 binaries are installed and that `torch.cuda.is_available()` returns true
 under ROCm.
 
+## Local single-machine smoke test
+
+For an end-to-end test on one host (SuperLink + ServerApp + two
+SuperNode/ClientApp pairs) see
+[`../local/README.md`](../local/README.md), which ships a docker-compose
+file and a `run-local.sh` one-shot script.
+
 ## References
 
 - [Flower documentation](https://flower.ai/docs/framework/)
