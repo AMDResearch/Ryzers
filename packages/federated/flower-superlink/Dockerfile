@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /ryzers
 COPY test.sh /ryzers/test_flower-superlink.sh
 COPY gen-certs.sh /ryzers/gen-certs.sh
-RUN chmod +x /ryzers/test_flower-superlink.sh /ryzers/gen-certs.sh
+COPY run-superlink.sh /ryzers/run-superlink.sh
+RUN chmod +x /ryzers/test_flower-superlink.sh /ryzers/gen-certs.sh /ryzers/run-superlink.sh
 
 # Persisted SuperLink state and TLS certificates are expected to be
 # mounted from the host (see config.yaml).

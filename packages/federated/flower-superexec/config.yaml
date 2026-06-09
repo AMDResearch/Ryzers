@@ -7,7 +7,13 @@
 volume_mappings:
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
 
+# Consumed by /ryzers/run-superexec.sh. The two important knobs are
+# FLOWER_PLUGIN_TYPE (serverapp | clientapp) and FLOWER_APPIO_ADDR
+# (the SuperLink :9091 for serverapp, the SuperNode :9094 for clientapp).
+environment_variables:
+- "FLOWER_PLUGIN_TYPE=${FLOWER_PLUGIN_TYPE:-serverapp}"
+- "FLOWER_APPIO_ADDR=${FLOWER_APPIO_ADDR:-127.0.0.1:9091}"
+- "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
 # Strix Point (gfx1150) compatibility shim — uncomment if your iGPU
 # isn't directly recognised by the ROCm runtime.
-# environment_variables:
 # - "HSA_OVERRIDE_GFX_VERSION=11.0.0"

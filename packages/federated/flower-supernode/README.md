@@ -17,38 +17,47 @@ ryzers build flower-base flower-supernode
 
 ## Run
 
-The default `CMD` runs `test_flower-supernode.sh`, which only validates
-the CLI. To start a real SuperNode, override the CMD and point it at
-your SuperLink:
+`ryzers run` only accepts a single-token CMD override, so the SuperNode
+flags are wrapped by `/ryzers/run-supernode.sh`, which reads env vars
+declared (with shell-expansion defaults) in `config.yaml`. Export them
+in your shell before `ryzers run` to override.
 
-### Insecure (testing only)
+The default `CMD` runs `test_flower-supernode.sh`, an install check.
+For a real launch:
+
+### Insecure (testing)
 
 ```sh
-ryzers run flower-supernode \
-  --superlink ${SUPERLINK_IP}:9092 \
-  --clientappio-api-address 0.0.0.0:9094 \
-  --insecure \
-  --node-config "partition-id=0 num-partitions=2" \
-  --isolation process
+export SUPERLINK_IP=192.168.2.33
+export FLOWER_PARTITION_ID=0
+export FLOWER_NUM_PARTITIONS=2
+ryzers run /ryzers/run-supernode.sh
 ```
 
-### With TLS (using `ca.crt` copied from the server machine)
+### With TLS
 
 Place `ca.crt` at `./workspace/flower/superlink-certificates/ca.crt`
-(the volume mount in `config.yaml` makes it visible inside the container
-at `/app/certificates/ca.crt`), then:
+(the volume mount in `config.yaml` exposes it at `/app/certificates/ca.crt`),
+then:
 
 ```sh
-ryzers run flower-supernode \
-  --superlink ${SUPERLINK_IP}:9092 \
-  --clientappio-api-address 0.0.0.0:9094 \
-  --root-certificates /app/certificates/ca.crt \
-  --node-config "partition-id=0 num-partitions=2" \
-  --isolation process
+export SUPERLINK_IP=192.168.2.33
+export FLOWER_INSECURE=0
+export FLOWER_PARTITION_ID=0
+export FLOWER_NUM_PARTITIONS=2
+ryzers run /ryzers/run-supernode.sh
 ```
 
-`partition-id` should be unique per client; `num-partitions` is the total
-number of clients across the federation.
+### Env-var reference
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `SUPERLINK_IP` | `127.0.0.1` | Routable IP of the SuperLink host |
+| `FLOWER_INSECURE` | `1` | `1` = `--insecure`; `0` = TLS via `FLOWER_CA_CERT` |
+| `FLOWER_PARTITION_ID` | `0` | Unique partition for this node (0..N-1) |
+| `FLOWER_NUM_PARTITIONS` | `2` | Total clients across the federation |
+| `FLOWER_CLIENTAPPIO` | `0.0.0.0:9094` | Local socket the paired ClientApp connects to |
+| `FLOWER_ISOLATION` | `process` | Passed to `--isolation` |
 
 ## References
 

@@ -14,3 +14,10 @@ port_mappings:
 volume_mappings:
 - "$PWD/workspace/flower/state:/app/state"
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
+
+# These are consumed by /ryzers/run-superlink.sh. Override by exporting
+# the same variables in your shell before `ryzers run`.
+environment_variables:
+- "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
+- "FLOWER_ISOLATION=${FLOWER_ISOLATION:-process}"
+- "FLOWER_STATE_DB=${FLOWER_STATE_DB:-/app/state/state.db}"

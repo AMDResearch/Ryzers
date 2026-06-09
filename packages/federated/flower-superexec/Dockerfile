@@ -13,7 +13,8 @@ RUN pip3 install --no-cache-dir --break-system-packages /app
 
 WORKDIR /ryzers
 COPY test.sh /ryzers/test_flower-superexec.sh
-RUN chmod +x /ryzers/test_flower-superexec.sh
+COPY run-superexec.sh /ryzers/run-superexec.sh
+RUN chmod +x /ryzers/test_flower-superexec.sh /ryzers/run-superexec.sh
 
 RUN mkdir -p /app/certificates
 

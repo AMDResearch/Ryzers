@@ -12,7 +12,11 @@ port_mappings:
 volume_mappings:
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
 
-# SUPERLINK_IP is consumed by the run-time CMD override:
-#   ryzers run flower-supernode --superlink ${SUPERLINK_IP}:9092 ...
+# Consumed by /ryzers/run-supernode.sh. Override by exporting the same
+# variables in your shell before `ryzers run`. SUPERLINK_IP is the most
+# important one — set it to the routable IP of your SuperLink host.
 environment_variables:
-- "SUPERLINK_IP=127.0.0.1"
+- "SUPERLINK_IP=${SUPERLINK_IP:-127.0.0.1}"
+- "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
+- "FLOWER_PARTITION_ID=${FLOWER_PARTITION_ID:-0}"
+- "FLOWER_NUM_PARTITIONS=${FLOWER_NUM_PARTITIONS:-2}"

@@ -13,17 +13,24 @@ start when bringing up a federation.
 ryzers build flower-base flower-superlink
 ```
 
-## Run (insecure — testing only)
+## Run
 
-The default `CMD` runs `test_flower-superlink.sh`, which starts the
-SuperLink with `--insecure` and verifies it binds port 9092. To run it
-properly, override the CMD:
+`ryzers run` only accepts a single-token CMD override, so all SuperLink
+flags are wrapped by an entry-point script (`/ryzers/run-superlink.sh`)
+that reads its config from environment variables. The relevant env vars
+are declared in `config.yaml` with shell-expansion defaults — override
+them by exporting in your shell before `ryzers run`.
+
+The default `CMD` runs `test_flower-superlink.sh`, a one-shot install
+check. For a real launch, use the entry-point script:
+
+### Insecure (local testing)
 
 ```sh
-ryzers run flower-superlink --insecure
+ryzers run /ryzers/run-superlink.sh
 ```
 
-## Run (with TLS — for real deployments)
+### With TLS (real deployment)
 
 1. Generate certs on the server machine, specifying its routable IP:
 
@@ -38,16 +45,23 @@ ryzers run flower-superlink --insecure
 
 2. Copy `ca.crt` to every client machine (the SuperNodes will need it).
 
-3. Start the SuperLink:
+3. Launch the SuperLink with TLS:
 
    ```sh
-   ryzers run flower-superlink \
-     --ssl-ca-certfile=/app/certificates/ca.crt \
-     --ssl-certfile=/app/certificates/server.pem \
-     --ssl-keyfile=/app/certificates/server.key \
-     --database=/app/state/state.db \
-     --isolation=process
+   export FLOWER_INSECURE=0
+   ryzers run /ryzers/run-superlink.sh
    ```
+
+   To override the cert paths inside the container, also export
+   `FLOWER_CA_CERT`, `FLOWER_SERVER_CERT`, `FLOWER_SERVER_KEY`.
+
+### Env-var reference
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `FLOWER_INSECURE` | `1` | `1` = `--insecure`; `0` = enable TLS flags |
+| `FLOWER_ISOLATION` | `process` | Passed to `--isolation` |
+| `FLOWER_STATE_DB` | `/app/state/state.db` | Persisted run state |
 
 ## Ports
 

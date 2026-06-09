@@ -6,7 +6,8 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers
 COPY test.sh /ryzers/test_flower-supernode.sh
-RUN chmod +x /ryzers/test_flower-supernode.sh
+COPY run-supernode.sh /ryzers/run-supernode.sh
+RUN chmod +x /ryzers/test_flower-supernode.sh /ryzers/run-supernode.sh
 
 RUN mkdir -p /app/certificates
 
