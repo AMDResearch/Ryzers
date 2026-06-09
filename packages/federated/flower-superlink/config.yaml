@@ -1,0 +1,16 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# SuperLink is the coordinator. It does not run training and does not
+# need the GPU or an X display.
+gpu_support: false
+x11_display: false
+
+port_mappings:
+- "9091:9091"   # ExecApi (control plane)
+- "9092:9092"   # FleetApi (supernodes connect here)
+- "9093:9093"   # ServerAppIo
+
+volume_mappings:
+- "$PWD/workspace/flower/state:/app/state"
+- "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"

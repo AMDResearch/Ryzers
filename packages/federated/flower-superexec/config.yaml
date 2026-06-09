@@ -1,0 +1,13 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# gpu_support defaults to true — this is the only flower-* Ryzer that
+# actually runs training, so ROCm access matters here.
+
+volume_mappings:
+- "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
+
+# Strix Point (gfx1150) compatibility shim — uncomment if your iGPU
+# isn't directly recognised by the ROCm runtime.
+# environment_variables:
+# - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
