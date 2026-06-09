@@ -31,3 +31,13 @@ fraction-evaluate = 0.5
 local-epochs = 1
 learning-rate = 0.1
 batch-size = 32
+
+# `local` federation: targets the SuperLink ExecApi on the host loopback
+# (works under --network host). Used by `flwr run /app local`, which the
+# `submit` plugin type in run-superexec.sh invokes.
+[tool.flwr.federations.local]
+address = "127.0.0.1:9093"
+insecure = true
+
+# SuperLink default ports: 9091 = ServerAppIo (serverapp superexec),
+# 9092 = Fleet (SuperNode), 9093 = ExecApi (flwr run submitter).

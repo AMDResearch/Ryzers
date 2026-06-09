@@ -9,6 +9,12 @@ Pair this Ryzer with `flower-superexec` on every client host. The
 SuperNode does the federation plumbing; the superexec runs the actual
 PyTorch/ROCm training.
 
+The container uses `--network host`, so `SUPERLINK_IP` is the only
+network knob you usually need to set. The ClientAppIo socket defaults
+to `0.0.0.0:$((9094 + FLOWER_PARTITION_ID))` so multiple SuperNodes can
+share a host for local testing without colliding (see
+[`../run-local.sh`](../run-local.sh)).
+
 ## Build
 
 ```sh
@@ -52,7 +58,7 @@ ryzers run
 | `FLOWER_INSECURE` | `1` | `1` = `--insecure`; `0` = TLS via `FLOWER_CA_CERT` |
 | `FLOWER_PARTITION_ID` | `0` | Unique partition for this node (0..N-1) |
 | `FLOWER_NUM_PARTITIONS` | `2` | Total clients across the federation |
-| `FLOWER_CLIENTAPPIO` | `0.0.0.0:9094` | Local socket the paired ClientApp connects to |
+| `FLOWER_CLIENTAPPIO` | `0.0.0.0:$((9094 + FLOWER_PARTITION_ID))` | Local socket the paired ClientApp connects to (auto-offset for co-located nodes) |
 | `FLOWER_ISOLATION` | `process` | Passed to `--isolation` |
 
 ## References

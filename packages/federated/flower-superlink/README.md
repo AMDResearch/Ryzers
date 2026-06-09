@@ -1,11 +1,18 @@
 # Flower SuperLink Docker Setup
 
-The SuperLink is the central coordinator in a Flower deployment. It accepts
-connections from SuperNodes (Fleet API, port 9092), runs the control plane
-(Exec API, port 9091), and persists run state to `/app/state`.
+The SuperLink is the central coordinator in a Flower deployment. It
+accepts connections from the ServerApp superexec (ServerAppIo, port
+9091), SuperNodes (Fleet API, port 9092), and the `flwr run` submitter
+(Exec API, port 9093). Run state is persisted to `/app/state`.
 
 This Ryzer runs on the **server machine** and is the first component you
-start when bringing up a federation.
+start when bringing up a federation. The container uses `--network host`
+so all three ports bind directly on the host — local components reach
+them via `127.0.0.1`, remote ones via the server's IP.
+
+For a single-machine smoke test that brings up SuperLink + ServerApp +
+two SuperNode/ClientApp pairs and submits the example run, use
+[`../run-local.sh`](../run-local.sh).
 
 ## Build
 
@@ -62,9 +69,9 @@ ryzers run
 
 | Port | API | Used by |
 |------|-----|---------|
-| 9091 | ExecApi | local `flower-superexec --plugin-type serverapp` |
-| 9092 | FleetApi | remote SuperNodes |
-| 9093 | ServerAppIo | (legacy / TLS control) |
+| 9091 | ServerAppIo | local `flower-superexec --plugin-type serverapp` |
+| 9092 | Fleet | remote SuperNodes |
+| 9093 | Exec | `flwr run` submitter (and the `submit` plugin-type) |
 
 ## References
 

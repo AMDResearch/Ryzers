@@ -6,17 +6,18 @@
 gpu_support: false
 x11_display: false
 
-port_mappings:
-- "9091:9091"   # ExecApi (control plane)
-- "9092:9092"   # FleetApi (supernodes connect here)
-- "9093:9093"   # ServerAppIo
+# Use host networking so that local single-machine deployments can
+# address every component over 127.0.0.1 and distributed deployments
+# bind ports directly on the host (no -p hop needed). SuperLink will
+# listen on host 9091/9092/9093.
+docker_extra_run_flags: "--network host --rm"
 
 volume_mappings:
 - "$PWD/workspace/flower/state:/app/state"
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
 
-# These are consumed by /ryzers/run-superlink.sh. Override by exporting
-# the same variables in your shell before `ryzers run`.
+# Consumed by /ryzers/run-superlink.sh. Override by exporting the same
+# variables in your shell before `ryzers run`.
 environment_variables:
 - "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
 - "FLOWER_ISOLATION=${FLOWER_ISOLATION:-process}"

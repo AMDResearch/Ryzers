@@ -29,9 +29,15 @@ under ROCm.
 ## Local single-machine smoke test
 
 For an end-to-end test on one host (SuperLink + ServerApp + two
-SuperNode/ClientApp pairs) see
-[`../local/README.md`](../local/README.md), which ships a docker-compose
-file and a `run-local.sh` one-shot script.
+SuperNode/ClientApp pairs) run [`../run-local.sh`](../run-local.sh). It
+builds the three role Ryzers, brings everything up under `--network host`
+on the loopback (with ClientAppIo ports offset by partition ID), submits
+the quickstart-pytorch run, and tears down on exit.
+
+The same three role Ryzers (`flower-superlink`, `flower-supernode`,
+`flower-superexec`) are also what you run in a distributed deployment —
+just set `SUPERLINK_IP` to the server's IP on the client boxes. See each
+role Ryzer's README for the multi-machine flow.
 
 ## References
 

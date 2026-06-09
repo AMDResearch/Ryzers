@@ -4,16 +4,28 @@
 # gpu_support defaults to true — this is the only flower-* Ryzer that
 # actually runs training, so ROCm access matters here.
 
+# Host networking so the superexec can reach its paired SuperLink (for
+# serverapp role) or SuperNode (for clientapp role) over 127.0.0.1 on a
+# single-host deployment, and bind/connect directly on the host network
+# in a distributed deployment.
+docker_extra_run_flags: "--network host --rm"
+
 volume_mappings:
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
 
-# Consumed by /ryzers/run-superexec.sh. The two important knobs are
-# FLOWER_PLUGIN_TYPE (serverapp | clientapp) and FLOWER_APPIO_ADDR
-# (the SuperLink :9091 for serverapp, the SuperNode :9094 for clientapp).
+# Consumed by /ryzers/run-superexec.sh.
+#
+# Plugin types:
+#   serverapp  — runs the ServerApp; talks to SuperLink ExecApi (default :9091)
+#   clientapp  — runs a ClientApp;  talks to its paired SuperNode (default :9094+PARTITION_ID)
+#   submit     — one-shot `flwr run /app local`, then exits (no daemon)
 environment_variables:
 - "FLOWER_PLUGIN_TYPE=${FLOWER_PLUGIN_TYPE:-serverapp}"
-- "FLOWER_APPIO_ADDR=${FLOWER_APPIO_ADDR:-127.0.0.1:9091}"
+- "FLOWER_PARTITION_ID=${FLOWER_PARTITION_ID:-0}"
 - "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
+# FLOWER_APPIO_ADDR is computed by run-superexec.sh from PLUGIN_TYPE +
+# PARTITION_ID by default; export it explicitly to override.
+- "FLOWER_APPIO_ADDR=${FLOWER_APPIO_ADDR:-}"
 # Strix Point (gfx1150) compatibility shim — uncomment if your iGPU
 # isn't directly recognised by the ROCm runtime.
 # - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
