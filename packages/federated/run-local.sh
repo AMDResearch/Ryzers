@@ -124,9 +124,20 @@ ryzers build --name flower-supernode flower-base flower-supernode
 ryzers build --name flower-superexec flower-base flower-superexec
 
 echo "== Cleaning up stale containers =="
-for name in flower-superlink flower-supernode flower-superexec; do
+# Include the default "ryzerdocker" tag: runs from before per-role --name
+# builds created containers under that image and, with --network host,
+# they hold the 909x ports and break the new components.
+for name in flower-superlink flower-supernode flower-superexec ryzerdocker; do
   docker ps -aq --filter "ancestor=${name}" | xargs -r docker rm -f >/dev/null 2>&1 || true
 done
+
+# Start from a clean SuperLink state. A partial run left over from a
+# previous (e.g. failed) submit can make the SuperLink raise
+# KeyError('config') -> "Exception calling application: 'config'" when a
+# SuperNode connects. This matches the volume mount in
+# flower-superlink/config.yaml ($PWD/workspace/flower/state).
+echo "== Resetting SuperLink state =="
+rm -rf "${REPO_ROOT}/workspace/flower/state"/* 2>/dev/null || true
 
 echo "== Starting SuperLink =="
 spawn "flower-superlink" "ryzers run --name flower-superlink"
