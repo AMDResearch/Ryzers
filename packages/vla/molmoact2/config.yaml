@@ -27,6 +27,13 @@ environment_variables:
 - "TOKENIZERS_PARALLELISM=false"
 - "MUJOCO_GL=egl"
 - "PYOPENGL_PLATFORM=egl"
+# ROCm perf levers for gfx1151 (both numerically validated: DROID action L1~2e-4,
+# LIBERO still 100% success). AOTriton flash/mem-efficient SDPA ~2x the VLM prefill
+# (DROID single-infer 1478->717 ms). hipBLASLt has no tuned kernels for the odd VLA
+# GEMM shapes here -> it was the slowest path and spammed HIPBLAS_STATUS_NOT_SUPPORTED
+# (LIBERO warnings 395->13); skipping it (rocBLAS) is both faster and quieter.
+- "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
+- "TORCH_BLAS_PREFER_HIPBLASLT=0"
 - "OUT_DIR=/outputs"
 # Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demo_*.sh).
 # Leave blank to let each demo pick a RANDOM episode / scene every run.
