@@ -6,7 +6,9 @@
 import os
 # Use EGL for headless rendering (issue #66)
 if 'PYOPENGL_PLATFORM' not in os.environ:
-  os.environ['PYOPENGL_PLATFORM'] = 'glx'
+  os.environ['PYOPENGL_PLATFORM'] = 'egl'
+  
+import genesis as gs
 
 print("Testing Genesis installation...")
 
