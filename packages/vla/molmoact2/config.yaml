@@ -1,0 +1,45 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# Layer directly on the VERIFIED Ryzer ROCm base (torch 2.10.0+rocm7.2.2, gfx1151).
+init_image: "ryzerdocker:latest"
+
+# Pin the upstream MolmoAct2 source the inference path was validated against.
+build_arguments:
+- "MOLMOACT2_COMMIT=cdf4b7728e0545366bf3366639fd86477ef59d04"
+- "LEROBOT_REF=molmoact2-hf-inference"
+
+### ryzers run options
+
+gpu_support: true
+x11_display: false
+
+# Weights and HF datasets are NOT baked into the image; they download once into
+# the persistent /root/.cache/huggingface volume and are reused across runs.
+# Artifacts (videos + joint-angle plots) land under /outputs.
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.5.1"
+- "HF_HOME=/root/.cache/huggingface"
+- "HF_HUB_ENABLE_HF_TRANSFER=1"
+- "HF_HUB_DISABLE_TELEMETRY=1"
+- "TOKENIZERS_PARALLELISM=false"
+- "MUJOCO_GL=egl"
+- "PYOPENGL_PLATFORM=egl"
+- "OUT_DIR=/outputs"
+# Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demo_*.sh).
+# Leave blank to let each demo pick a RANDOM episode / scene every run.
+- 'SEED=${SEED:-}'
+- 'EPISODE=${EPISODE:-}'
+- 'SUITE=${SUITE:-}'
+- 'TASK_ID=${TASK_ID:-}'
+- 'HF_TOKEN=${HF_TOKEN:-}'
+
+volume_mappings:
+- "$PWD/workspace/molmoact2/outputs:/outputs"
+- "$PWD/workspace/molmoact2/models:/models"
+- "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
+
+# Sim + large-model inference want plenty of shared memory.
+docker_extra_run_flags: "--shm-size=16g --ipc=host"
