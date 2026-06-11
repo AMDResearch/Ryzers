@@ -6,6 +6,7 @@ import sys
 import argparse
 from .ryzer import RyzerManager
 from .runner import DockerRunner
+from . import RYZERS_PACKAGES_PATH
 
 def build(base_path, name, packages, init_image):
     """
@@ -37,7 +38,9 @@ def main():
 
     Parses command-line arguments and executes the appropriate build or run command.
     """
-    default_base_path = os.getcwd()
+    # Prefer the package-detected path (works regardless of CWD); fall
+    # back to CWD only if detection failed (e.g. zip/wheel install).
+    default_base_path = RYZERS_PACKAGES_PATH or os.getcwd()
 
     parser = argparse.ArgumentParser(description="Command-line tool for building and running Ryzen AI Dockers.")
     

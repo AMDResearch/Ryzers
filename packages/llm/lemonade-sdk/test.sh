@@ -8,23 +8,15 @@ echo "================================"
 
 # Use a small model for fast testing
 MODEL="Llama-3.2-1B-Instruct-GGUF"
+# v10.x default lemond port
+PORT=13305
 
-# Pull the model first
+# Start the lemond server in the background. Upstream v10.x split the CLI:
+# `lemond` runs the server
+# `lemonade` is the client CLI for everything else (pull/list/etc).
 echo ""
-echo "Pulling model $MODEL..."
-lemonade-server pull $MODEL || {
-  echo "Model already available or pull failed, continuing..."
-}
-
-# List available models
-echo ""
-echo "Available models:"
-lemonade-server list | head -20
-
-# Start lemonade-server in the background
-echo ""
-echo "Starting lemonade-server..."
-lemonade-server serve --no-tray > /tmp/lemonade.log 2>&1 &
+echo "Starting lemond on default port ${PORT}..."
+lemond > /tmp/lemonade.log 2>&1 &
 SERVER_PID=$!
 
 # Function to cleanup
@@ -33,7 +25,7 @@ cleanup() {
   echo "Stopping server..."
   kill $SERVER_PID 2>/dev/null
   sleep 1
-  pkill -9 lemonade-server 2>/dev/null
+  pkill -9 lemond 2>/dev/null
 }
 
 # Set trap to cleanup on exit
@@ -42,7 +34,7 @@ trap cleanup EXIT
 # Wait for server to be ready
 echo "Waiting for server to be ready..."
 for i in {1..60}; do
-  if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+  if curl -s http://localhost:$PORT/api/v1/health > /dev/null 2>&1; then
     echo "Server is ready!"
     break
   fi
@@ -55,6 +47,18 @@ for i in {1..60}; do
   sleep 1
 done
 
+# Pull the model (the client talks to the server now that it's up)
+echo ""
+echo "Pulling model $MODEL..."
+lemonade pull $MODEL || {
+  echo "Pull failed; the server may still be able to lazy-load on first request."
+}
+
+# List available models
+echo ""
+echo "Available models (downloaded):"
+lemonade list --downloaded | head -20
+
 # Give it a moment to fully initialize
 sleep 2
 
@@ -64,7 +68,7 @@ echo "Testing completion API with model $MODEL..."
 echo "Prompt: 'Why is the sky blue? Answer in one sentence.'"
 echo ""
 
-RESPONSE=$(curl -s -X POST http://localhost:8000/api/v1/completions   -H "Content-Type: application/json"   -d '{
+RESPONSE=$(curl -s -X POST http://localhost:$PORT/api/v1/completions   -H "Content-Type: application/json"   -d '{
     "model": "'$MODEL'",
     "prompt": "Why is the sky blue?",
     "max_tokens": 100,

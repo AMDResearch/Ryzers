@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y \
 	libboost-filesystem1.74.0 \
 	vulkan-tools \
 	mesa-vulkan-drivers \
-	git-lfs
+	git-lfs \
+	cmake \
+	build-essential
 
 RUN apt install -y vulkan-tools mesa-vulkan-drivers
 RUN add-apt-repository ppa:deadsnakes/ppa && \

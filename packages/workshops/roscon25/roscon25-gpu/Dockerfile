@@ -6,7 +6,7 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers
 
-RUN pip install jupyterlab "numpy<2" matplotlib catkin_pkg empy ipywidgets "datasets<3"
+RUN pip install jupyterlab "numpy<2" matplotlib catkin_pkg "empy==3.3.4" ipywidgets "datasets<3"
 
 COPY notebooks /ryzers/notebooks/
 
@@ -46,4 +46,9 @@ ENV TQDM_DISABLE=1
 ENV HF_HUB_DISABLE_PROGRESS_BARS=1
 ENV TRANSFORMERS_NO_PROGRESS_BAR=1
 
-CMD ["/bin/bash", "/entrypoint.sh"]
+# Copy test script
+COPY test.sh /ryzers/test_roscon25_gpu.sh
+RUN chmod +x /ryzers/test_roscon25_gpu.sh
+
+# Default command runs test (for interactive use: /bin/bash /entrypoint.sh)
+CMD ["/ryzers/test_roscon25_gpu.sh"]

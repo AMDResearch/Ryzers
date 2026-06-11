@@ -4,7 +4,11 @@
 ### ryzers run options
 
 port_mappings:
-- "8000:8000"
+- "13305:13305"
 
 volume_mappings:
+# Hugging Face cache: backs the raw model weight files that lemonade pulls.
 - "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
+# Lemonade cache: holds config.json, the model registry, and lemond's
+# downloaded-model index.
+- "$PWD/workspace/.cache/lemonade:/root/.cache/lemonade"

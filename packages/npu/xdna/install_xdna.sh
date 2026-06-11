@@ -5,8 +5,9 @@
 
 set -e
 
-DRIVER_VERSION=51b9400
+DRIVER_VERSION=c8d1727
 USE_RYZER=true
+FORCE_REINSTALL=${FORCE_REINSTALL:-false}
 ROOT_DIR=$(pwd)
 CURRENT_USER=$(whoami)
 
@@ -32,19 +33,18 @@ if [[ "$kernel_version" < "6.10" ]]; then
 fi
 
 # Host machine setup
-if dpkg-query -W xrt_plugin-amdxdna; then
+if dpkg-query -W xrt_plugin-amdxdna 2>/dev/null && ! $FORCE_REINSTALL ; then
     echo "xrt_plugin-amdxdna is already installed, skipping host installs..."
 else
     echo "Installing dependencies"
     sudo apt-get install -y build-essential gcc-x86-64-linux-gnu libgl-dev libxdmcp-dev \
-	    bzip2 libalgorithm-diff-perl libglx-dev lto-disabled-list dkms libalgorithm-diff-xs-perl \
-	    libhwasan0 make dpkg-dev libalgorithm-merge-perl libitm1 ocl-icd-opencl-dev fakeroot libasan8 \
-	    liblsan0 opencl-c-headers g++ libboost-filesystem1.83.0 libquadmath0 opencl-clhpp-headers g++-14 \
-	    libboost-program-options1.83.0 libstdc++-14-dev uuid-dev g++-14-x86-64-linux-gnu libcc1-0 libtsan2 \
-	    x11proto-dev g++-x86-64-linux-gnu libdpkg-perl libubsan1 xorg-sgml-doctools gcc libfakeroot \
-	    libx11-dev xtrans-dev gcc-14 libfile-fcntllock-perl libxau-dev gcc-14-x86-64-linux-gnu \
-	    libgcc-14-dev libxcb1-dev
-    
+           bzip2 libalgorithm-diff-perl libglx-dev lto-disabled-list dkms libalgorithm-diff-xs-perl \
+           libhwasan0 make dpkg-dev libalgorithm-merge-perl libitm1 ocl-icd-opencl-dev fakeroot libasan8 \
+           liblsan0 opencl-c-headers g++ libboost-filesystem1.83.0 libquadmath0 opencl-clhpp-headers g++-14 \
+           libboost-program-options1.83.0 libstdc++-14-dev uuid-dev g++-14-x86-64-linux-gnu libcc1-0 libtsan2 \
+           x11proto-dev g++-x86-64-linux-gnu libdpkg-perl libubsan1 xorg-sgml-doctools gcc libfakeroot \
+           libx11-dev xtrans-dev gcc-14 libfile-fcntllock-perl libxau-dev gcc-14-x86-64-linux-gnu \
+           libgcc-14-dev libxcb1-dev
     if $USE_RYZER ; then
         ryzers build xdna --name xdna
         docker run --rm -v $(pwd):/host_dir xdna:latest bash -c "cp -v /ryzers/debs/*.deb /host_dir/"
@@ -66,8 +66,8 @@ else
         ./build.sh -npu -opt
 
         cd ../../build
+        # -release already generates the .deb package in newer driver versions
         ./build.sh -release
-        ./build.sh -package
 
         # copy generated debs
         cp $ROOT_DIR/xdna-driver/xrt/build/Release/xrt_*-amd64-base.deb $ROOT_DIR/

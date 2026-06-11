@@ -21,9 +21,16 @@ RUN apt-get update && apt-get install -y \
 # Upgrade pip and install JupyterLab
 RUN python3 -m pip install --no-cache-dir jupyterlab
 
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Copy test script
+COPY test.sh /ryzers/test_jupyterlab.sh
+RUN chmod +x /ryzers/test_jupyterlab.sh
+
 # Expose the default JupyterLab port
 EXPOSE 8888
 
-# Set the default command to run JupyterLab
-CMD ["jupyter-lab", "--ip=0.0.0.0", "--no-browser", "--allow-root"]
+# Run test by default (use 'docker run ... jupyter-lab --ip=0.0.0.0 --no-browser --allow-root' for interactive use)
+CMD ["/ryzers/test_jupyterlab.sh"]
 

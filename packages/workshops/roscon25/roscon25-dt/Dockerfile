@@ -14,12 +14,16 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 RUN pip3 install --no-cache-dir --break-system-packages \
     notebook==7.0.6 ipykernel==6.27.1 jupyterlab==4.2.5
 
-# Working directory 
+# Working directory
 WORKDIR /ryzers/notebooks
 
 COPY Tutorials /ryzers/notebooks/Tutorials
 COPY Model_files /ryzers/notebooks/Model_files
 
-# Default command
-CMD ["jupyter-lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--notebook-dir=/ryzers/notebooks", "--allow-root"]
+# Copy test script
+COPY test.sh /ryzers/test_roscon25_dt.sh
+RUN chmod +x /ryzers/test_roscon25_dt.sh
+
+# Default command runs test (for interactive use: jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root)
+CMD ["/ryzers/test_roscon25_dt.sh"]
 

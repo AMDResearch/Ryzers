@@ -12,7 +12,7 @@ RUN apt-get update && \
 
 ENV AMDGPUTOP_TIMEOUT=10s
 
-RUN wget https://github.com/Umio-Yasuno/amdgpu_top/releases/download/v0.11.0/amdgpu-top_0.11.0-1_amd64.deb \
+RUN wget https://github.com/Umio-Yasuno/amdgpu_top/releases/download/v0.11.4/amdgpu-top_0.11.4-1_amd64.deb \
     -O amdgpu-top.deb
 RUN dpkg --install amdgpu-top.deb
 

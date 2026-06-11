@@ -1,7 +1,7 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-ARG DRIVER_VERSION="854ff04"
+ARG DRIVER_VERSION="c8d1727"
 
 # required by rocm driver
 RUN groupadd -f render && usermod -aG render root
@@ -31,10 +31,9 @@ RUN cd /ryzers/xdna-driver/tools && \
 RUN cd /ryzers/xdna-driver/xrt/build/ && \
     ./build.sh -npu -opt -noctest
 
-# Build XDNA driver
+# Build XDNA driver (-release also generates the .deb package)
 RUN cd /ryzers/xdna-driver/build && \
-    ./build.sh -release && \
-    ./build.sh -package
+    ./build.sh -release
 
 # Finally, save and install the XRT/XDNA debian packages
 # these will also need to be installed on the host system

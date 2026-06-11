@@ -1,6 +1,6 @@
 # Lemonade Server
 
-[Lemonade](https://lemonade-server.ai/) is a lightweight local AI server for running text, vision, image generation, and speech models on AMD hardware. It provides an OpenAI-compatible API at `http://localhost:8000/api/v1`, making it a drop-in backend for hundreds of apps that support the OpenAI protocol.
+[Lemonade](https://lemonade-server.ai/) is a lightweight local AI server for running text, vision, image generation, and speech models on AMD hardware. It provides an OpenAI-compatible API at `http://localhost:13305/api/v1`, making it a drop-in backend for hundreds of apps that support the OpenAI protocol.
 
 ### Build the Docker Image
 
@@ -13,9 +13,10 @@ ryzers run
 
 ```sh
 ryzers run bash
-lemonade-server list
-lemonade-server pull Qwen3-VL-8B-Instruct-GGUF
-lemonade-server serve --no-tray
+lemond &
+lemonade list
+lemonade pull Qwen3-VL-8B-Instruct-GGUF
+lemonade run Qwen3-VL-8B-Instruct-GGUF
 ```
 
 ### References
