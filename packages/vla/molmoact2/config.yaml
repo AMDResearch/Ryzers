@@ -41,12 +41,19 @@ environment_variables:
 - 'EPISODE=${EPISODE:-}'
 - 'SUITE=${SUITE:-}'
 - 'TASK_ID=${TASK_ID:-}'
+- 'THINK=${THINK:-}'
 - 'HF_TOKEN=${HF_TOKEN:-}'
+# Interactive demo (demo_interactive.sh) knobs.
+- 'PORT=${PORT:-}'
+- 'VIEW_RES=${VIEW_RES:-}'
+- 'VIDEO_RES=${VIDEO_RES:-}'
 
 volume_mappings:
 - "$PWD/workspace/molmoact2/outputs:/outputs"
 - "$PWD/workspace/molmoact2/models:/models"
 - "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
 
-# Sim + large-model inference want plenty of shared memory.
-docker_extra_run_flags: "--shm-size=16g --ipc=host"
+# Sim + large-model inference want plenty of shared memory. Host networking so the
+# interactive demo's browser server (demo_interactive.sh) is reachable on localhost;
+# harmless for the batch demos.
+docker_extra_run_flags: "--shm-size=16g --ipc=host --network=host"
