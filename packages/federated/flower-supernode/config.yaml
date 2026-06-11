@@ -10,6 +10,10 @@
 # Host networking lets us run multiple instances on one box (each on a
 # different ClientAppIo port) for local testing, and lets distributed
 # deployments skip explicit port mapping.
+#
+# The label lets run-local.sh reliably clean up flower containers across
+# image rebuilds.
+docker_extra_run_flags: "--label ryzers-flower-local=1"
 
 volume_mappings:
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"

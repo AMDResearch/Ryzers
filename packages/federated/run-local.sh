@@ -112,6 +112,23 @@ wait_for_port() {
 }
 
 # ---------------------------------------------------------------------------
+# Clean up stale containers FIRST, before building. A rebuild moves the
+# flower-* tags onto new image IDs and orphans the old ones, so an
+# `--filter ancestor=<tag>` cleanup run *after* the build would no longer
+# match containers from the previous run (they still reference the old
+# image ID) and they'd keep holding the 909x ports.
+#
+# Primary match is the ryzers-flower-local label (set via each role's
+# docker_extra_run_flags) which survives rebuilds. The ancestor/ryzerdocker
+# pass is a fallback for containers created before the label existed.
+# ---------------------------------------------------------------------------
+echo "== Cleaning up stale containers =="
+docker ps -aq --filter "label=ryzers-flower-local=1" | xargs -r docker rm -f >/dev/null 2>&1 || true
+for name in flower-superlink flower-supernode flower-superexec ryzerdocker; do
+  docker ps -aq --filter "ancestor=${name}" | xargs -r docker rm -f >/dev/null 2>&1 || true
+done
+
+# ---------------------------------------------------------------------------
 # Build the three role images. NB: `ryzers build` names the *final* image
 # after --name (default "ryzerdocker"), NOT after the last package — so
 # --name is required here, otherwise all three would clobber the same
@@ -122,14 +139,6 @@ echo "== Building Ryzers =="
 ryzers build --name flower-superlink flower-base flower-superlink
 ryzers build --name flower-supernode flower-base flower-supernode
 ryzers build --name flower-superexec flower-base flower-superexec
-
-echo "== Cleaning up stale containers =="
-# Include the default "ryzerdocker" tag: runs from before per-role --name
-# builds created containers under that image and, with --network host,
-# they hold the 909x ports and break the new components.
-for name in flower-superlink flower-supernode flower-superexec ryzerdocker; do
-  docker ps -aq --filter "ancestor=${name}" | xargs -r docker rm -f >/dev/null 2>&1 || true
-done
 
 # Start from a clean SuperLink state. A partial run left over from a
 # previous (e.g. failed) submit can make the SuperLink raise

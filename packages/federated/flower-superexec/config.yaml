@@ -9,6 +9,10 @@
 # Host networking lets the superexec reach its paired SuperLink (serverapp
 # role) or SuperNode (clientapp role) over 127.0.0.1 on a single host, and
 # bind/connect directly on the host network in a distributed deployment.
+#
+# The label lets run-local.sh reliably clean up flower containers across
+# image rebuilds.
+docker_extra_run_flags: "--label ryzers-flower-local=1"
 
 volume_mappings:
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"

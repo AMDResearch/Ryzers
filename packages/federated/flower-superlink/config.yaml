@@ -11,6 +11,11 @@ x11_display: false
 # Host networking lets local deployments address every component over
 # 127.0.0.1 and distributed ones bind ports directly on the host (no -p
 # hop). SuperLink listens on host 9091/9092/9093.
+#
+# The label lets run-local.sh reliably clean up flower containers across
+# image rebuilds (an `--filter ancestor=<tag>` cleanup misses containers
+# whose image was orphaned by a rebuild).
+docker_extra_run_flags: "--label ryzers-flower-local=1"
 
 volume_mappings:
 - "$PWD/workspace/flower/state:/app/state"
