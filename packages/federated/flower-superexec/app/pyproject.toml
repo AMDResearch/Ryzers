@@ -32,6 +32,12 @@ local-epochs = 1
 learning-rate = 0.1
 batch-size = 32
 
+# Flower requires the [tool.flwr.federations] table with a `default`
+# key; omitting it makes flwr fall back to its legacy-config migration
+# path, which fails with "failed to migrate legacy toml configuration".
+[tool.flwr.federations]
+default = "local"
+
 # `local` federation: targets the SuperLink ExecApi on the host loopback
 # (works under --network host). Used by `flwr run /app local`, which the
 # `submit` plugin type in run-superexec.sh invokes.
