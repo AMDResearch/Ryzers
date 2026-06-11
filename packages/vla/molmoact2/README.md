@@ -91,4 +91,21 @@ Note: `MolmoAct2-Think-LIBERO` was fine-tuned with one demonstrated task per LIB
 scene, so it follows instructions faithfully when the command matches the scene's
 trained target and is biased toward that target for off-target objects.
 
+### Inference speed knobs
+
+The policy action is a 7-D delta end-effector pose (`OSC_POSE`, 20 Hz) in a fixed
+10-step chunk. Two optional levers (a closed-loop sweep on libero_object tasks 0–4 kept
+100% success for both):
+
+- `THINK=0` — disable depth reasoning. This removes a ~16 s once-per-episode "Think"
+  pass and is **~2.6–2.9× faster** end to end. The batch demos default to `THINK=1`
+  (quality-first; depth reasoning may help harder spatial suites), but the real-time
+  demo defaults to `THINK=0` so it actually flows.
+- `NUM_STEPS=N` — flow-matching denoising steps (default ~model setting). Lower is a
+  modest ~15% speedup; `NUM_STEPS=4` held 100% success.
+
+```sh
+THINK=0 NUM_STEPS=4 ryzers run /ryzers/demo_libero.sh   # ~2.9x faster on libero_object
+```
+
 Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.

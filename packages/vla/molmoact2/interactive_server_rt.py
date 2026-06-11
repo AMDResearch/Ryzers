@@ -50,7 +50,7 @@ VIEW_RES = int(os.environ.get("VIEW_RES", "720"))    # live viewport (RT favors 
 VIDEO_RES = int(os.environ.get("VIDEO_RES", "600"))  # saved debug video (kept small)
 RT_HZ = float(os.environ.get("RT_HZ", "20"))         # wall-clock control rate
 RT_LOOKAHEAD = int(os.environ.get("RT_LOOKAHEAD", "0"))  # replan when buffer <= this (pipelining knob)
-RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS", "600"))  # RT episodes run longer (holds burn wall time)
+RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS", "1200"))  # RT runs in wall time; holds burn budget, so allow completion
 OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
 SUITES = ["libero_object", "libero_goal", "libero_spatial", "libero_10"]
 DT = 1.0 / RT_HZ
