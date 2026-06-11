@@ -22,3 +22,7 @@ environment_variables:
 - "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
 - "FLOWER_ISOLATION=${FLOWER_ISOLATION:-process}"
 - "FLOWER_STATE_DB=${FLOWER_STATE_DB:-/app/state/state.db}"
+# Set FLWR_LOG_LEVEL=DEBUG in your shell before `ryzers run` to make the
+# SuperLink print full tracebacks (e.g. the server-side KeyError behind a
+# gRPC "Exception calling application: ..." seen by SuperNode/superexec).
+- "FLWR_LOG_LEVEL=${FLWR_LOG_LEVEL:-INFO}"
