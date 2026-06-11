@@ -19,7 +19,16 @@ set -euo pipefail
 export SUITE="${SUITE:-libero_object}"
 export TASK_ID="${TASK_ID:-3}"
 export SEED="${SEED:-1000}"
+# Optional fast path (mirrors the RT demo): FAST=1 turns off depth reasoning and
+# uses 4 flow-matching steps so frames render faster. THINK / NUM_STEPS still win
+# if set explicitly.
+export FAST="${FAST:-0}"
+if [ "$FAST" = "1" ]; then
+  THINK="${THINK:-0}"
+  NUM_STEPS="${NUM_STEPS:-4}"
+fi
 export THINK="${THINK:-1}"
+export NUM_STEPS="${NUM_STEPS:-}"
 export CKPT="${CKPT:-allenai/MolmoAct2-Think-LIBERO}"
 export PORT="${PORT:-8080}"
 export PYTHONUNBUFFERED=1
@@ -29,6 +38,6 @@ PY=/opt/libero-venv/bin/python
 SERVER="${SERVER:-/ryzers/interactive_server.py}"
 [ -f "$SERVER" ] || SERVER="$(dirname "$0")/interactive_server.py"
 
-echo "Interactive demo | suite=$SUITE task_id=$TASK_ID seed=$SEED think=$THINK port=$PORT"
+echo "Interactive demo | suite=$SUITE task_id=$TASK_ID seed=$SEED think=$THINK fast=$FAST num_steps=${NUM_STEPS:-default} port=$PORT"
 echo "Open http://localhost:$PORT in your browser (remote box: ssh -L $PORT:localhost:$PORT <host>)"
 exec "$PY" "$SERVER"

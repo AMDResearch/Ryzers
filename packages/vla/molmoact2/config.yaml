@@ -52,6 +52,10 @@ environment_variables:
 - 'RT_MAX_STEPS=${RT_MAX_STEPS:-}'
 # Flow-matching denoising steps (lower = a bit faster inference). Blank = model default.
 - 'NUM_STEPS=${NUM_STEPS:-}'
+# FAST=1 (original demo) = depth-off + num_steps=4 fast path. RT_HORIZON_MULT (rt demo)
+# multiplies the simulator horizon so long tasks do not reset mid-execution.
+- 'FAST=${FAST:-}'
+- 'RT_HORIZON_MULT=${RT_HORIZON_MULT:-}'
 
 volume_mappings:
 - "$PWD/workspace/molmoact2/outputs:/outputs"

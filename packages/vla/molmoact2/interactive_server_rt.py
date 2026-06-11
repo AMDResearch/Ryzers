@@ -50,7 +50,10 @@ VIEW_RES = int(os.environ.get("VIEW_RES", "720"))    # live viewport (RT favors 
 VIDEO_RES = int(os.environ.get("VIDEO_RES", "600"))  # saved debug video (kept small)
 RT_HZ = float(os.environ.get("RT_HZ", "20"))         # wall-clock control rate
 RT_LOOKAHEAD = int(os.environ.get("RT_LOOKAHEAD", "0"))  # replan when buffer <= this (pipelining knob)
-RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS", "1200"))  # RT runs in wall time; holds burn budget, so allow completion
+RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS", "1200"))
+# Optional: multiply the simulator's real horizon (robosuite) to play around with
+# long-horizon tasks without the scene resetting mid-execution. Default 1 (unchanged).
+RT_HORIZON_MULT = float(os.environ.get("RT_HORIZON_MULT", "1"))  # RT runs in wall time; holds burn budget, so allow completion
 OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
 SUITES = ["libero_object", "libero_goal", "libero_spatial", "libero_10"]
 DT = 1.0 / RT_HZ
@@ -172,7 +175,25 @@ def engine_thread():
         envs = make_env(cfg.env, n_envs=1, use_async_envs=False, trust_remote_code=cfg.trust_remote_code)
         env = envs[suite][task_id]
         for e in env.envs:
-            e._max_episode_steps = RT_MAX_STEPS  # RT runs in wall-clock time; give it room
+            # robosuite's internal horizon is the real terminator (the gym wrapper never
+            # truncates on _max_episode_steps); raise it by RT_HORIZON_MULT so long tasks
+            # do not reset mid-execution. _max_episode_steps caps our own control loop.
+            base_h = RT_MAX_STEPS
+            rs = getattr(getattr(e, "_env", None), "env", None)
+            if rs is not None and getattr(rs, "horizon", None):
+                base_h = int(rs.horizon)
+            new_h = int(base_h * RT_HORIZON_MULT)
+            if rs is not None:
+                try:
+                    rs.horizon = new_h
+                except Exception:
+                    pass
+            e._max_episode_steps = max(RT_MAX_STEPS, new_h)
+        try:
+            print(f"[scene] horizon_mult={RT_HORIZON_MULT} horizon={new_h} "
+                  f"max_steps={max(RT_MAX_STEPS, new_h)}", flush=True)
+        except Exception:
+            pass
         env.reset(seed=SEED)
         le = env.envs[0]
         scene_task = getattr(le, "task_description", "") or ""
@@ -276,7 +297,16 @@ def engine_thread():
                 shared["last_gripper"] = float(action[0, 6])
             shared["total_steps"] += 1
 
-            obs, reward, terminated, truncated, info = sc.env.step(action)
+            try:
+                obs, reward, terminated, truncated, info = sc.env.step(action)
+            except ValueError as e:
+                # robosuite raises "executing action in terminated episode" when the
+                # underlying env set its internal done but the gym wrapper still reported
+                # terminated/truncated False; treat it as a clean episode end instead of
+                # letting the exception kill the engine thread (which froze the demo).
+                print("step after termination, ending episode:", e, flush=True)
+                shared["done"] = True
+                break
             with LOCK:
                 shared["obs"] = obs
             if "final_info" in info:
@@ -376,7 +406,16 @@ def engine_thread():
             scene = new_scene
             show_idle(scene)
         elif action == "run":
-            run_command(scene, instruction)
+            try:
+                run_command(scene, instruction)
+            except Exception as e:  # noqa: BLE001
+                import traceback; traceback.print_exc()
+                with LOCK:
+                    STATE.update(mode="idle", holding=False, status=f"error: {e}")
+                try:
+                    show_idle(scene)
+                except Exception:
+                    pass
 
 
 # ---------------------------------------------------------------------------

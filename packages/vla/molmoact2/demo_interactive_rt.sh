@@ -33,6 +33,7 @@ export PORT="${PORT:-8081}"
 export VIEW_RES="${VIEW_RES:-720}"
 export RT_HZ="${RT_HZ:-20}"
 export RT_LOOKAHEAD="${RT_LOOKAHEAD:-0}"
+export RT_HORIZON_MULT="${RT_HORIZON_MULT:-1}"
 export PYTHONUNBUFFERED=1
 
 PY=/opt/libero-venv/bin/python

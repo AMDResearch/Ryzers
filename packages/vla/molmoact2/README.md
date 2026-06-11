@@ -108,4 +108,21 @@ The policy action is a 7-D delta end-effector pose (`OSC_POSE`, 20 Hz) in a fixe
 THINK=0 NUM_STEPS=4 ryzers run /ryzers/demo_libero.sh   # ~2.9x faster on libero_object
 ```
 
+### TODO: ~10x faster forward (real-time goal)
+
+Today the planner forward is ~3 s, while playback of a 10-step chunk is ~0.5 s, so the
+RT buffer drains and the demo spends most steps on a zero-delta HOLD (hold_pct ~85%).
+To make production ~= playback (buffer stays full, smooth continuous control) we need the
+forward at ~0.3-0.5 s, i.e. ~10x faster.
+
+The cost is dominated by the **VLM prefill** (image + prompt through the full transformer
+on every replan), not the flow-matching head. The knobs we already have (NUM_STEPS,
+CUDA graph) only move it ~15% -- nowhere near 10x. Real levers are model/kernel-level:
+
+- Quantization (INT8 / FP8) of the transformer.
+- Faster attention / prefill kernels (fused, paged) tuned for the ROCm iGPU.
+- Fewer vision tokens / lower image resolution into the encoder.
+- KV-cache reuse across replans (avoid re-prefilling unchanged context).
+- Stronger hardware (discrete MI-class GPU) as a fallback.
+
 Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
