@@ -150,6 +150,8 @@ def engine_thread():
         "--eval.batch_size=1", "--eval.n_episodes=1",
         f"--seed={SEED}", "--output_dir=/tmp/interactive_rt_eval",
     ]
+    if os.environ.get("NUM_STEPS"):
+        base_args.append(f"--policy.num_steps={os.environ['NUM_STEPS']}")
 
     with LOCK:
         STATE["status"] = "loading policy (first run JIT-compiles flash kernels) ..."

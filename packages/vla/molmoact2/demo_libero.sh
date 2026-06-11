@@ -23,9 +23,14 @@ TASK_ID="${TASK_ID:-$((RANDOM % 10))}"
 bool() { [ "$1" = "1" ] && echo True || echo False; }
 DEPTH=$(bool "$THINK"); ADAPT=$(bool "$THINK")
 
+# Optional flow-matching denoising steps (lower = slightly faster; blank = model default).
+NUM_STEPS="${NUM_STEPS:-}"
+NSTEP_ARG=()
+[ -n "$NUM_STEPS" ] && NSTEP_ARG=(--policy.num_steps="$NUM_STEPS")
+
 RUN="$OUT_DIR/_libero_${SUITE}_${TASK_ID}_seed${SEED_ARG}"
 mkdir -p "$RUN"
-echo "LIBERO closed-loop demo | suite=$SUITE task_id=$TASK_ID seed=$SEED_ARG think=$THINK ckpt=$CKPT"
+echo "LIBERO closed-loop demo | suite=$SUITE task_id=$TASK_ID seed=$SEED_ARG think=$THINK num_steps=${NUM_STEPS:-default} ckpt=$CKPT"
 
 LEROBOT_EVAL=/opt/libero-venv/bin/lerobot-eval
 [ -x "$LEROBOT_EVAL" ] || LEROBOT_EVAL=lerobot-eval
@@ -39,6 +44,7 @@ LEROBOT_EVAL=/opt/libero-venv/bin/lerobot-eval
   --policy.enable_cuda_graph=False \
   --policy.norm_tag=libero \
   --policy.device=cuda \
+  "${NSTEP_ARG[@]}" \
   --env.type=libero \
   --env.task="$SUITE" \
   --env.task_ids="[$TASK_ID]" \

@@ -43,10 +43,15 @@ environment_variables:
 - 'TASK_ID=${TASK_ID:-}'
 - 'THINK=${THINK:-}'
 - 'HF_TOKEN=${HF_TOKEN:-}'
-# Interactive demo (demo_interactive.sh) knobs.
+# Interactive demo (demo_interactive.sh / demo_interactive_rt.sh) knobs.
 - 'PORT=${PORT:-}'
 - 'VIEW_RES=${VIEW_RES:-}'
 - 'VIDEO_RES=${VIDEO_RES:-}'
+- 'RT_HZ=${RT_HZ:-}'
+- 'RT_LOOKAHEAD=${RT_LOOKAHEAD:-}'
+- 'RT_MAX_STEPS=${RT_MAX_STEPS:-}'
+# Flow-matching denoising steps (lower = a bit faster inference). Blank = model default.
+- 'NUM_STEPS=${NUM_STEPS:-}'
 
 volume_mappings:
 - "$PWD/workspace/molmoact2/outputs:/outputs"
