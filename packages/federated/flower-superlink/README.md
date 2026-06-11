@@ -17,7 +17,7 @@ two SuperNode/ClientApp pairs and submits the example run, use
 ## Build
 
 ```sh
-ryzers build flower-base flower-superlink
+ryzers build --name flower-superlink flower-base flower-superlink
 ```
 
 ## Run

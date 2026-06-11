@@ -18,7 +18,7 @@ share a host for local testing without colliding (see
 ## Build
 
 ```sh
-ryzers build flower-base flower-supernode
+ryzers build --name flower-supernode flower-base flower-supernode
 ```
 
 ## Run

@@ -10,9 +10,11 @@ You usually don't build or run this Ryzer on its own — chain it with one of
 the role Ryzers:
 
 ```sh
-ryzers build flower-base flower-superlink   # server box
-ryzers build flower-base flower-supernode   # client box
-ryzers build flower-base flower-superexec   # serverapp or clientapp runner
+# --name sets the final image tag (it defaults to "ryzerdocker", not the
+# last package name), so each role gets its own image + run-script.
+ryzers build --name flower-superlink flower-base flower-superlink   # server box
+ryzers build --name flower-supernode flower-base flower-supernode   # client box
+ryzers build --name flower-superexec flower-base flower-superexec   # serverapp or clientapp runner
 ```
 
 ## Build & Run (standalone smoke test)

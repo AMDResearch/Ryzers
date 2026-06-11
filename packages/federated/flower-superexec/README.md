@@ -21,7 +21,7 @@ directly in multi-machine ones.
 ## Build
 
 ```sh
-ryzers build flower-base flower-superexec
+ryzers build --name flower-superexec flower-base flower-superexec
 ```
 
 ## Run
@@ -51,10 +51,13 @@ ryzers run
 **On the server machine** (SuperLink + ServerApp superexec):
 
 ```sh
-ryzers build flower-base flower-superlink
-ryzers build flower-base flower-superexec
+# --name sets the final image tag; without it both builds would clobber
+# the default "ryzerdocker" image and `ryzers run --name <role>` would
+# not find its generated run-script.
+ryzers build --name flower-superlink flower-base flower-superlink
+ryzers build --name flower-superexec flower-base flower-superexec
 
-# Terminal 1 — SuperLink (last built image)
+# Terminal 1 — SuperLink
 ryzers run --name flower-superlink
 
 # Terminal 2 — ServerApp superexec
@@ -66,8 +69,8 @@ ryzers run --name flower-superexec
 **On each client machine** (SuperNode + ClientApp superexec):
 
 ```sh
-ryzers build flower-base flower-supernode
-ryzers build flower-base flower-superexec
+ryzers build --name flower-supernode flower-base flower-supernode
+ryzers build --name flower-superexec flower-base flower-superexec
 
 # Terminal 1 — SuperNode (connects to remote SuperLink)
 export SUPERLINK_IP=192.168.2.33
