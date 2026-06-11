@@ -111,6 +111,41 @@ wait_for_port() {
   return 1
 }
 
+port_in_use() {
+  # 0 (true) if something is already listening on 127.0.0.1:<port>.
+  local port="$1"
+  (echo > /dev/tcp/127.0.0.1/"${port}") 2>/dev/null
+}
+
+# require_ports_free PORT...
+#   Abort if any of the given ports already has a listener. Because gRPC
+#   uses SO_REUSEPORT, a leftover listener would be silently co-bound to by
+#   the component we are about to start — the exact failure mode this script
+#   guards against — so we fail fast with diagnostics instead of starting on
+#   top of it. `wait_for_port` cannot catch this: it treats a stale listener
+#   as "the service is up".
+require_ports_free() {
+  local p busy=()
+  for p in "$@"; do
+    if port_in_use "${p}"; then
+      busy+=("${p}")
+    fi
+  done
+  if ((${#busy[@]} > 0)); then
+    echo "ERROR: these ports are still in use after cleanup: ${busy[*]}" >&2
+    echo "       A stale listener here would be silently co-bound via" >&2
+    echo "       SO_REUSEPORT and answer some calls with errors like" >&2
+    echo "       \"Exception calling application: 'config'\"." >&2
+    echo >&2
+    echo "       Find and remove what is holding them, e.g.:" >&2
+    echo "         docker ps -a --format '{{.ID}}  {{.Image}}  {{.Names}}'" >&2
+    for p in "${busy[@]}"; do
+      echo "         ss -tlnp 'sport = :${p}'   # (or: lsof -iTCP:${p} -sTCP:LISTEN)" >&2
+    done
+    exit 1
+  fi
+}
+
 # ---------------------------------------------------------------------------
 # Clean up stale containers FIRST, before building. A rebuild moves the
 # flower-* tags onto new image IDs and orphans the old ones, so an
@@ -118,15 +153,33 @@ wait_for_port() {
 # match containers from the previous run (they still reference the old
 # image ID) and they'd keep holding the 909x ports.
 #
-# Primary match is the ryzers-flower-local label (set via each role's
-# docker_extra_run_flags) which survives rebuilds. The ancestor/ryzerdocker
-# pass is a fallback for containers created before the label existed.
+# This MUST be thorough. Every component runs with `--network host`, and
+# gRPC enables SO_REUSEPORT by default (flwr does not disable it), so a
+# stale SuperLink/SuperNode from a previous run can silently CO-BIND 909x
+# alongside the freshly started one. The kernel then load-balances
+# connections across both, and the older / half-broken instance answers
+# some calls with cryptic gRPC errors such as
+#   "Exception calling application: 'config'"   (a server-side KeyError).
+# That is invisible in the new SuperLink's window (it starts fine), which
+# makes it very hard to diagnose — so we remove flower containers by EVERY
+# signal we have, not just the label.
 # ---------------------------------------------------------------------------
 echo "== Cleaning up stale containers =="
+# 1) Primary: the label set via each role's docker_extra_run_flags
+#    (survives image rebuilds).
 docker ps -aq --filter "label=ryzers-flower-local=1" | xargs -r docker rm -f >/dev/null 2>&1 || true
-for name in flower-superlink flower-supernode flower-superexec ryzerdocker; do
+# 2) Fallback: anything whose image references a flower-* tag (or the
+#    default "ryzerdocker" tag) — for containers created before the label
+#    existed, or built from a differently-tagged cached base.
+for name in flower-superlink flower-supernode flower-superexec flower-base ryzerdocker; do
   docker ps -aq --filter "ancestor=${name}" | xargs -r docker rm -f >/dev/null 2>&1 || true
 done
+# 3) Last resort: any remaining container whose image name contains
+#    "flower" (catches odd tags from earlier iterations). `--filter` has no
+#    image wildcard, so match on the formatted list instead.
+docker ps -a --format '{{.ID}} {{.Image}}' \
+  | awk 'tolower($2) ~ /flower/ {print $1}' \
+  | xargs -r docker rm -f >/dev/null 2>&1 || true
 
 # ---------------------------------------------------------------------------
 # Build the three role images. NB: `ryzers build` names the *final* image
@@ -147,6 +200,19 @@ ryzers build --name flower-superexec flower-base flower-superexec
 # flower-superlink/config.yaml ($PWD/workspace/flower/state).
 echo "== Resetting SuperLink state =="
 rm -rf "${REPO_ROOT}/workspace/flower/state"/* 2>/dev/null || true
+
+# Confirm cleanup actually freed every host port we are about to bind.
+# 9091 ServerAppIo, 9092 Fleet, 9093 ExecApi, plus one ClientAppIo per
+# partition (9094 + i). If any is still held, abort before we start — a
+# survivor would be co-bound via SO_REUSEPORT and intermittently serve
+# stale responses.
+echo "== Verifying ports are free =="
+PORTS_TO_CHECK=(9091 9092 9093)
+for ((i = 0; i < NUM_PARTITIONS; i++)); do
+  PORTS_TO_CHECK+=($((9094 + i)))
+done
+require_ports_free "${PORTS_TO_CHECK[@]}"
+echo "  All required ports are free: ${PORTS_TO_CHECK[*]}"
 
 echo "== Starting SuperLink =="
 spawn "flower-superlink" "ryzers run --name flower-superlink"
