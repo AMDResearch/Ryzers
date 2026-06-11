@@ -4,11 +4,11 @@
 # gpu_support defaults to true — this is the only flower-* Ryzer that
 # actually runs training, so ROCm access matters here.
 
-# Host networking so the superexec can reach its paired SuperLink (for
-# serverapp role) or SuperNode (for clientapp role) over 127.0.0.1 on a
-# single-host deployment, and bind/connect directly on the host network
-# in a distributed deployment.
-docker_extra_run_flags: "--network host --rm"
+# Host networking (and --rm) already come from RYZERS_DEFAULT_RUN_FLAGS,
+# so we don't repeat them here — Docker rejects "--network host" twice.
+# Host networking lets the superexec reach its paired SuperLink (serverapp
+# role) or SuperNode (clientapp role) over 127.0.0.1 on a single host, and
+# bind/connect directly on the host network in a distributed deployment.
 
 volume_mappings:
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
@@ -16,7 +16,7 @@ volume_mappings:
 # Consumed by /ryzers/run-superexec.sh.
 #
 # Plugin types:
-#   serverapp  — runs the ServerApp; talks to SuperLink ExecApi (default :9091)
+#   serverapp  — runs the ServerApp; talks to SuperLink ServerAppIo (default :9091)
 #   clientapp  — runs a ClientApp;  talks to its paired SuperNode (default :9094+PARTITION_ID)
 #   submit     — one-shot `flwr run /app local`, then exits (no daemon)
 environment_variables:

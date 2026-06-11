@@ -6,11 +6,11 @@
 gpu_support: false
 x11_display: false
 
-# Use host networking so that local single-machine deployments can
-# address every component over 127.0.0.1 and distributed deployments
-# bind ports directly on the host (no -p hop needed). SuperLink will
-# listen on host 9091/9092/9093.
-docker_extra_run_flags: "--network host --rm"
+# Host networking (and --rm) already come from RYZERS_DEFAULT_RUN_FLAGS,
+# so we don't repeat them here — Docker rejects "--network host" twice.
+# Host networking lets local deployments address every component over
+# 127.0.0.1 and distributed ones bind ports directly on the host (no -p
+# hop). SuperLink listens on host 9091/9092/9093.
 
 volume_mappings:
 - "$PWD/workspace/flower/state:/app/state"

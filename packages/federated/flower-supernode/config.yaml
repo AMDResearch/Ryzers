@@ -5,10 +5,11 @@
 # paired ClientApp superexec. GPU support is left enabled (default) so
 # colocating with the superexec is straightforward.
 
-# Host networking so we can run multiple instances on one box (each on
-# a different ClientAppIo port) for local testing, and so distributed
-# deployments don't need explicit port mapping.
-docker_extra_run_flags: "--network host --rm"
+# Host networking (and --rm) already come from RYZERS_DEFAULT_RUN_FLAGS,
+# so we don't repeat them here — Docker rejects "--network host" twice.
+# Host networking lets us run multiple instances on one box (each on a
+# different ClientAppIo port) for local testing, and lets distributed
+# deployments skip explicit port mapping.
 
 volume_mappings:
 - "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
