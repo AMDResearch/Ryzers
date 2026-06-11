@@ -69,6 +69,24 @@ The container uses host networking, so the page is reachable at `http://localhos
 directly. If you run this on a remote/headless box, forward the port to your laptop
 first: `ssh -L 8080:localhost:8080 <host>`.
 
+Real-time demo — the `_rt` variant runs the simulator at wall-clock speed while the
+policy plans asynchronously, so you can *see* the planner latency: the robot **holds its
+pose while "thinking"**, then moves when the next action chunk lands. (The plain demo
+above instead freezes the world during inference and fast-replays a clean chunk.) Holding
+is safe because LIBERO's `OSC_POSE` controller is delta-based — a zero-delta action means
+"stay put", and the gripper is held at its last command.
+
+```sh
+ryzers run /ryzers/demo_interactive_rt.sh              # then open http://localhost:8081
+SUITE=libero_object TASK_ID=3 PORT=8081 ryzers run /ryzers/demo_interactive_rt.sh
+RT_HZ=20 RT_LOOKAHEAD=0 ryzers run /ryzers/demo_interactive_rt.sh   # control rate / lookahead
+```
+
+The status line reports `holding` and the % of steps spent waiting on the planner, and
+the saved video tags frames `THINKING` while the arm holds. Use `demo_interactive.sh`
+(port 8080) for the clean rollout and `demo_interactive_rt.sh` (port 8081) for the
+real-time view — they can run side by side.
+
 Note: `MolmoAct2-Think-LIBERO` was fine-tuned with one demonstrated task per LIBERO
 scene, so it follows instructions faithfully when the command matches the scene's
 trained target and is biased toward that target for off-target objects.
