@@ -71,6 +71,14 @@ echo "### ${title}"
 ${body}
 status=\$?
 echo
+# If the orchestrator dropped the shutdown sentinel, this component was
+# stopped as part of a normal end-of-run teardown — exit immediately so the
+# terminal window closes on its own. Otherwise (e.g. an early crash) stay
+# open so the error stays readable.
+if [ -f "${LOG_DIR}/.shutdown" ]; then
+  echo "[${title} stopped for shutdown (status \${status}) — closing window]"
+  exit \${status}
+fi
 echo "[${title} exited (status \${status}) — press Enter to close]"
 read -r
 EOF
@@ -261,11 +269,18 @@ fi
 echo "  Waiting for SuperNodes to register..."
 sleep 8
 
-echo "== Submitting quickstart-pytorch run =="
+# The submit uses `flwr run ... --stream`, so this call blocks until the run
+# finishes and the ServerApp has written final_model.pt to disk.
+echo "== Submitting quickstart-pytorch run (streaming until complete) =="
 FLOWER_PLUGIN_TYPE=submit ryzers run --name flower-superexec
 
+# Run finished — tear the whole federation down so every per-component window
+# closes on its own. Dropping the sentinel tells each spawned wrapper to exit
+# (closing its terminal) instead of waiting on a keypress; killing the
+# containers makes each wrapper's `docker run` return so it reaches that check.
 echo
-echo "== Run submitted. Component windows are still open. =="
-echo "To stop everything:"
-echo "  for n in flower-superlink flower-supernode flower-superexec; do \\"
-echo "    docker ps -q --filter ancestor=\$n | xargs -r docker kill; done"
+echo "== Run complete. Shutting down all components... =="
+touch "${LOG_DIR}/.shutdown"
+docker ps -q --filter "label=ryzers-flower-local=1" | xargs -r docker kill >/dev/null 2>&1 || true
+
+echo "== Done. Model written to disk; all component windows are closing. =="

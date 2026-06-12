@@ -29,8 +29,12 @@ FLOWER_INSECURE="${FLOWER_INSECURE:-1}"
 FLOWER_PARTITION_ID="${FLOWER_PARTITION_ID:-0}"
 
 if [ "${FLOWER_PLUGIN_TYPE}" = "submit" ]; then
-  echo "Submitting: flwr run /app local"
-  exec flwr run /app local
+  # `--stream` keeps this process attached to the run and returns only once
+  # the run has finished (i.e. the ServerApp has written final_model.pt to
+  # disk). This lets the local orchestrator (run-local.sh) detect completion
+  # and tear the federation down afterwards instead of leaving it running.
+  echo "Submitting: flwr run /app local --stream"
+  exec flwr run /app local --stream
 fi
 
 case "${FLOWER_PLUGIN_TYPE}" in
