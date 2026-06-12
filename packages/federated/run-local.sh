@@ -182,6 +182,19 @@ docker ps -a --format '{{.ID}} {{.Image}}' \
   | xargs -r docker rm -f >/dev/null 2>&1 || true
 
 # ---------------------------------------------------------------------------
+# Remove stale generated run-scripts BEFORE building. `ryzers run` does NOT
+# regenerate `ryzers.run.<name>.sh` — it blindly `bash`-executes whatever is
+# already in the cwd (runner.py). `ryzers build` overwrites the three current
+# scripts, but a script left over from an earlier package layout or image
+# name is never touched and can be picked up by a stray `ryzers run`,
+# reintroducing the cryptic gRPC "Exception calling application: 'config'" /
+# "'script'" failures. Wipe them so every run starts from freshly generated
+# scripts.
+# ---------------------------------------------------------------------------
+echo "== Removing stale ryzers run-scripts =="
+rm -f "${REPO_ROOT}"/ryzers.run.*.sh 2>/dev/null || true
+
+# ---------------------------------------------------------------------------
 # Build the three role images. NB: `ryzers build` names the *final* image
 # after --name (default "ryzerdocker"), NOT after the last package — so
 # --name is required here, otherwise all three would clobber the same
