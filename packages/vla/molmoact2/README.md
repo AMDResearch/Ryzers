@@ -33,7 +33,7 @@ The real-time variant runs the sim at wall-clock speed while the policy plans as
 ryzers run /ryzers/demo_interactive_rt.sh     # open http://localhost:8081
 ```
 
-Both default to the fast path (depth reasoning off, 4 denoising steps). Set `THINK=1` for full depth reasoning, `RT_HORIZON_MULT=10` to extend the sim horizon on long tasks. On a remote box, forward the port first: `ssh -L 8080:localhost:8080 <host>`.
+Both default to the fast path (depth reasoning off, 4 denoising steps). On a remote box, forward the port first: `ssh -L 8080:localhost:8080 <host>`.
 
 ### Dataset evaluation (DROID open-loop)
 
@@ -59,23 +59,17 @@ SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_libero.sh
 
 Suites: `libero_10`, `libero_goal`, `libero_object`, `libero_spatial` (`TASK_ID` 0 to 9).
 
-### Speed knobs
+### Optional knobs
 
-The LIBERO demos accept two optional levers, both of which held 100% success in a `libero_object` sweep:
+* `THINK=0` disables depth reasoning, about 2.6x to 2.9x faster end to end. The interactive demos default to this; pass `THINK=1` for full depth reasoning.
+* `NUM_STEPS=N` sets flow-matching denoising steps (lower is faster). `NUM_STEPS=4` held 100% success.
+* `RT_HORIZON_MULT=N` extends the real-time sim horizon so long tasks run to completion instead of resetting mid-execution.
 
-* `THINK=0` disables depth reasoning, about 2.6x to 2.9x faster end to end.
-* `NUM_STEPS=N` sets flow-matching denoising steps (lower is faster); `NUM_STEPS=4` held 100% success.
-
-```sh
-THINK=0 NUM_STEPS=4 ryzers run /ryzers/demo_libero.sh
-```
-
-### Smoke test
-
-Loads the MolmoAct2-DROID checkpoint and runs one action prediction end to end.
+`THINK` and `NUM_STEPS` both held 100% success in a `libero_object` sweep.
 
 ```sh
-ryzers run /ryzers/demo_smoke.sh
+THINK=0 NUM_STEPS=4 ryzers run /ryzers/demo_libero.sh         # fast closed-loop
+RT_HORIZON_MULT=10 ryzers run /ryzers/demo_interactive_rt.sh  # long-horizon real-time
 ```
 
 Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
