@@ -1,30 +1,14 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Real-time (_RT) MolmoAct2 x LIBERO demo — the sim keeps running while the model thinks.
+"""Interactive MolmoAct2 + LIBERO demo (local inference, browser UI).
 
-This is the REAL-TIME sibling of interactive_server.py. The clean (chunk-replay) demo
-freezes the world during each model forward and then fast-replays the chunk; great for a
-clean rollout, but it hides the planner latency. Here we instead decouple planning from
-the simulator so you can SEE the latency:
+The sim sits idle until you send an instruction, then resets the env and policy and
+runs that task, streaming the camera to the browser and saving a debug video. Reset per
+command is required because the policy caches its plan once per episode. Reuses the
+lerobot eval machinery; only the control loop is local. Stdlib http.server only.
 
-  * a SIM thread owns the MuJoCo env and steps it at wall-clock 20 Hz (the LIBERO control
-    rate). Each tick it consumes one action from a shared buffer; if the buffer is empty
-    (the planner is still thinking) it applies a HOLD action so the robot stays put.
-  * a PLANNER thread runs the policy forward to refill the buffer with the next action
-    chunk. It never touches the env (MuJoCo isn't thread-safe), only the model + tensors.
-
-HOLD is safe because LIBERO uses an OSC_POSE controller with control_delta=True: the 7-D
-action is [dx,dy,dz, droll,dpitch,dyaw, gripper]. Zero on the 6 delta dims => target ==
-current pose => the impedance controller holds position. The gripper dim is absolute, so
-HOLD keeps the LAST gripper command (don't drop what you're holding). Replaying the last
-*motion* action instead would integrate the delta again and drift — so HOLD must be zeros.
-
-Visually: the arm pauses mid-motion while "thinking" (buffer empty), then resumes when the
-chunk lands — a true real-time view of how planner speed affects control.
-
-Reuses the validated lerobot select_action / processor path verbatim; only the loop is ours.
-Env: SUITE, TASK_ID, SEED, THINK (1), CKPT, PORT (8081), VIEW_RES (720), VIDEO_RES (600),
-RT_HZ (20), RT_LOOKAHEAD (0), OUT_DIR (/outputs). Open http://localhost:PORT.
+Env: SUITE, TASK_ID, SEED, THINK (1), CKPT, PORT (8080), VIEW_RES (1080),
+VIDEO_RES (600), OUT_DIR (/outputs).
 """
 import io
 import json
@@ -32,7 +16,6 @@ import os
 import random
 import threading
 import time
-from collections import deque
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -45,34 +28,31 @@ TASK_ID = int(os.environ.get("TASK_ID", "3"))
 SEED = int(os.environ.get("SEED", "1000"))
 THINK = os.environ.get("THINK", "1") == "1"
 CKPT = os.environ.get("CKPT", "allenai/MolmoAct2-Think-LIBERO")
-PORT = int(os.environ.get("PORT", "8081"))
-VIEW_RES = int(os.environ.get("VIEW_RES", "720"))    # live viewport (RT favors smoothness)
+PORT = int(os.environ.get("PORT", "8080"))
+VIEW_RES = int(os.environ.get("VIEW_RES", "1080"))   # live viewport (FHD-equivalent)
 VIDEO_RES = int(os.environ.get("VIDEO_RES", "600"))  # saved debug video (kept small)
-RT_HZ = float(os.environ.get("RT_HZ", "20"))         # wall-clock control rate
-RT_LOOKAHEAD = int(os.environ.get("RT_LOOKAHEAD", "0"))  # replan when buffer <= this (pipelining knob)
-RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS", "1200"))
-# Optional: multiply the simulator's real horizon (robosuite) to play around with
-# long-horizon tasks without the scene resetting mid-execution. Default 1 (unchanged).
-RT_HORIZON_MULT = float(os.environ.get("RT_HORIZON_MULT", "1"))  # RT runs in wall time; holds burn budget, so allow completion
 OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
 SUITES = ["libero_object", "libero_goal", "libero_spatial", "libero_10"]
-DT = 1.0 / RT_HZ
 
 # ---- shared state ------------------------------------------------------------
 STATE = {
     "mode": "loading",        # loading | idle | running
-    "instruction": "",
-    "scene_task": "",
+    "instruction": "",        # the instruction currently being executed
+    "scene_task": "",         # the scene's native LIBERO instruction
     "suite": SUITE, "task_id": TASK_ID,
-    "objects": [],
+    "objects": [],            # object names visible in the scene
     "step": 0, "infer_ms": 0.0, "success": False,
-    "holding": False, "buffer": 0, "hold_pct": 0.0,
     "status": "starting", "frame": None, "video_url": "",
 }
 LOCK = threading.Lock()
+# command mailbox (latest wins): action in {"run","randomize",None}
 PENDING = {"action": None, "instruction": ""}
 EVENT = threading.Event()
 STOP = {"flag": False}
+
+
+class StopRollout(Exception):
+    pass
 
 
 def _font(size):
@@ -83,7 +63,7 @@ def _font(size):
     return ImageFont.load_default()
 
 
-def _encode_jpeg(rgb, quality=85):
+def _encode_jpeg(rgb, quality=88):
     buf = io.BytesIO()
     Image.fromarray(np.ascontiguousarray(rgb)).save(buf, format="JPEG", quality=quality)
     return buf.getvalue()
@@ -94,24 +74,24 @@ def _set_frame(rgb):
         STATE["frame"] = _encode_jpeg(rgb)
 
 
-def _banner_frame(rgb, text, size, thinking):
-    """Downscale to `size`; top banner shows the command + a THINKING tag when holding."""
+def _banner_frame(rgb, text, size):
+    """Downscale to `size` and add a top banner with the executed command."""
     img = Image.fromarray(np.ascontiguousarray(rgb)).resize((size, size), Image.BILINEAR)
     bh = max(40, size // 12)
     bh += bh % 2
     canvas = Image.new("RGB", (size, size + bh), (15, 15, 18))
     canvas.paste(img, (0, bh))
     d = ImageDraw.Draw(canvas)
-    f = _font(max(14, size // 30))
-    cap = 44 if thinking else 60  # leave room on the right for the THINKING tag
-    msg = text if len(text) <= cap else text[:cap - 3] + "..."
+    f = _font(max(14, size // 28))
+    msg = text if len(text) <= 70 else text[:67] + "..."
     d.text((10, bh // 2), msg, fill=(240, 240, 240), font=f, anchor="lm")
-    if thinking:
-        d.text((size - 10, bh // 2), "THINKING", fill=(255, 180, 80), font=f, anchor="rm")
     return np.asarray(canvas)
 
 
 class Scene:
+    """Holds a single (suite, task_id) vec env + its metadata. Built via make_env so
+    obs_type / processors match the validated eval path exactly."""
+
     def __init__(self, suite, task_id, env, scene_task, objects):
         self.suite, self.task_id = suite, task_id
         self.env, self.scene_task, self.objects = env, scene_task, objects
@@ -132,7 +112,7 @@ class Scene:
         return self.hi_res(size)
 
 
-def engine_thread():
+def rollout_thread():
     import torch
     import draccus
     from lerobot.configs.eval import EvalPipelineConfig
@@ -140,8 +120,11 @@ def engine_thread():
     from lerobot.policies.factory import make_policy, make_pre_post_processors
     import lerobot.scripts.lerobot_eval as ev
 
-    ACTION = ev.ACTION
-    preprocess_observation = ev.preprocess_observation
+    # --- live instruction injection (replaces the scene's fixed task language) ---
+    def _inject(env, observation):
+        observation["task"] = [STATE["instruction"] for _ in range(env.num_envs)]
+        return observation
+    ev.add_envs_task = _inject
 
     depth = "True" if THINK else "False"
     base_args = [
@@ -151,7 +134,7 @@ def engine_thread():
         "--policy.enable_cuda_graph=False", "--policy.norm_tag=libero",
         "--policy.device=cuda", "--env.type=libero",
         "--eval.batch_size=1", "--eval.n_episodes=1",
-        f"--seed={SEED}", "--output_dir=/tmp/interactive_rt_eval",
+        f"--seed={SEED}", "--output_dir=/tmp/interactive_eval",
     ]
     if os.environ.get("NUM_STEPS"):
         base_args.append(f"--policy.num_steps={os.environ['NUM_STEPS']}")
@@ -174,26 +157,6 @@ def engine_thread():
         cfg = draccus.parse(EvalPipelineConfig, args=base_args + [f"--env.task={suite}", f"--env.task_ids=[{task_id}]"])
         envs = make_env(cfg.env, n_envs=1, use_async_envs=False, trust_remote_code=cfg.trust_remote_code)
         env = envs[suite][task_id]
-        for e in env.envs:
-            # robosuite's internal horizon is the real terminator (the gym wrapper never
-            # truncates on _max_episode_steps); raise it by RT_HORIZON_MULT so long tasks
-            # do not reset mid-execution. _max_episode_steps caps our own control loop.
-            base_h = RT_MAX_STEPS
-            rs = getattr(getattr(e, "_env", None), "env", None)
-            if rs is not None and getattr(rs, "horizon", None):
-                base_h = int(rs.horizon)
-            new_h = int(base_h * RT_HORIZON_MULT)
-            if rs is not None:
-                try:
-                    rs.horizon = new_h
-                except Exception:
-                    pass
-            e._max_episode_steps = max(RT_MAX_STEPS, new_h)
-        try:
-            print(f"[scene] horizon_mult={RT_HORIZON_MULT} horizon={new_h} "
-                  f"max_steps={max(RT_MAX_STEPS, new_h)}", flush=True)
-        except Exception:
-            pass
         env.reset(seed=SEED)
         le = env.envs[0]
         scene_task = getattr(le, "task_description", "") or ""
@@ -206,146 +169,59 @@ def engine_thread():
 
     def show_idle(sc):
         with LOCK:
-            STATE.update(mode="idle", status="idle - send an instruction", step=0,
+            STATE.update(mode="idle", status="idle, send an instruction", step=0,
                          success=False, suite=sc.suite, task_id=sc.task_id,
                          scene_task=sc.scene_task, objects=sc.objects,
-                         instruction="", video_url="", holding=False, buffer=0, hold_pct=0.0)
+                         instruction="", video_url="")
         STATE.pop("_video_path", None)
         _set_frame(sc.idle_frame(VIEW_RES))
 
-    os.makedirs(os.path.join(OUT_DIR, "interactive_rt"), exist_ok=True)
+    os.makedirs(os.path.join(OUT_DIR, "interactive"), exist_ok=True)
     scene = build_scene(SUITE, TASK_ID)
-
-    # ---- one planning step: model forward -> full env-space chunk -------------
-    def plan_chunk(proc_obs, generator):
-        with torch.inference_mode():
-            a0 = policy.select_action(proc_obs, generator=generator)  # forward + pop 1
-        raw = [a0]
-        q = policy._action_queues[0]
-        while q:                                                      # drain the rest
-            a = q.popleft()
-            if a.ndim == 1:
-                a = a.unsqueeze(0)
-            raw.append(a.to(device=a0.device, dtype=torch.float32))
-        out = []
-        for a in raw:
-            pa = postprocessor(a)
-            pa = env_post({ACTION: pa})[ACTION]
-            out.append(pa.to("cpu").numpy())
-        infer_s = float(getattr(policy, "_last_model_inference_s", 0.0))
-        print(f"[plan] infer={infer_s:.2f}s chunk={len(out)}", flush=True)
-        return out, infer_s
+    show_idle(scene)
 
     def run_command(sc, instruction):
         with LOCK:
             STATE.update(mode="running", instruction=instruction, step=0, success=False,
-                         status=f"running: {instruction}", video_url="", holding=False,
-                         buffer=0, hold_pct=0.0)
+                         status=f"running: {instruction}", video_url="")
         STOP["flag"] = False
-        policy.reset()
-        obs, _ = sc.env.reset(seed=SEED)
-        generator = ev._make_rollout_action_generator(policy, [SEED])
-        max_steps = sc.env.call("_max_episode_steps")[0]
+        frames = []  # (banner) frames for the saved video
 
-        buffer = deque()
-        buf_lock = threading.Lock()
-        shared = {"obs": obs, "done": False, "last_gripper": 0.0,
-                  "hold_steps": 0, "total_steps": 0}
-
-        def planner():
-            while not STOP["flag"] and not shared["done"]:
-                with buf_lock:
-                    have = len(buffer)
-                if have > RT_LOOKAHEAD:
-                    time.sleep(0.005)
-                    continue
-                with LOCK:
-                    cur = shared["obs"]
-                try:
-                    proc = preprocess_observation(cur)
-                    proc["task"] = [instruction for _ in range(sc.env.num_envs)]
-                    proc = env_pre(proc)
-                    proc = preprocessor(proc)
-                    chunk, infer_s = plan_chunk(proc, generator)
-                except Exception as e:  # noqa: BLE001
-                    print("plan error:", e, flush=True)
-                    time.sleep(0.02)
-                    continue
-                with buf_lock:
-                    buffer.extend(chunk)
-                with LOCK:
-                    if infer_s > 0:
-                        STATE["infer_ms"] = round(infer_s * 1000.0, 0)
-
-        pth = threading.Thread(target=planner, daemon=True)
-        pth.start()
-
-        frames = []
-        success = False
-        next_t = time.perf_counter()
-        step = 0
-        while not STOP["flag"] and not shared["done"] and step < max_steps:
-            with buf_lock:
-                action = buffer.popleft() if buffer else None
-                depth_buf = len(buffer)
-            holding = action is None
-            if holding:
-                action = np.zeros((sc.env.num_envs, 7), dtype=np.float32)
-                action[:, 6] = shared["last_gripper"]
-                shared["hold_steps"] += 1
-            else:
-                shared["last_gripper"] = float(action[0, 6])
-            shared["total_steps"] += 1
-
-            try:
-                obs, reward, terminated, truncated, info = sc.env.step(action)
-            except ValueError as e:
-                # robosuite raises "executing action in terminated episode" when the
-                # underlying env set its internal done but the gym wrapper still reported
-                # terminated/truncated False; treat it as a clean episode end instead of
-                # letting the exception kill the engine thread (which froze the demo).
-                print("step after termination, ending episode:", e, flush=True)
-                shared["done"] = True
-                break
-            with LOCK:
-                shared["obs"] = obs
-            if "final_info" in info:
-                try:
-                    success = bool(np.asarray(info["final_info"]["is_success"]).any())
-                except Exception:
-                    pass
-            done = bool(np.any(terminated) or np.any(truncated))
-
+        def render_cb(vec_env):
+            if STOP["flag"]:
+                raise StopRollout
             rgb = sc.hi_res(VIEW_RES)
             _set_frame(rgb)
-            frames.append(_banner_frame(rgb, instruction, VIDEO_RES, holding))
-            step += 1
-            hp = 100.0 * shared["hold_steps"] / max(1, shared["total_steps"])
+            frames.append(_banner_frame(rgb, instruction, VIDEO_RES))
+            v = getattr(policy, "_last_model_inference_s", 0.0) * 1000.0
             with LOCK:
-                STATE.update(step=step, holding=holding, buffer=depth_buf, hold_pct=round(hp, 0),
-                             status=("thinking (holding pose)" if holding else f"running: {instruction}"))
-            if done:
-                shared["done"] = True
+                STATE["step"] += 1
+                if v > 0:  # only replan steps run the model; keep the last real timing
+                    STATE["infer_ms"] = round(v, 0)
 
-            next_t += DT
-            sleep = next_t - time.perf_counter()
-            if sleep > 0:
-                time.sleep(sleep)
-            else:
-                next_t = time.perf_counter()  # fell behind real-time; resync
+        success = False
+        try:
+            with torch.no_grad():
+                out = ev.rollout(sc.env, policy, env_preprocessor=env_pre, env_postprocessor=env_post,
+                                 preprocessor=preprocessor, postprocessor=postprocessor,
+                                 seeds=[SEED], render_callback=render_cb)
+            try:
+                success = bool(np.asarray(out["success"]).any())
+            except Exception:
+                success = False
+        except StopRollout:
+            with LOCK:
+                STATE["status"] = "stopped"
 
-        shared["done"] = True
-        STOP["flag"] = True
-        pth.join(timeout=5.0)
-
+        # save debug video (command banner already on each frame)
         url = ""
         if frames:
             ts = datetime.now().strftime("%H%M%S")
-            name = f"interactive_rt/{ts}_{sc.suite}_{sc.task_id}_{'ok' if success else 'run'}.mp4"
+            name = f"interactive/{ts}_{sc.suite}_{sc.task_id}_{'ok' if success else 'run'}.mp4"
             path = os.path.join(OUT_DIR, name)
             try:
                 import imageio
-                with imageio.get_writer(path, fps=int(RT_HZ), codec="libx264", quality=8,
+                with imageio.get_writer(path, fps=20, codec="libx264", quality=8,
                                         macro_block_size=1, output_params=["-pix_fmt", "yuv420p"]) as w:
                     for fr in frames:
                         w.append_data(fr)
@@ -356,29 +232,9 @@ def engine_thread():
                 print("video save failed:", e, flush=True)
 
         with LOCK:
-            STATE.update(mode="idle", success=success, video_url=url, holding=False,
+            STATE.update(mode="idle", success=success, video_url=url,
                          status=("success" if success else ("stopped" if STOP["flag"] else "done")))
         _set_frame(sc.idle_frame(VIEW_RES))
-
-    # Warm up flash/JIT kernels NOW (the first model forward compiles them and can take
-    # ~20s); otherwise that one-time stall would burn the whole first real-time episode.
-    with LOCK:
-        STATE["status"] = "warming up GPU kernels (one-time JIT) ..."
-    try:
-        wobs, _ = scene.env.reset(seed=SEED)
-        wproc = preprocess_observation(wobs)
-        wproc["task"] = [scene.scene_task or "pick up the object" for _ in range(scene.env.num_envs)]
-        wproc = env_pre(wproc)
-        wproc = preprocessor(wproc)
-        wgen = ev._make_rollout_action_generator(policy, [SEED])
-        _t = time.perf_counter()
-        plan_chunk(wproc, wgen)
-        policy.reset()
-        print(f"[warmup] done in {time.perf_counter()-_t:.1f}s", flush=True)
-    except Exception as e:  # noqa: BLE001
-        import traceback; traceback.print_exc()
-        print("warmup failed:", e, flush=True)
-    show_idle(scene)
 
     # main control loop
     while True:
@@ -400,48 +256,37 @@ def engine_thread():
                     STATE["status"] = f"scene build failed: {e}"
                 continue
             try:
-                scene.env.close()
+                scene.env.close()  # free the old EGL/MuJoCo context
             except Exception:
                 pass
             scene = new_scene
             show_idle(scene)
         elif action == "run":
-            try:
-                run_command(scene, instruction)
-            except Exception as e:  # noqa: BLE001
-                import traceback; traceback.print_exc()
-                with LOCK:
-                    STATE.update(mode="idle", holding=False, status=f"error: {e}")
-                try:
-                    show_idle(scene)
-                except Exception:
-                    pass
+            run_command(scene, instruction)
 
 
 # ---------------------------------------------------------------------------
 PAGE = b"""<!doctype html><html><head><meta charset=utf-8>
-<title>MolmoAct2 x LIBERO (REAL-TIME)</title>
+<title>MolmoAct2 x LIBERO (live)</title>
 <style>
  body{background:#0f1012;color:#e8e8ea;font-family:system-ui,sans-serif;margin:0;padding:20px}
  .wrap{max-width:760px;margin:0 auto}
- h1{font-size:18px;font-weight:600;margin:0 0 4px}
- .sub{font-size:12px;color:#8b94a0;margin:0 0 12px}
+ h1{font-size:18px;font-weight:600;margin:0 0 12px}
  img{width:640px;height:auto;border-radius:10px;background:#000;display:block}
  .row{display:flex;gap:8px;margin-top:14px}
  input{flex:1;padding:11px;border-radius:8px;border:1px solid #333;background:#1b1b1f;color:#eee;font-size:15px}
  button{padding:11px 16px;border-radius:8px;border:0;color:#fff;font-size:15px;cursor:pointer}
  .send{background:#3b82f6}.stop{background:#ef4444}.rand{background:#8b5cf6}
  .meta{margin-top:12px;font-size:13px;color:#9aa3ad}
- .think{color:#ffb450;font-weight:600}
  .panel{margin-top:12px;background:#16171b;border:1px solid #26272c;border-radius:10px;padding:12px;font-size:13px}
  .chip{display:inline-block;background:#23252b;border-radius:14px;padding:3px 10px;margin:3px 4px 0 0;color:#cdd3da}
- a{color:#7aa2ff} video{width:640px;border-radius:10px;margin-top:10px;background:#000}
+ a{color:#7aa2ff}
+ video{width:640px;border-radius:10px;margin-top:10px;background:#000}
 </style></head><body><div class=wrap>
-<h1>MolmoAct2 x LIBERO - REAL-TIME sim</h1>
-<p class=sub>The simulator runs at wall-clock speed; the robot HOLDS its pose while the model thinks, then moves when the next chunk lands.</p>
+<h1>MolmoAct2 x LIBERO live sim</h1>
 <img src="/stream" alt="sim">
 <div class=row>
- <input id=cmd placeholder="type an instruction, then Send (resets the scene and runs it in real time)">
+ <input id=cmd placeholder="type an instruction, then Send (resets the scene and runs it)">
  <button class=send onclick=send()>Send</button>
  <button class=stop onclick=stop()>Stop</button>
  <button class=rand onclick=rnd()>Randomize</button>
@@ -459,16 +304,15 @@ document.getElementById('cmd').addEventListener('keydown',e=>{if(e.key==='Enter'
 let lastVid='';
 async function poll(){
  try{const s=await(await fetch('/status')).json();
-  let t='['+s.mode+'] '+s.status+' | step '+s.step+' | last infer '+s.infer_ms+' ms | buffer '+s.buffer+' | hold '+s.hold_pct+'%';
-  const m=document.getElementById('meta'); m.textContent=t; m.className='meta'+(s.holding?' think':'');
-  document.getElementById('scene').textContent='Scene: '+s.suite+' / task '+s.task_id+' - "'+s.scene_task+'"';
+  document.getElementById('meta').textContent='['+s.mode+'] '+s.status+' | step '+s.step+' | last infer '+s.infer_ms+' ms'+(s.instruction?' | running: "'+s.instruction+'"':'');
+  document.getElementById('scene').textContent='Scene: '+s.suite+' / task '+s.task_id+': "'+s.scene_task+'"';
   document.getElementById('objs').innerHTML='Objects in scene: '+(s.objects||[]).map(o=>'<span class=chip>'+o+'</span>').join('');
   const box=document.getElementById('cmd');
   if(s.mode==='idle'&&!box.value&&s.scene_task)box.value=s.scene_task;
   if(s.video_url&&s.video_url!==lastVid){lastVid=s.video_url;
    document.getElementById('vidwrap').innerHTML='<div style=\"margin-top:8px;font-size:13px;color:#9aa3ad\">last run video:</div><video controls autoplay loop src=\"'+s.video_url+'\"></video>';}
  }catch(e){}
- setTimeout(poll,500);
+ setTimeout(poll,800);
 }
 poll();
 </script></body></html>"""
@@ -493,7 +337,7 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 s = {k: STATE[k] for k in ("mode", "status", "instruction", "scene_task",
                                            "suite", "task_id", "objects", "step", "infer_ms",
-                                           "success", "holding", "buffer", "hold_pct", "video_url")}
+                                           "success", "video_url")}
             self._send(200, "application/json", json.dumps(s).encode())
         elif path == "/video":
             with LOCK:
@@ -516,7 +360,7 @@ class Handler(BaseHTTPRequestHandler):
                         self.wfile.write(f"Content-Length: {len(frame)}\r\n\r\n".encode())
                         self.wfile.write(frame)
                         self.wfile.write(b"\r\n")
-                    time.sleep(0.04)
+                    time.sleep(0.06)
             except (BrokenPipeError, ConnectionResetError):
                 pass
         else:
@@ -528,7 +372,7 @@ class Handler(BaseHTTPRequestHandler):
             n = int(self.headers.get("Content-Length", "0"))
             instr = parse_qs(self.rfile.read(n).decode()).get("instruction", [""])[0].strip()
             if instr:
-                STOP["flag"] = True
+                STOP["flag"] = True  # abort any running task, then run the new one
                 with LOCK:
                     PENDING["action"], PENDING["instruction"] = "run", instr
                 EVENT.set()
@@ -551,9 +395,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    threading.Thread(target=engine_thread, daemon=True).start()
+    threading.Thread(target=rollout_thread, daemon=True).start()
     srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    print(f"real-time demo on http://localhost:{PORT}  (remote box: ssh -L {PORT}:localhost:{PORT} <host>)", flush=True)
+    print(f"interactive demo on http://localhost:{PORT}  (remote box: ssh -L {PORT}:localhost:{PORT} <host>)", flush=True)
     srv.serve_forever()
 
 

@@ -3,10 +3,8 @@
 
 ### ryzers build options
 
-# Layer directly on the VERIFIED Ryzer ROCm base (torch 2.10.0+rocm7.2.2, gfx1151).
 init_image: "ryzerdocker:latest"
 
-# Pin the upstream MolmoAct2 source the inference path was validated against.
 build_arguments:
 - "MOLMOACT2_COMMIT=cdf4b7728e0545366bf3366639fd86477ef59d04"
 - "LEROBOT_REF=molmoact2-hf-inference"
@@ -16,9 +14,8 @@ build_arguments:
 gpu_support: true
 x11_display: false
 
-# Weights and HF datasets are NOT baked into the image; they download once into
-# the persistent /root/.cache/huggingface volume and are reused across runs.
-# Artifacts (videos + joint-angle plots) land under /outputs.
+# Weights and datasets download once into the persistent HF cache volume. Artifacts
+# land under /outputs.
 environment_variables:
 - "HSA_OVERRIDE_GFX_VERSION=11.5.1"
 - "HF_HOME=/root/.cache/huggingface"
@@ -27,34 +24,29 @@ environment_variables:
 - "TOKENIZERS_PARALLELISM=false"
 - "MUJOCO_GL=egl"
 - "PYOPENGL_PLATFORM=egl"
-# ROCm perf levers for gfx1151 (both numerically validated: DROID action L1~2e-4,
-# LIBERO still 100% success). AOTriton flash/mem-efficient SDPA ~2x the VLM prefill
-# (DROID single-infer 1478->717 ms). hipBLASLt has no tuned kernels for the odd VLA
-# GEMM shapes here -> it was the slowest path and spammed HIPBLAS_STATUS_NOT_SUPPORTED
-# (LIBERO warnings 395->13); skipping it (rocBLAS) is both faster and quieter.
+# ROCm perf levers for gfx1151: AOTriton flash SDPA on, hipBLASLt off (rocBLAS is faster
+# for these GEMM shapes).
 - "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
 - "TORCH_BLAS_PREFER_HIPBLASLT=0"
 - "OUT_DIR=/outputs"
 # Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demo_*.sh).
-# Leave blank to let each demo pick a RANDOM episode / scene every run.
+# Blank lets each demo pick a random episode or scene.
 - 'SEED=${SEED:-}'
 - 'EPISODE=${EPISODE:-}'
 - 'SUITE=${SUITE:-}'
 - 'TASK_ID=${TASK_ID:-}'
 - 'THINK=${THINK:-}'
 - 'HF_TOKEN=${HF_TOKEN:-}'
-# Interactive demo (demo_interactive.sh / demo_interactive_rt.sh) knobs.
+# Interactive demo knobs.
 - 'PORT=${PORT:-}'
 - 'VIEW_RES=${VIEW_RES:-}'
 - 'VIDEO_RES=${VIDEO_RES:-}'
 - 'RT_HZ=${RT_HZ:-}'
 - 'RT_LOOKAHEAD=${RT_LOOKAHEAD:-}'
 - 'RT_MAX_STEPS=${RT_MAX_STEPS:-}'
-# Flow-matching denoising steps (lower = a bit faster inference). Blank = model default.
+# Flow-matching denoising steps (lower is a bit faster). Blank uses the model default.
 - 'NUM_STEPS=${NUM_STEPS:-}'
-# FAST=1 (original demo) = depth-off + num_steps=4 fast path. RT_HORIZON_MULT (rt demo)
-# multiplies the simulator horizon so long tasks do not reset mid-execution.
-- 'FAST=${FAST:-}'
+# RT_HORIZON_MULT extends the sim horizon so long tasks do not reset mid-execution.
 - 'RT_HORIZON_MULT=${RT_HORIZON_MULT:-}'
 
 volume_mappings:
@@ -62,7 +54,5 @@ volume_mappings:
 - "$PWD/workspace/molmoact2/models:/models"
 - "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
 
-# Sim + large-model inference want plenty of shared memory. Host networking so the
-# interactive demo's browser server (demo_interactive.sh) is reachable on localhost;
-# harmless for the batch demos.
+# Host networking so the interactive demo's browser server is reachable on localhost.
 docker_extra_run_flags: "--shm-size=16g --ipc=host --network=host"

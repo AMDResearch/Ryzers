@@ -1,19 +1,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# MolmoAct2 (Ai2 VLA) on AMD Strix Halo (gfx1151) — Ryzer package.
-# Layers the MolmoAct2 inference + DROID open-loop + LIBERO closed-loop stacks on
-# the VERIFIED Ryzer ROCm base (ryzerdocker:latest -> torch 2.10.0+rocm7.2.2).
-#
-# Three self-contained demos (see README), each run via `ryzers run`:
-#   1. /ryzers/demo_smoke.sh   full-model load + one prediction (capability 1)
-#   2. /ryzers/demo_droid.sh   random DROID episode, open-loop, video + GT-vs-pred plot
-#   3. /ryzers/demo_libero.sh  random LIBERO scene, closed-loop MuJoCo, video + action plot
-#
-# PORT NOTE: upstream allenai/molmoact2 pyproject pins torch==2.5.1 /
-# torchvision==0.20.1 from the CUDA-12.1 index. On AMD we KEEP the base image's
-# ROCm torch and install everything else; a build-time guard fails if torch is
-# swapped off ROCm. Other pins track allenai/molmoact2 @ cdf4b772.
+# MolmoAct2 (Ai2 VLA) on AMD Strix Halo (gfx1151). Adds MolmoAct2 inference plus the
+# DROID and LIBERO demo stacks on the Ryzer ROCm base. The base ROCm torch is kept;
+# guards fail the build if anything swaps it for a CUDA wheel.
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
@@ -28,8 +18,7 @@ ENV HSA_OVERRIDE_GFX_VERSION=11.5.1 \
     HF_HUB_DISABLE_TELEMETRY=1 \
     TOKENIZERS_PARALLELISM=false
 
-# MolmoAct2 server/inference deps EXCEPT torch/torchvision (cu121 wheels would
-# clobber the ROCm torch already in the base image).
+# Inference deps, minus torch/torchvision (CUDA wheels would clobber ROCm torch).
 RUN pip install --no-cache-dir \
       "transformers>=4.57,<4.58" \
       "accelerate>=1.0" \
@@ -45,41 +34,25 @@ RUN pip install --no-cache-dir \
       "uvicorn[standard]>=0.35" \
       "json-numpy>=2.1.0"
 
-# Open-loop eval deps: read LeRobot v3.0 parquet (pyarrow), decode/encode the DROID
-# camera mp4s (PyAV + imageio-ffmpeg — decord fails on these streams), and plot
-# GT-vs-pred overlays (matplotlib). No torch coupling, so ROCm torch is untouched.
+# DROID demo deps: parquet, mp4 decode, action plots.
 RUN pip install --no-cache-dir \
       "pyarrow>=17" \
       "av>=12" \
       "imageio[ffmpeg]>=2.34" \
       "matplotlib>=3.8"
 
-# Bake the upstream MolmoAct2 source (host_server_droid.Policy = validated bf16
-# loader for the DROID model). Pinned to the commit the port was validated on.
-# `rm -rf` first so the build is idempotent even on a base that already carries a
-# /repos/molmoact2 (otherwise `git clone` aborts on a non-empty destination).
+# Upstream MolmoAct2 source, pinned.
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/* && \
     rm -rf /repos/molmoact2 && \
     git clone https://github.com/allenai/molmoact2 /repos/molmoact2 && \
     git -C /repos/molmoact2 checkout ${MOLMOACT2_COMMIT}
 
-# Build-time guard: fail the build if anything swapped torch off ROCm.
 RUN python -c "import torch; assert torch.version.hip, 'torch is not a ROCm build: '+torch.__version__; print('OK torch', torch.__version__, 'hip', torch.version.hip)"
 
-# ============================================================================
-# LIBERO simulation-eval stack (closed-loop success-rate reproduction of the
-# paper's metric). Installed in an ISOLATED venv (/opt/libero-venv) on purpose:
-# the allenai/lerobot fork + the allenai/MolmoAct2-*-LIBERO checkpoints require
-# transformers 5.3, which would otherwise clobber the base /opt/venv transformers
-# 4.57 used by the validated DROID inference path. The isolated venv re-uses the
-# base ROCm torch/torchvision via a .pth, and a pip constraints file pins them so
-# the sim deps can never pull the default CUDA torch + nvidia-cu12 wheels.
-#   * MuJoCo renders headless via EGL on gfx1151 (base already ships the Mesa EGL
-#     stack); we only add the -dev headers + cmake/compiler that robosuite's
-#     egl_probe builds from source.
-#   * fork @ branch ${LEROBOT_REF} (LeRobot v0.5.1 at port time).
-# ============================================================================
+# LIBERO sim stack in an isolated venv: it needs transformers 5.3, which would clobber
+# the base 4.57 used by the DROID path. The venv reuses the base ROCm torch via a .pth,
+# with a torch constraints file so sim deps cannot pull CUDA wheels.
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     apt-get install -y --no-install-recommends \
       cmake build-essential libegl-dev libgles-dev libosmesa6-dev libglew-dev && \
@@ -96,30 +69,26 @@ RUN rm -rf /opt/libero-venv && python -m venv /opt/libero-venv && \
     PIP_CONSTRAINT=/opt/torch-constraints.txt /opt/libero-venv/bin/pip install --no-cache-dir \
       "/opt/lerobot-allenai[libero]"
 
-# Force a venv-local OpenCV: the LIBERO venv resolves numpy 2.x, but the shared
-# base /opt/venv ships a numpy-1.x-built cv2. Without this, pip sees the base cv2
-# via the .pth and skips installing one into the venv, so robosuite imports the
-# base cv2 and dies with "numpy.core.multiarray failed to import". --ignore-installed
-# forces a numpy-2-compatible cv2 into the venv (it then shadows the base one).
+# venv-local OpenCV: the venv is numpy 2.x but the base cv2 is numpy 1.x, so shadow it.
 RUN /opt/libero-venv/bin/pip install --no-cache-dir --ignore-installed --no-deps opencv-python
 
-# Seed LIBERO config non-interactively + bake the sim assets into the image so the
-# eval is fully self-contained (no first-run Y/N prompt, no runtime asset fetch).
+# Seed LIBERO config and bake sim assets so the eval needs no first-run prompt or fetch.
 RUN { printf 'N\nN\nN\n' | /opt/libero-venv/bin/python -c "import libero.libero"; } 2>/dev/null || true; \
     /opt/libero-venv/bin/python -c "from libero.libero.utils.download_utils import download_assets_from_huggingface as d; d()" || true
 
-# Bake the AMD action-dump patch into the installed lerobot eval so every LIBERO
-# rollout writes its executed 7-DoF trajectory (.npy) next to the rendered video.
-COPY apply_action_patch.py /ryzers/apply_action_patch.py
+# Patch lerobot eval to dump each rollout's executed trajectory for plots.
+COPY scripts/apply_action_patch.py /ryzers/apply_action_patch.py
 RUN /opt/libero-venv/bin/python /ryzers/apply_action_patch.py
 
-# Guard: the LIBERO venv must still resolve the ROCm torch (not a CUDA build).
 RUN /opt/libero-venv/bin/python -c "import torch, lerobot, transformers, robosuite, mujoco; assert torch.version.hip, 'libero venv torch not ROCm: '+torch.__version__; print('LIBERO venv OK | torch', torch.__version__, '| transformers', transformers.__version__, '| lerobot', lerobot.__version__)"
 
-# Demo entrypoints + env sign-of-life.
-COPY test.py model_smoke.py droid_openloop_demo.py libero_action_plot.py /ryzers/
-COPY demo_smoke.sh demo_droid.sh demo_libero.sh download.sh /ryzers/
+# Demos and scripts flattened into /ryzers so the run commands work after a clean build.
+COPY test.py /ryzers/
+COPY scripts/model_smoke.py scripts/droid_openloop_demo.py scripts/libero_action_plot.py \
+     scripts/interactive_server.py scripts/interactive_server_rt.py /ryzers/
+COPY demos/demo_smoke.sh demos/demo_droid.sh demos/demo_libero.sh \
+     demos/demo_interactive.sh demos/demo_interactive_rt.sh scripts/download.sh /ryzers/
 RUN chmod +x /ryzers/*.sh
 
-# Default `ryzers run` (no CMD override) = lightweight env sign-of-life (no weights).
+# Default `ryzers run` is the lightweight env check (no weights).
 CMD ["python", "/ryzers/test.py"]

@@ -2,14 +2,12 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Capability 3 — LIBERO closed-loop rollout: pick a RANDOM scene (suite + task),
-# run the MolmoAct2-Think-LIBERO policy in the LIBERO/robosuite MuJoCo simulator
-# (EGL headless on the iGPU), and write the rollout video + executed 7-DoF action
-# plot under /outputs.
+# LIBERO closed-loop rollout: run MolmoAct2-Think-LIBERO in the LIBERO MuJoCo
+# simulator (EGL headless) and write the rollout video plus the executed action plot.
 #
 #   ryzers run /ryzers/demo_libero.sh                            # random scene
 #   SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_libero.sh
-#   THINK=0 ryzers run /ryzers/demo_libero.sh                    # base (no depth reasoning)
+#   THINK=0 ryzers run /ryzers/demo_libero.sh                    # no depth reasoning
 set -euo pipefail
 
 OUT_DIR="${OUT_DIR:-/outputs}"
@@ -23,7 +21,7 @@ TASK_ID="${TASK_ID:-$((RANDOM % 10))}"
 bool() { [ "$1" = "1" ] && echo True || echo False; }
 DEPTH=$(bool "$THINK"); ADAPT=$(bool "$THINK")
 
-# Optional flow-matching denoising steps (lower = slightly faster; blank = model default).
+# Optional flow-matching denoising steps (lower is a bit faster; blank uses default).
 NUM_STEPS="${NUM_STEPS:-}"
 NSTEP_ARG=()
 [ -n "$NUM_STEPS" ] && NSTEP_ARG=(--policy.num_steps="$NUM_STEPS")

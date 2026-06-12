@@ -1,20 +1,11 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Capability 2 — DROID open-loop replay demo for MolmoAct2 on Strix Halo (gfx1151).
+"""DROID open-loop replay for MolmoAct2 on Strix Halo (gfx1151).
 
-Picks a RANDOM episode from the real allenai/MolmoAct2-DROID-Dataset (override with
-EPISODE=<n>), runs the MolmoAct2-DROID policy open-loop in a receding-horizon
-fashion (replan every STRIDE steps), and writes two artifacts under $OUT_DIR:
-
-  * droid_ep<E>.mp4              — the episode's exterior camera view (the scene the
-                                   model predicts on)
-  * droid_ep<E>_actions.png     — GT (teleop) vs predicted 8-DoF action trajectory,
-                                   overlaid on the same axes per dim (workspace
-                                   rule 2.a: numeric data with ground truth ->
-                                   overlay GT + prediction)
-
-This is a PORT-FIDELITY check (L1/MSE vs teleop GT), not the authors' headline
-metric (which is closed-loop task success — see the LIBERO demo).
+Runs MolmoAct2-DROID open-loop on a dataset episode (receding horizon, replan every
+STRIDE steps) and writes two artifacts to OUT_DIR:
+  droid_ep<E>.mp4            the episode's exterior camera view
+  droid_ep<E>_actions.png    ground-truth vs predicted 8-DoF action, overlaid per dim
 
 Env: EVAL_REPO, MODEL_REPO, EPISODE (random if unset), SEED, STRIDE (15),
 DTYPE (bfloat16), NUM_STEPS (10), OUT_DIR (/outputs), CAM (exterior_1_left).
@@ -244,7 +235,7 @@ def plot_actions(out_path, gt, pred, episode, task, l1, mse):
         ax.tick_params(labelsize=7)
         if d == 0:
             ax.legend(fontsize=8, loc="best")
-    fig.suptitle(f"MolmoAct2-DROID open-loop (ROCm gfx1151) — ep {episode}\n"
+    fig.suptitle(f"MolmoAct2-DROID open-loop (ROCm gfx1151), ep {episode}\n"
                  f"{task}\nL1={l1:.4f}  MSE={mse:.4f}  (GT solid, pred dashed)",
                  fontsize=11)
     fig.tight_layout(rect=[0, 0, 1, 0.92])
