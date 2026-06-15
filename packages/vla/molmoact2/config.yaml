@@ -48,6 +48,11 @@ environment_variables:
 - 'NUM_STEPS=${NUM_STEPS:-}'
 # RT_HORIZON_MULT extends the sim horizon so long tasks do not reset mid-execution.
 - 'RT_HORIZON_MULT=${RT_HORIZON_MULT:-}'
+# Robot arm embodiment (cross-embodiment demo): blank/panda = stock LIBERO Panda,
+# ur5e = swap in the UR5e. EMBODIMENT_ROT_DEG is an optional tool-frame fix.
+- 'EMBODIMENT=${EMBODIMENT:-}'
+- 'EMBODIMENT_GRIPPER=${EMBODIMENT_GRIPPER:-}'
+- 'EMBODIMENT_ROT_DEG=${EMBODIMENT_ROT_DEG:-}'
 
 volume_mappings:
 - "$PWD/workspace/molmoact2/outputs:/outputs"
