@@ -35,6 +35,15 @@ ryzers run /ryzers/demo_interactive_rt.sh     # open http://localhost:8081
 
 Both default to the fast path (depth reasoning off, 4 denoising steps). On a remote box, forward the port first: `ssh -L 8080:localhost:8080 <host>`.
 
+#### Robot arm (cross-embodiment, proof of concept)
+
+LIBERO and MolmoAct2 are Franka Panda only. `EMBODIMENT=ur5e` swaps in a UR5e arm (stock robosuite asset, cross-mounted PandaGripper, joints IK-matched to the Panda home pose) and runs the *same* policy zero-shot — the policy talks pure end-effector space, so the arm is interchangeable. Default is `panda`; the flag works on both interactive demos and all LIBERO suites.
+
+```sh
+EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive.sh      # UR5e, http://localhost:8080
+EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive_rt.sh   # UR5e, real-time
+```
+
 ### Dataset evaluation (DROID open-loop)
 
 ![droid open-loop](assets/droid_openloop.gif)

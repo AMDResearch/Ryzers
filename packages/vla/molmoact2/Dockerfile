@@ -85,7 +85,7 @@ RUN /opt/libero-venv/bin/python -c "import torch, lerobot, transformers, robosui
 # Demos and scripts flattened into /ryzers so the run commands work after a clean build.
 COPY test.py /ryzers/
 COPY scripts/model_smoke.py scripts/droid_openloop_demo.py scripts/libero_action_plot.py \
-     scripts/interactive_server.py scripts/interactive_server_rt.py /ryzers/
+     scripts/interactive_server.py scripts/interactive_server_rt.py scripts/embodiment.py /ryzers/
 COPY demos/demo_smoke.sh demos/demo_droid.sh demos/demo_libero.sh \
      demos/demo_interactive.sh demos/demo_interactive_rt.sh scripts/download.sh /ryzers/
 RUN chmod +x /ryzers/*.sh
