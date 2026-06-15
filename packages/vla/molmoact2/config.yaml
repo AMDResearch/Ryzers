@@ -59,5 +59,7 @@ volume_mappings:
 - "$PWD/workspace/molmoact2/models:/models"
 - "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
 
-# Host networking so the interactive demo's browser server is reachable on localhost.
-docker_extra_run_flags: "--shm-size=16g --ipc=host --network=host"
+# NOTE: --network=host (so the interactive demo's browser server is reachable on
+# localhost), --ipc=host and --shm-size 16G are already in the ryzers default run
+# flags, so no docker_extra_run_flags are needed here. Re-specifying them makes
+# docker reject the run ("network host is specified multiple times").
