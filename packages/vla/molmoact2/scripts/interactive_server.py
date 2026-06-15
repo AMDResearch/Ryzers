@@ -23,15 +23,16 @@ from urllib.parse import parse_qs, urlparse
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-SUITE = os.environ.get("SUITE", "libero_object")
-TASK_ID = int(os.environ.get("TASK_ID", "3"))
-SEED = int(os.environ.get("SEED", "1000"))
-THINK = os.environ.get("THINK", "1") == "1"
-CKPT = os.environ.get("CKPT", "allenai/MolmoAct2-Think-LIBERO")
-PORT = int(os.environ.get("PORT", "8080"))
-VIEW_RES = int(os.environ.get("VIEW_RES", "1080"))   # live viewport (FHD-equivalent)
-VIDEO_RES = int(os.environ.get("VIDEO_RES", "600"))  # saved debug video (kept small)
-OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
+# `or` (not get's default) so an empty -e VAR= forwarded by `ryzers run` still falls back.
+SUITE = os.environ.get("SUITE") or "libero_object"
+TASK_ID = int(os.environ.get("TASK_ID") or "3")
+SEED = int(os.environ.get("SEED") or "1000")
+THINK = (os.environ.get("THINK") or "1") == "1"
+CKPT = os.environ.get("CKPT") or "allenai/MolmoAct2-Think-LIBERO"
+PORT = int(os.environ.get("PORT") or "8080")
+VIEW_RES = int(os.environ.get("VIEW_RES") or "1080")   # live viewport (FHD-equivalent)
+VIDEO_RES = int(os.environ.get("VIDEO_RES") or "600")  # saved debug video (kept small)
+OUT_DIR = os.environ.get("OUT_DIR") or "/outputs"
 SUITES = ["libero_object", "libero_goal", "libero_spatial", "libero_10"]
 
 # ---- shared state ------------------------------------------------------------
