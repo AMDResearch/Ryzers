@@ -31,7 +31,8 @@ Artifacts are written to `workspace/molmoact2/outputs`.
 
 ![interactive demo](assets/interactive_demo.gif)
 
-Run the synchronous browser demo:
+Run the synchronous browser demo. The GIF above is the curated
+`interactive_demo_webpage.mp4` recording sped up 2x:
 
 ```sh
 ryzers run /ryzers/demo_interactive.sh
@@ -52,6 +53,10 @@ Example fixed task:
 SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_interactive.sh
 ```
 
+Complex synchronous task execution:
+
+![synchronous complex task](assets/synchronous_demo.gif)
+
 ### Cross-Embodiment Interactive Demos
 
 The policy action and state contract remains Panda-style end-effector space. The
@@ -62,11 +67,15 @@ needed.
 
 UR5e with native Robotiq85 gripper:
 
+![UR5e cross-embodiment demo](assets/cross_embodiment_ur5e.gif)
+
 ```sh
 EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive.sh
 ```
 
 xArm6 with native XArmGripper:
+
+![xArm6 cross-embodiment demo](assets/cross_embodiment_xarm6.gif)
 
 ```sh
 EMBODIMENT=xarm6 ryzers run /ryzers/demo_interactive.sh
