@@ -1,10 +1,9 @@
 ### MolmoAct2
 
-This package runs [MolmoAct2](https://huggingface.co/collections/allenai/molmoact) VLA model on AMD Ryzen Al Max+ 395 (Strix-Halo Mini PC). Demos include
+This package runs [MolmoAct2](https://huggingface.co/collections/allenai/molmoact) VLA model on AMD Ryzen AI Max+ 395 (Strix Halo Mini PC). Demos include:
 
-- a browser-based interactive LIBERO simulator with the panda robot arm.
-- zero-shot cross-embodiment interactive demos for UR5e and xArm6 robot arms.
-
+- A browser-based interactive LIBERO simulator with the Panda robot arm.
+- Zero-shot cross-embodiment interactive demos for UR5e and xArm6 robot arms.
 
 ### Build
 
@@ -22,57 +21,93 @@ Artifacts are written to `workspace/molmoact2/outputs`.
 
 ### Interactive Demo
 
-![interactive demo](assets/interactive_demo.gif)
+<p align="center">
+  <img src="assets/interactive_demo.gif"
+       alt="Interactive LIBERO Demo"
+       width="900">
+  <br>
+  <em>Interactive browser-based control of a Panda robot in the LIBERO MuJoCo environment.</em>
+</p>
 
-To command a robot arm to do tasks in the LIBERO-mujoco simulation environment in a browser, run the interactive demo:
+To command a robot arm to perform tasks in the LIBERO-MuJoCo simulation environment from a browser:
 
 ```sh
 ryzers run /ryzers/demo_interactive.sh
 ```
 
-Then from a browser, open `http://localhost:8080`.
+Then open in a browser:
 
-The synchronous demo defaults to the fast path, i.e. skips depth reasoning. For the full depth reasoning model, pass `THINK=1`.
+```text
+http://localhost:8080
+```
 
-Complex synchronous task execution:
+The synchronous demo defaults to the fast path and skips depth reasoning.
+For the full depth reasoning model, pass `THINK=1`.
 
-![synchronous complex task](assets/synchronous_demo.gif)
+
+
+#### Complex Task Example
+
+<p align="center">
+  <img src="assets/synchronous_demo.gif"
+       alt="Complex Task Demo"
+       width="400">
+  <br>
+  <em>Prompt: "Put bowl on plate and put cream cheese inside bowl"</em>
+</p>
 
 ### Cross-Embodiment Interactive Demos
 
-The policy action operates in the end-effector coordinates and a robot controller handles the joint movements using inverse kinematics, so the MolmoAct2 model easily transfers over to other robots inside the simulation. We include two examples here. 
+The policy action operates in end-effector coordinates while a robot controller
+handles joint movements using inverse kinematics. As a result, the MolmoAct2
+policy transfers naturally across robot embodiments in simulation.
 
-#### UR5e with Robotiq85 gripper:
+#### UR5e with Robotiq85 Gripper
 
 ```sh
 EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive.sh
 ```
 
-![UR5e cross-embodiment demo](assets/cross_embodiment_ur5e.gif)
+<p align="center">
+  <img src="assets/cross_embodiment_ur5e.gif"
+       alt="UR5e Cross Embodiment Demo"
+       width="400">
+  <br>
+  <em>Zero-shot transfer of MolmoAct2 to a UR5e robot equipped with a Robotiq85 gripper.</em>
+</p>
 
-
-#### UR5e with Robotiq85 gripper:
+#### xArm6
 
 ```sh
 EMBODIMENT=xarm6 ryzers run /ryzers/demo_interactive.sh
 ```
 
-![xArm6 cross-embodiment demo](assets/cross_embodiment_xarm6.gif)
+<p align="center">
+  <img src="assets/cross_embodiment_xarm6.gif"
+       alt="xArm6 Cross Embodiment Demo"
+       width="400">
+  <br>
+  <em>Zero-shot transfer of MolmoAct2 to an xArm6 robot embodiment.</em>
+</p>
 
 ### Real-Time Interactive Option
 
-The real-time server runs the sim at wall-clock speed while policy planning happens
-asynchronously. The arm holds pose while the next action chunk is computed.
+The real-time server runs the simulator at wall-clock speed while policy planning
+occurs asynchronously. The robot holds its current pose while the next action
+chunk is computed. 
 
 ```sh
-ryzers run /ryzers/demo_interactive_rt.sh
-EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive_rt.sh
-EMBODIMENT=xarm6 ryzers run /ryzers/demo_interactive_rt.sh
+ryzers run /ryzers/demo_interactive_rt.sh #optionally pass EMBODIMENT=xarm6 or EMBODIMENT=ur5e 
 ```
 
-Open `http://localhost:8081` in a browser to see how the robots behave in a real-time simulator setting. 
+To see the demo in a browser, open:
 
-For long-horizon tasks in the real-time setting:
+```text
+http://localhost:8081
+```
+
+
+For longer-horizon tasks:
 
 ```sh
 RT_HORIZON_MULT=10 ryzers run /ryzers/demo_interactive_rt.sh
@@ -80,17 +115,29 @@ RT_HORIZON_MULT=10 ryzers run /ryzers/demo_interactive_rt.sh
 
 ### Closed-Loop LIBERO Evaluation
 
-Run one closed-loop LIBERO rollout in MuJoCo:
+Run a closed-loop LIBERO rollout in MuJoCo:
 
 ```sh
 ryzers run /ryzers/demo_libero.sh
 SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_libero.sh
 ```
 
-Suites: `libero_10`, `libero_goal`, `libero_object`, `libero_spatial`.
-`TASK_ID` is `0` to `9`.
+Available suites:
 
-![libero closed-loop](assets/libero_closedloop.gif)
+- `libero_10`
+- `libero_goal`
+- `libero_object`
+- `libero_spatial`
+
+`TASK_ID` ranges from `0` to `9`.
+
+<p align="center">
+  <img src="assets/libero_closedloop.gif"
+       alt="Closed Loop LIBERO Evaluation"
+       width="400">
+  <br>
+  <em>Closed-loop LIBERO evaluation rollout in MuJoCo.</em>
+</p>
 
 ### DROID Open-Loop Replay
 
@@ -100,10 +147,16 @@ Run MolmoAct2-DROID open-loop on a dataset episode:
 ryzers run /ryzers/demo_droid.sh
 EPISODE=42 ryzers run /ryzers/demo_droid.sh
 ```
-The demo writes a scene video and a ground-truth versus prediction action plot.
 
-![droid open-loop](assets/droid_openloop.gif)
+The demo generates a scene video and a ground-truth versus predicted action plot.
 
+<p align="center">
+  <img src="assets/droid_openloop.gif"
+       alt="DROID Open Loop Replay"
+       width="400">
+  <br>
+  <em>Open-loop replay on a DROID dataset episode.</em>
+</p>
 
 ### Useful Knobs
 
@@ -112,4 +165,4 @@ The demo writes a scene video and a ground-truth versus prediction action plot.
 - `PORT=...` changes the browser port.
 - `SEED=...`, `SUITE=...`, and `TASK_ID=...` make runs reproducible.
 
-Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
