@@ -5,7 +5,8 @@
   * plots the executed 7-DoF action trajectory (from the AMD-PATCH *_actions.npy)
     to $OUT/libero_<suite>_<taskid>_actions.png
 
-Closed-loop sim eval has no reference trajectory, so we plot the executed actions only.
+Closed-loop sim eval => no reference trajectory, so we plot the executed actions
+only (workspace rule 2.b: fully generative task, no GT overlay).
 
 Usage: libero_action_plot.py <run_dir> <out_dir> <suite> <task_id>
 """

@@ -2,8 +2,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Pre-fetch the MolmoAct2 weights and DROID dataset into the persistent HF cache.
-# Optional; every demo also auto-downloads what it needs. Set HF_TOKEN for gated repos.
+# Pre-fetch the MolmoAct2 weights + DROID dataset into the persistent HF cache so
+# the demos don't download on first use. Optional because every demo also downloads
+# what it needs. Set HF_TOKEN for gated repos.
 #
 #   HF_TOKEN=hf_xxx ryzers run /ryzers/download.sh
 set -euo pipefail

@@ -3,8 +3,10 @@
 
 ### ryzers build options
 
+# Layer directly on the verified Ryzer ROCm base (torch 2.10.0+rocm7.2.2, gfx1151).
 init_image: "ryzerdocker:latest"
 
+# Pin the upstream MolmoAct2 source the inference path was validated against.
 build_arguments:
 - "MOLMOACT2_COMMIT=cdf4b7728e0545366bf3366639fd86477ef59d04"
 - "LEROBOT_REF=molmoact2-hf-inference"
@@ -14,8 +16,9 @@ build_arguments:
 gpu_support: true
 x11_display: false
 
-# Weights and datasets download once into the persistent HF cache volume. Artifacts
-# land under /outputs.
+# Weights and HF datasets are NOT baked into the image; they download once into
+# the persistent /root/.cache/huggingface volume and are reused across runs.
+# Artifacts (videos + joint-angle plots) land under /outputs.
 environment_variables:
 - "HSA_OVERRIDE_GFX_VERSION=11.5.1"
 - "HF_HOME=/root/.cache/huggingface"
@@ -24,42 +27,45 @@ environment_variables:
 - "TOKENIZERS_PARALLELISM=false"
 - "MUJOCO_GL=egl"
 - "PYOPENGL_PLATFORM=egl"
-# ROCm perf levers for gfx1151: AOTriton flash SDPA on, hipBLASLt off (rocBLAS is faster
-# for these GEMM shapes).
+# ROCm perf levers for gfx1151.
 - "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
 - "TORCH_BLAS_PREFER_HIPBLASLT=0"
 - "OUT_DIR=/outputs"
 # Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demo_*.sh).
-# Blank lets each demo pick a random episode or scene.
+# Leave blank to let each demo pick a random episode or scene.
 - 'SEED=${SEED:-}'
 - 'EPISODE=${EPISODE:-}'
 - 'SUITE=${SUITE:-}'
 - 'TASK_ID=${TASK_ID:-}'
 - 'THINK=${THINK:-}'
 - 'HF_TOKEN=${HF_TOKEN:-}'
-# Interactive demo knobs.
+# Interactive demo (demo_interactive.sh / demo_interactive_rt.sh) knobs.
 - 'PORT=${PORT:-}'
 - 'VIEW_RES=${VIEW_RES:-}'
 - 'VIDEO_RES=${VIDEO_RES:-}'
 - 'RT_HZ=${RT_HZ:-}'
 - 'RT_LOOKAHEAD=${RT_LOOKAHEAD:-}'
 - 'RT_MAX_STEPS=${RT_MAX_STEPS:-}'
-# Flow-matching denoising steps (lower is a bit faster). Blank uses the model default.
+# Flow-matching denoising steps (lower = a bit faster inference). Blank = model default.
 - 'NUM_STEPS=${NUM_STEPS:-}'
-# RT_HORIZON_MULT extends the sim horizon so long tasks do not reset mid-execution.
+# Real-time demo horizon extension for long tasks.
 - 'RT_HORIZON_MULT=${RT_HORIZON_MULT:-}'
-# Robot arm embodiment (cross-embodiment demo): blank/panda = stock LIBERO Panda,
-# ur5e = swap in the UR5e. EMBODIMENT_ROT_DEG is an optional tool-frame fix.
+# Cross-embodiment demo knobs.
 - 'EMBODIMENT=${EMBODIMENT:-}'
 - 'EMBODIMENT_GRIPPER=${EMBODIMENT_GRIPPER:-}'
-- 'EMBODIMENT_ROT_DEG=${EMBODIMENT_ROT_DEG:-}'
+- 'EMBODIMENT_EXECUTOR=${EMBODIMENT_EXECUTOR:-}'
+- 'EMBODIMENT_SERVO_STEPS=${EMBODIMENT_SERVO_STEPS:-}'
+- 'EMBODIMENT_POS_SCALE=${EMBODIMENT_POS_SCALE:-}'
+- 'EMBODIMENT_ROT_SCALE=${EMBODIMENT_ROT_SCALE:-}'
+- 'EMBODIMENT_XARM6_CAMERA_MATCH=${EMBODIMENT_XARM6_CAMERA_MATCH:-}'
+- 'EMBODIMENT_UR5E_ROBOTIQ_INIT_BLEND=${EMBODIMENT_UR5E_ROBOTIQ_INIT_BLEND:-}'
+- 'EMBODIMENT_UR5E_ROBOTIQ_EEF_OFFSET=${EMBODIMENT_UR5E_ROBOTIQ_EEF_OFFSET:-}'
+- 'EMBODIMENT_UR5E_ROBOTIQ_CAMERA_OFFSET=${EMBODIMENT_UR5E_ROBOTIQ_CAMERA_OFFSET:-}'
 
 volume_mappings:
 - "$PWD/workspace/molmoact2/outputs:/outputs"
 - "$PWD/workspace/molmoact2/models:/models"
 - "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
 
-# NOTE: --network=host (so the interactive demo's browser server is reachable on
-# localhost), --ipc=host and --shm-size 16G are already in the ryzers default run
-# flags, so no docker_extra_run_flags are needed here. Re-specifying them makes
-# docker reject the run ("network host is specified multiple times").
+# --network=host, --ipc=host, and --shm-size 16G are provided by the Ryzer default
+# run flags. Repeating them here makes Docker reject the run.

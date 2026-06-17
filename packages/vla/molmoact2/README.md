@@ -1,84 +1,167 @@
 ### MolmoAct2
 
-This directory contains the Docker configuration files to run [MolmoAct2 from the Allen Institute for AI](https://huggingface.co/collections/allenai/molmoact) on AMD ROCm, validated on the Strix Halo `gfx1151` iGPU.
+This package runs [MolmoAct2](https://huggingface.co/collections/allenai/molmoact)
+on AMD ROCm. It is validated on the Strix Halo `gfx1151` iGPU and includes:
 
-### Build and run
+- a full MolmoAct2-DROID model smoke test
+- DROID open-loop replay against ground-truth actions
+- LIBERO closed-loop MuJoCo evaluation with rollout videos
+- a browser-based interactive LIBERO simulator
+- zero-shot cross-embodiment interactive demos for UR5e and xArm6 native grippers
+
+The Docker image bakes the simulator stack and xArm6 assets. Model weights and
+datasets are stored in the persistent Hugging Face cache volume and can be
+preloaded before demo runs.
+
+### Build
 
 ```sh
 ryzers build molmoact2
 ryzers run
-```
-
-`ryzers run` with no command runs an environment check (ROCm torch and deps, no weights). Weights and datasets download once into the persistent Hugging Face cache on first use. To pre-fetch them up front:
-
-```sh
 ryzers run /ryzers/download.sh
 ```
 
-Demo artifacts (videos and plots) are written to `workspace/molmoact2/outputs`.
+`ryzers run` with no command is a light ROCm environment check. `download.sh`
+preloads the MolmoAct2-DROID, MolmoAct2-DROID-Dataset, and
+MolmoAct2-Think-LIBERO assets into the mounted cache.
 
-### Interactive demo
+Artifacts are written to `workspace/molmoact2/outputs`.
+
+### Interactive Demo
 
 ![interactive demo](assets/interactive_demo.gif)
 
-Type an instruction and watch the MolmoAct2-LIBERO policy run it in a live MuJoCo sim in your browser. **Send** resets the scene and runs the typed instruction, **Stop** halts it, **Randomize** loads a new scene.
+Run the synchronous browser demo:
 
 ```sh
-ryzers run /ryzers/demo_interactive.sh        # open http://localhost:8080
+ryzers run /ryzers/demo_interactive.sh
 ```
 
-The real-time variant runs the sim at wall-clock speed while the policy plans asynchronously, so the arm holds its pose while thinking and moves when the next chunk lands.
+Open `http://localhost:8080`. On a remote box, forward the port first:
 
 ```sh
-ryzers run /ryzers/demo_interactive_rt.sh     # open http://localhost:8081
+ssh -L 8080:localhost:8080 <host>
 ```
 
-Both default to the fast path (depth reasoning off, 4 denoising steps). On a remote box, forward the port first: `ssh -L 8080:localhost:8080 <host>`.
+The synchronous demo defaults to the fast path: `THINK=0` and `NUM_STEPS=4`.
+Pass `THINK=1` for full depth reasoning.
 
-#### Robot arm (cross-embodiment, proof of concept)
-
-LIBERO and MolmoAct2 are Franka Panda only. `EMBODIMENT=ur5e` swaps in a UR5e arm (stock robosuite asset, cross-mounted PandaGripper, joints IK-matched to the Panda home pose) and runs the *same* policy zero-shot — the policy talks pure end-effector space, so the arm is interchangeable. Default is `panda`; the flag works on both interactive demos and all LIBERO suites.
+Example fixed task:
 
 ```sh
-EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive.sh      # UR5e, http://localhost:8080
-EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive_rt.sh   # UR5e, real-time
+SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_interactive.sh
 ```
 
-### Dataset evaluation (DROID open-loop)
+### Cross-Embodiment Interactive Demos
 
-![droid open-loop](assets/droid_openloop.gif)
+The policy action and state contract remains Panda-style end-effector space. The
+embodiment layer swaps the simulator robot, solves each arm home pose to the Panda
+LIBERO end-effector start, remaps native gripper state into Panda gripper units,
+and keeps the wrist camera aligned to the Panda camera-in-grip-site transform when
+needed.
 
-Runs MolmoAct2-DROID open-loop on a DROID dataset episode and writes the scene video plus a ground-truth vs predicted action plot.
+UR5e with native Robotiq85 gripper:
 
 ```sh
-ryzers run /ryzers/demo_droid.sh              # random episode
-EPISODE=42 ryzers run /ryzers/demo_droid.sh   # fixed episode
+EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive.sh
 ```
 
-### Closed-loop evaluation (LIBERO)
+xArm6 with native XArmGripper:
+
+```sh
+EMBODIMENT=xarm6 ryzers run /ryzers/demo_interactive.sh
+```
+
+Validated xArm6 defaults:
+
+- `EMBODIMENT_GRIPPER=XArmGripper`
+- `EMBODIMENT_EXECUTOR=absolute`
+- `EMBODIMENT_SERVO_STEPS=2`
+- `EMBODIMENT_XARM6_CAMERA_MATCH=1`
+
+Validated UR5e defaults:
+
+- `EMBODIMENT_GRIPPER=Robotiq85Gripper`
+- `EMBODIMENT_UR5E_ROBOTIQ_INIT_BLEND=0.5`
+- zero end-effector and wrist-camera offsets
+
+The compatibility entrypoint is also available:
+
+```sh
+EMBODIMENT=xarm6 ryzers run /ryzers/demo_interactive_embodiment.sh
+```
+
+### Real-Time Interactive Option
+
+The real-time server runs the sim at wall-clock speed while policy planning happens
+asynchronously. The arm holds pose while the next action chunk is computed.
+
+```sh
+ryzers run /ryzers/demo_interactive_rt.sh
+EMBODIMENT=ur5e ryzers run /ryzers/demo_interactive_rt.sh
+EMBODIMENT=xarm6 ryzers run /ryzers/demo_interactive_rt.sh
+```
+
+Open `http://localhost:8081`, or forward it from a remote box:
+
+```sh
+ssh -L 8081:localhost:8081 <host>
+```
+
+Long-horizon tasks can use:
+
+```sh
+RT_HORIZON_MULT=10 ryzers run /ryzers/demo_interactive_rt.sh
+```
+
+### Closed-Loop LIBERO Evaluation
 
 ![libero closed-loop](assets/libero_closedloop.gif)
 
-Runs the MolmoAct2-LIBERO policy in the LIBERO MuJoCo simulator (EGL headless) and writes the rollout video plus the executed action plot.
+Run one closed-loop LIBERO rollout in MuJoCo:
 
 ```sh
-ryzers run /ryzers/demo_libero.sh                              # random scene
+ryzers run /ryzers/demo_libero.sh
 SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_libero.sh
 ```
 
-Suites: `libero_10`, `libero_goal`, `libero_object`, `libero_spatial` (`TASK_ID` 0 to 9).
+Suites: `libero_10`, `libero_goal`, `libero_object`, `libero_spatial`.
+`TASK_ID` is `0` to `9`.
 
-### Optional knobs
-
-* `THINK=0` disables depth reasoning, about 2.6x to 2.9x faster end to end. The interactive demos default to this; pass `THINK=1` for full depth reasoning.
-* `NUM_STEPS=N` sets flow-matching denoising steps (lower is faster). `NUM_STEPS=4` held 100% success.
-* `RT_HORIZON_MULT=N` extends the real-time sim horizon so long tasks run to completion instead of resetting mid-execution.
-
-`THINK` and `NUM_STEPS` both held 100% success in a `libero_object` sweep.
+The same embodiment switches work for closed-loop evaluation:
 
 ```sh
-THINK=0 NUM_STEPS=4 ryzers run /ryzers/demo_libero.sh         # fast closed-loop
-RT_HORIZON_MULT=10 ryzers run /ryzers/demo_interactive_rt.sh  # long-horizon real-time
+EMBODIMENT=ur5e SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_libero.sh
+EMBODIMENT=xarm6 SUITE=libero_object TASK_ID=3 ryzers run /ryzers/demo_libero.sh
 ```
+
+### DROID Open-Loop Replay
+
+![droid open-loop](assets/droid_openloop.gif)
+
+Run MolmoAct2-DROID open-loop on a dataset episode:
+
+```sh
+ryzers run /ryzers/demo_droid.sh
+EPISODE=42 ryzers run /ryzers/demo_droid.sh
+```
+
+The demo writes a scene video and a ground-truth versus prediction action plot.
+
+### Model Smoke Test
+
+```sh
+ryzers run /ryzers/demo_smoke.sh
+```
+
+This loads `allenai/MolmoAct2-DROID` and runs one end-to-end action prediction on
+ROCm.
+
+### Common Knobs
+
+- `THINK=1` enables the full depth reasoning path.
+- `THINK=0 NUM_STEPS=4` is the fast interactive default.
+- `PORT=...` changes the browser port.
+- `SEED=...`, `SUITE=...`, and `TASK_ID=...` make runs reproducible.
 
 Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.

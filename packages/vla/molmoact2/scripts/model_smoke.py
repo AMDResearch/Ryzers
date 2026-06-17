@@ -1,11 +1,15 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Full-model smoke test: load MolmoAct2-DROID and run one action prediction on ROCm.
+"""Capability 1: full-model smoke test for MolmoAct2 on AMD Strix Halo (gfx1151).
 
-Downloads ~22 GB once into the HF cache, then predicts on a dummy observation using the
-upstream Policy loader at /repos/molmoact2/examples/droid. Exits non-zero on failure.
+Initializes the *real* MolmoAct2-DROID checkpoint (downloads ~22 GB once into the
+mounted HF cache), then runs a single action-prediction on a dummy observation to
+prove the whole flow-matching action path executes end-to-end on ROCm. Reuses the
+validated upstream `Policy` loader (bf16 dtype patches) baked at
+/repos/molmoact2/examples/droid.
 
-Env: MODEL_REPO, DTYPE (bfloat16), NUM_STEPS (10).
+Env: MODEL_REPO (allenai/MolmoAct2-DROID), DTYPE (bfloat16), NUM_STEPS (10).
+Exits non-zero on any failure so `ryzers run` / CI catches a broken image.
 """
 import os
 import sys
@@ -19,12 +23,12 @@ MODEL_REPO = os.environ.get("MODEL_REPO", "allenai/MolmoAct2-DROID")
 SERVER_DIR = os.environ.get("DROID_SERVER_DIR", "/repos/molmoact2/examples/droid")
 DTYPE = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}[
     os.environ.get("DTYPE", "bfloat16")]
-NUM_STEPS = int(os.environ.get("NUM_STEPS") or "10")  # `or` so an empty -e NUM_STEPS= falls back
+NUM_STEPS = int(os.environ.get("NUM_STEPS", "10"))
 
 
 def predict_chunk(policy, norm_tag, images, task, state, num_steps):
-    """Call the flow-matching action head, tolerating the inference_action_mode
-    vs action_mode kwarg rename across upstream versions."""
+    """Call the model's flow-matching action head, tolerating the
+    inference_action_mode (new) vs action_mode (old) kwarg rename."""
     kw = dict(processor=policy.processor, images=images, task=task, state=state,
               norm_tag=norm_tag, enable_depth_reasoning=False, num_steps=num_steps,
               normalize_language=True, enable_cuda_graph=False)

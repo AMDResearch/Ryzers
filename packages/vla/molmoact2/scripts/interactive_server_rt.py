@@ -1,18 +1,30 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Real-time MolmoAct2 + LIBERO demo: the sim keeps running while the model thinks.
+"""Real-time (_RT) MolmoAct2 x LIBERO demo.
 
-Real-time sibling of interactive_server.py. Planning is decoupled from the simulator so
-the planner latency is visible:
-  * a sim thread steps MuJoCo at wall-clock RT_HZ, consuming one action per tick from a
-    shared buffer; when the buffer is empty it applies a HOLD action so the arm stays put.
-  * a planner thread runs the policy forward to refill the buffer with the next chunk.
+This is the REAL-TIME sibling of interactive_server.py. The clean (chunk-replay) demo
+freezes the world during each model forward and then fast-replays the chunk; great for a
+clean rollout, but it hides the planner latency. Here we instead decouple planning from
+the simulator so you can SEE the latency:
 
-HOLD is zeros on the 6 delta dims (OSC_POSE control_delta=True holds the current pose) and
-keeps the last gripper command. Reuses the lerobot select_action path; only the loop is local.
+  * a SIM thread owns the MuJoCo env and steps it at wall-clock 20 Hz (the LIBERO control
+    rate). Each tick it consumes one action from a shared buffer; if the buffer is empty
+    (the planner is still thinking) it applies a HOLD action so the robot stays put.
+  * a PLANNER thread runs the policy forward to refill the buffer with the next action
+    chunk. It never touches the env (MuJoCo isn't thread-safe), only the model + tensors.
 
+HOLD is safe because LIBERO uses an OSC_POSE controller with control_delta=True: the 7-D
+action is [dx,dy,dz, droll,dpitch,dyaw, gripper]. Zero on the 6 delta dims => target ==
+current pose => the impedance controller holds position. The gripper dim is absolute, so
+HOLD keeps the LAST gripper command (don't drop what you're holding). Replaying the last
+*motion* action instead would integrate the delta again and drift, so HOLD must be zeros.
+
+Visually: the arm pauses mid-motion while "thinking" (buffer empty), then resumes when the
+chunk lands. This shows how planner speed affects control.
+
+Reuses the validated lerobot select_action / processor path verbatim; only the loop is ours.
 Env: SUITE, TASK_ID, SEED, THINK (1), CKPT, PORT (8081), VIEW_RES (720), VIDEO_RES (600),
-RT_HZ (20), RT_LOOKAHEAD (0), OUT_DIR (/outputs).
+RT_HZ (20), RT_LOOKAHEAD (0), OUT_DIR (/outputs). Open http://localhost:PORT.
 """
 import io
 import json
@@ -28,22 +40,18 @@ from urllib.parse import parse_qs, urlparse
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-# `or` (not get's default) so an empty -e VAR= forwarded by `ryzers run` still falls back.
-SUITE = os.environ.get("SUITE") or "libero_object"
-TASK_ID = int(os.environ.get("TASK_ID") or "3")
-SEED = int(os.environ.get("SEED") or "1000")
-THINK = (os.environ.get("THINK") or "1") == "1"
-CKPT = os.environ.get("CKPT") or "allenai/MolmoAct2-Think-LIBERO"
-PORT = int(os.environ.get("PORT") or "8081")
-VIEW_RES = int(os.environ.get("VIEW_RES") or "720")    # live viewport (RT favors smoothness)
-VIDEO_RES = int(os.environ.get("VIDEO_RES") or "600")  # saved debug video (kept small)
-RT_HZ = float(os.environ.get("RT_HZ") or "20")         # wall-clock control rate
-RT_LOOKAHEAD = int(os.environ.get("RT_LOOKAHEAD") or "0")  # replan when buffer <= this (pipelining knob)
-RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS") or "1200")
-# Optional: multiply the simulator's real horizon (robosuite) to play around with
-# long-horizon tasks without the scene resetting mid-execution. Default 1 (unchanged).
-RT_HORIZON_MULT = float(os.environ.get("RT_HORIZON_MULT") or "1")  # RT runs in wall time; holds burn budget, so allow completion
-OUT_DIR = os.environ.get("OUT_DIR") or "/outputs"
+SUITE = os.environ.get("SUITE", "libero_object")
+TASK_ID = int(os.environ.get("TASK_ID", "3"))
+SEED = int(os.environ.get("SEED", "1000"))
+THINK = os.environ.get("THINK", "1") == "1"
+CKPT = os.environ.get("CKPT", "allenai/MolmoAct2-Think-LIBERO")
+PORT = int(os.environ.get("PORT", "8081"))
+VIEW_RES = int(os.environ.get("VIEW_RES", "720"))    # live viewport (RT favors smoothness)
+VIDEO_RES = int(os.environ.get("VIDEO_RES", "600"))  # saved debug video (kept small)
+RT_HZ = float(os.environ.get("RT_HZ", "20"))         # wall-clock control rate
+RT_LOOKAHEAD = int(os.environ.get("RT_LOOKAHEAD", "0"))  # replan when buffer <= this (pipelining knob)
+RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS", "1200"))  # RT runs in wall time; holds burn budget, so allow completion
+OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
 SUITES = ["libero_object", "libero_goal", "libero_spatial", "libero_10"]
 DT = 1.0 / RT_HZ
 
@@ -164,25 +172,7 @@ def engine_thread():
         envs = make_env(cfg.env, n_envs=1, use_async_envs=False, trust_remote_code=cfg.trust_remote_code)
         env = envs[suite][task_id]
         for e in env.envs:
-            # robosuite's internal horizon is the real terminator (the gym wrapper never
-            # truncates on _max_episode_steps); raise it by RT_HORIZON_MULT so long tasks
-            # do not reset mid-execution. _max_episode_steps caps our own control loop.
-            base_h = RT_MAX_STEPS
-            rs = getattr(getattr(e, "_env", None), "env", None)
-            if rs is not None and getattr(rs, "horizon", None):
-                base_h = int(rs.horizon)
-            new_h = int(base_h * RT_HORIZON_MULT)
-            if rs is not None:
-                try:
-                    rs.horizon = new_h
-                except Exception:
-                    pass
-            e._max_episode_steps = max(RT_MAX_STEPS, new_h)
-        try:
-            print(f"[scene] horizon_mult={RT_HORIZON_MULT} horizon={new_h} "
-                  f"max_steps={max(RT_MAX_STEPS, new_h)}", flush=True)
-        except Exception:
-            pass
+            e._max_episode_steps = RT_MAX_STEPS  # RT runs in wall-clock time; give it room
         env.reset(seed=SEED)
         le = env.envs[0]
         scene_task = getattr(le, "task_description", "") or ""
@@ -195,7 +185,7 @@ def engine_thread():
 
     def show_idle(sc):
         with LOCK:
-            STATE.update(mode="idle", status="idle, send an instruction", step=0,
+            STATE.update(mode="idle", status="idle - send an instruction", step=0,
                          success=False, suite=sc.suite, task_id=sc.task_id,
                          scene_task=sc.scene_task, objects=sc.objects,
                          instruction="", video_url="", holding=False, buffer=0, hold_pct=0.0)
@@ -286,16 +276,7 @@ def engine_thread():
                 shared["last_gripper"] = float(action[0, 6])
             shared["total_steps"] += 1
 
-            try:
-                obs, reward, terminated, truncated, info = sc.env.step(action)
-            except ValueError as e:
-                # robosuite raises "executing action in terminated episode" when the
-                # underlying env set its internal done but the gym wrapper still reported
-                # terminated/truncated False; treat it as a clean episode end instead of
-                # letting the exception kill the engine thread (which froze the demo).
-                print("step after termination, ending episode:", e, flush=True)
-                shared["done"] = True
-                break
+            obs, reward, terminated, truncated, info = sc.env.step(action)
             with LOCK:
                 shared["obs"] = obs
             if "final_info" in info:
@@ -395,16 +376,7 @@ def engine_thread():
             scene = new_scene
             show_idle(scene)
         elif action == "run":
-            try:
-                run_command(scene, instruction)
-            except Exception as e:  # noqa: BLE001
-                import traceback; traceback.print_exc()
-                with LOCK:
-                    STATE.update(mode="idle", holding=False, status=f"error: {e}")
-                try:
-                    show_idle(scene)
-                except Exception:
-                    pass
+            run_command(scene, instruction)
 
 
 # ---------------------------------------------------------------------------
@@ -426,7 +398,7 @@ PAGE = b"""<!doctype html><html><head><meta charset=utf-8>
  .chip{display:inline-block;background:#23252b;border-radius:14px;padding:3px 10px;margin:3px 4px 0 0;color:#cdd3da}
  a{color:#7aa2ff} video{width:640px;border-radius:10px;margin-top:10px;background:#000}
 </style></head><body><div class=wrap>
-<h1>MolmoAct2 x LIBERO real-time sim</h1>
+<h1>MolmoAct2 x LIBERO - REAL-TIME sim</h1>
 <p class=sub>The simulator runs at wall-clock speed; the robot HOLDS its pose while the model thinks, then moves when the next chunk lands.</p>
 <img src="/stream" alt="sim">
 <div class=row>
@@ -450,7 +422,7 @@ async function poll(){
  try{const s=await(await fetch('/status')).json();
   let t='['+s.mode+'] '+s.status+' | step '+s.step+' | last infer '+s.infer_ms+' ms | buffer '+s.buffer+' | hold '+s.hold_pct+'%';
   const m=document.getElementById('meta'); m.textContent=t; m.className='meta'+(s.holding?' think':'');
-  document.getElementById('scene').textContent='Scene: '+s.suite+' / task '+s.task_id+': "'+s.scene_task+'"';
+  document.getElementById('scene').textContent='Scene: '+s.suite+' / task '+s.task_id+' - "'+s.scene_task+'"';
   document.getElementById('objs').innerHTML='Objects in scene: '+(s.objects||[]).map(o=>'<span class=chip>'+o+'</span>').join('');
   const box=document.getElementById('cmd');
   if(s.mode==='idle'&&!box.value&&s.scene_task)box.value=s.scene_task;

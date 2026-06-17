@@ -1,14 +1,24 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Interactive MolmoAct2 + LIBERO demo (local inference, browser UI).
+"""Interactive MolmoAct2 x LIBERO demo (local inference, browser UI).
 
-The sim sits idle until you send an instruction, then resets the env and policy and
-runs that task, streaming the camera to the browser and saving a debug video. Reset per
-command is required because the policy caches its plan once per episode. Reuses the
-lerobot eval machinery; only the control loop is local. Stdlib http.server only.
+Command-driven: the sim sits idle on a scene until you send an instruction; then it
+resets the env + policy and runs that one task to completion (or until you hit Stop),
+streaming the FHD-equivalent camera to the browser as MJPEG and saving a debug video
+(executed command banner on top). Randomize swaps to a new random scene.
+
+Why reset on every command: the MolmoAct2-Think policy caches its depth/spatial plan
+once per episode (and runs a receding-horizon action queue), so a new instruction only
+takes effect after `policy.reset()` + a fresh `env.reset()`. Resetting per command is
+both the desired UX and the fix for "it keeps doing the old task".
+
+Reuses the validated lerobot eval machinery verbatim (make_env / make_policy /
+processors / rollout); only the loop is ours (live instruction + streaming + video).
+Stdlib http.server only (no extra deps).
 
 Env: SUITE, TASK_ID, SEED, THINK (1), CKPT, PORT (8080), VIEW_RES (1080),
-VIDEO_RES (600), OUT_DIR (/outputs).
+VIDEO_RES (600), OUT_DIR (/outputs). Open http://localhost:PORT (remote box:
+ssh -L PORT:localhost:PORT <host>).
 """
 import io
 import json
@@ -23,16 +33,15 @@ from urllib.parse import parse_qs, urlparse
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-# `or` (not get's default) so an empty -e VAR= forwarded by `ryzers run` still falls back.
-SUITE = os.environ.get("SUITE") or "libero_object"
-TASK_ID = int(os.environ.get("TASK_ID") or "3")
-SEED = int(os.environ.get("SEED") or "1000")
-THINK = (os.environ.get("THINK") or "1") == "1"
-CKPT = os.environ.get("CKPT") or "allenai/MolmoAct2-Think-LIBERO"
-PORT = int(os.environ.get("PORT") or "8080")
-VIEW_RES = int(os.environ.get("VIEW_RES") or "1080")   # live viewport (FHD-equivalent)
-VIDEO_RES = int(os.environ.get("VIDEO_RES") or "600")  # saved debug video (kept small)
-OUT_DIR = os.environ.get("OUT_DIR") or "/outputs"
+SUITE = os.environ.get("SUITE", "libero_object")
+TASK_ID = int(os.environ.get("TASK_ID", "3"))
+SEED = int(os.environ.get("SEED", "1000"))
+THINK = os.environ.get("THINK", "1") == "1"
+CKPT = os.environ.get("CKPT", "allenai/MolmoAct2-Think-LIBERO")
+PORT = int(os.environ.get("PORT", "8080"))
+VIEW_RES = int(os.environ.get("VIEW_RES", "1080"))   # live viewport (FHD-equivalent)
+VIDEO_RES = int(os.environ.get("VIDEO_RES", "600"))  # saved debug video (kept small)
+OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
 SUITES = ["libero_object", "libero_goal", "libero_spatial", "libero_10"]
 
 # ---- shared state ------------------------------------------------------------
@@ -170,7 +179,7 @@ def rollout_thread():
 
     def show_idle(sc):
         with LOCK:
-            STATE.update(mode="idle", status="idle, send an instruction", step=0,
+            STATE.update(mode="idle", status="idle - send an instruction", step=0,
                          success=False, suite=sc.suite, task_id=sc.task_id,
                          scene_task=sc.scene_task, objects=sc.objects,
                          instruction="", video_url="")
@@ -284,7 +293,7 @@ PAGE = b"""<!doctype html><html><head><meta charset=utf-8>
  a{color:#7aa2ff}
  video{width:640px;border-radius:10px;margin-top:10px;background:#000}
 </style></head><body><div class=wrap>
-<h1>MolmoAct2 x LIBERO live sim</h1>
+<h1>MolmoAct2 x LIBERO - live sim</h1>
 <img src="/stream" alt="sim">
 <div class=row>
  <input id=cmd placeholder="type an instruction, then Send (resets the scene and runs it)">
@@ -306,7 +315,7 @@ let lastVid='';
 async function poll(){
  try{const s=await(await fetch('/status')).json();
   document.getElementById('meta').textContent='['+s.mode+'] '+s.status+' | step '+s.step+' | last infer '+s.infer_ms+' ms'+(s.instruction?' | running: "'+s.instruction+'"':'');
-  document.getElementById('scene').textContent='Scene: '+s.suite+' / task '+s.task_id+': "'+s.scene_task+'"';
+  document.getElementById('scene').textContent='Scene: '+s.suite+' / task '+s.task_id+' - "'+s.scene_task+'"';
   document.getElementById('objs').innerHTML='Objects in scene: '+(s.objects||[]).map(o=>'<span class=chip>'+o+'</span>').join('');
   const box=document.getElementById('cmd');
   if(s.mode==='idle'&&!box.value&&s.scene_task)box.value=s.scene_task;
