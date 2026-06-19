@@ -73,8 +73,8 @@ ollama pull gemma3:4b
 
 # Setup ROS environment
 cd /ryzers/rai
-source install/setup.sh
-source /opt/ros/jazzy/setup.sh
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
 
 # Run tool calling benchmark
 python src/rai_bench/rai_bench/examples/tool_calling_agent.py --model-name qwen2.5:7b --vendor ollama --extra-tool-calls 5 --task-types basic  --n-shots 5 --prompt-detail descriptive --complexities easy
@@ -87,6 +87,58 @@ python src/rai_bench/rai_bench/examples/vlm_benchmark.py --model-name gemma3:4b 
 ```
 
 By default we mount the benchmark results in an experiments directory on the path you ran `ryzers run` from. You will find a `results_summary.csv` for an overview there along with more detailed logs.
+
+Using Lemonade instead of ollama:
+
+```bash
+# Build new image with lemonade-sdk
+ryzers build ros o3de rai lemonade-sdk --name <image_name>:<tag>
+
+# Make sure the lemonade image is being run
+ryzers run --name <image_name>:<tag> bash
+
+# Start server and log
+lemond > /tmp/lemond.log 2>&1 &
+
+# Lemonade server (lemond) - check server is active
+lemonade status
+
+# Load the model(s) you want to test (downloads first time)
+lemonade load Gemma-4-E2B-it-GGUF
+
+# Point RAI's [openai] base_url at Lemonade
+sed -i 's|^base_url = "https://api.openai.com/v1/"|base_url = "http://localhost:13305/api/v0"|' /ryzers/rai/config.toml
+export OPENAI_API_KEY="lemonade"     # dummy; Lemonade ignores it
+
+# Setup ROS environment
+cd /ryzers/rai
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+
+# Run manipulation benchmark
+python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name Gemma-4-E2B-it-GGUF --vendor openai --levels trivial
+```
+
+if instead you would like to run the benchmarks with OpenAI cloud models, which are compatible with lemonade:
+
+```bash
+# May use same image built for Lemonade for OpenAI models
+ryzers run --name <image_name>:<tag> bash 
+
+# Set your real OpenAI API key
+export OPENAI_API_KEY="sk-your-real-key"
+
+# Point RAI's [openai] base_url back to the real OpenAI endpoint (once per container)
+sed -i 's|^base_url = "http://localhost:13305/api/v0"|base_url = "https://api.openai.com/v1/"|' /ryzers/rai/config.toml
+
+# Setup ROS environment
+cd /ryzers/rai
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+
+#Run manipulation benchmark
+python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name gpt-4o --vendor openai --levels trivial
+```
 
 ## Documentation
 
