@@ -3,8 +3,12 @@
 
 ### ryzers build options
 
-# Layer directly on the verified Ryzer ROCm base (torch 2.10.0+rocm7.2.2, gfx1151).
-init_image: "ryzerdocker:latest"
+# Public, pullable ROCm+PyTorch base (== ryzers.RYZERS_DEFAULT_INIT_IMAGE; the same image
+# ryzerdocker was built from). A locally-built tag here (e.g. ryzerdocker:latest from the
+# dreamzero sim project) breaks `ryzers build molmoact2` on a fresh machine with "pull
+# access denied ... ryzerdocker:latest". MolmoAct2 installs its own mujoco/robosuite (via
+# lerobot[libero]) + egl/osmesa libs, so it needs only this ROCm torch base for gfx1151.
+init_image: "rocm/pytorch:rocm7.2.2_ubuntu24.04_py3.12_pytorch_release_2.10.0"
 
 # Pin the upstream MolmoAct2 source the inference path was validated against.
 build_arguments:
