@@ -23,7 +23,7 @@ MODEL_REPO = os.environ.get("MODEL_REPO", "allenai/MolmoAct2-DROID")
 SERVER_DIR = os.environ.get("DROID_SERVER_DIR", "/repos/molmoact2/examples/droid")
 DTYPE = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}[
     os.environ.get("DTYPE", "bfloat16")]
-NUM_STEPS = int(os.environ.get("NUM_STEPS", "10"))
+NUM_STEPS = int(os.environ.get("NUM_STEPS") or "10")
 
 
 def predict_chunk(policy, norm_tag, images, task, state, num_steps):

@@ -25,6 +25,7 @@ WORKDIR /ryzers
 
 ENV HSA_OVERRIDE_GFX_VERSION=11.5.1 \
     HF_HUB_ENABLE_HF_TRANSFER=1 \
+    HF_HUB_DISABLE_XET=1 \
     HF_HUB_DISABLE_TELEMETRY=1 \
     TOKENIZERS_PARALLELISM=false
 
@@ -34,7 +35,7 @@ RUN pip install --no-cache-dir \
       "transformers>=4.57,<4.58" \
       "accelerate>=1.0" \
       "safetensors>=0.4" \
-      "huggingface-hub[cli]>=0.36" \
+      "huggingface-hub[cli]>=0.36,<1.0" \
       "hf-transfer>=0.1.8" \
       "pillow>=10" \
       "numpy>=1.26,<3" \

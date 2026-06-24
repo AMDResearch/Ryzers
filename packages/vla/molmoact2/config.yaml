@@ -26,7 +26,14 @@ x11_display: false
 environment_variables:
 - "HSA_OVERRIDE_GFX_VERSION=11.5.1"
 - "HF_HOME=/root/.cache/huggingface"
-- "HF_HUB_ENABLE_HF_TRANSFER=1"
+# HF download backend. Xet (*.xethub.hf.co) is a SEPARATE host from huggingface.co
+# and is commonly blocked/throttled on corporate networks, which hangs a shard
+# mid-download (looks like "stuck at 4/5"). Default to the classic, resumable HTTPS
+# path (hf_transfer-accelerated) that only needs huggingface.co. On a fast network
+# you can re-enable Xet: HF_HUB_DISABLE_XET=0 ryzers run ...
+- 'HF_HUB_DISABLE_XET=${HF_HUB_DISABLE_XET:-1}'
+- 'HF_HUB_ENABLE_HF_TRANSFER=${HF_HUB_ENABLE_HF_TRANSFER:-1}'
+- 'HF_HUB_DOWNLOAD_TIMEOUT=${HF_HUB_DOWNLOAD_TIMEOUT:-60}'
 - "HF_HUB_DISABLE_TELEMETRY=1"
 - "TOKENIZERS_PARALLELISM=false"
 - "MUJOCO_GL=egl"

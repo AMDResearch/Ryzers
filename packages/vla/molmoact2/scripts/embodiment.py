@@ -422,11 +422,11 @@ def apply(embodiment, gripper=None):
     _ACTIVE_CAMERA_OFFSET = 0.0
     _ACTIVE_XARM6_CAMERA_MATCH = False
     if emb == "ur5e" and gkey == "robotiq85gripper":
-        blend = float(os.environ.get("EMBODIMENT_UR5E_ROBOTIQ_INIT_BLEND", "1.0"))
+        blend = float(os.environ.get("EMBODIMENT_UR5E_ROBOTIQ_INIT_BLEND") or "1.0")
         blend = float(np.clip(blend, 0.0, 1.0))
         _ACTIVE_INIT_QPOS = (1.0 - blend) * _UR5E_INIT_QPOS_PANDA + blend * _UR5E_INIT_QPOS_ROBOTIQ85
-        _ACTIVE_EEF_OFFSET = float(os.environ.get("EMBODIMENT_UR5E_ROBOTIQ_EEF_OFFSET", "0.0"))
-        _ACTIVE_CAMERA_OFFSET = float(os.environ.get("EMBODIMENT_UR5E_ROBOTIQ_CAMERA_OFFSET", "0.0"))
+        _ACTIVE_EEF_OFFSET = float(os.environ.get("EMBODIMENT_UR5E_ROBOTIQ_EEF_OFFSET") or "0.0")
+        _ACTIVE_CAMERA_OFFSET = float(os.environ.get("EMBODIMENT_UR5E_ROBOTIQ_CAMERA_OFFSET") or "0.0")
     if emb == "xarm6" and gkey == "xarmgripper":
         _ACTIVE_XARM6_CAMERA_MATCH = os.environ.get("EMBODIMENT_XARM6_CAMERA_MATCH", "1").strip() != "0"
 
@@ -519,11 +519,11 @@ def apply(embodiment, gripper=None):
         if a.ndim != 1 or a.shape[0] < 7:
             raise ValueError(f"Expected 7-D action, got shape {np.asarray(action).shape}")
 
-        pos_scale = float(os.environ.get("EMBODIMENT_POS_SCALE", "0.05"))
-        rot_scale = float(os.environ.get("EMBODIMENT_ROT_SCALE", "0.5"))
-        steps = max(1, int(os.environ.get("EMBODIMENT_SERVO_STEPS", "2")))
-        pos_tol = float(os.environ.get("EMBODIMENT_SERVO_POS_TOL", "0.004"))
-        rot_tol = float(os.environ.get("EMBODIMENT_SERVO_ROT_TOL", "0.08"))
+        pos_scale = float(os.environ.get("EMBODIMENT_POS_SCALE") or "0.05")
+        rot_scale = float(os.environ.get("EMBODIMENT_ROT_SCALE") or "0.5")
+        steps = max(1, int(os.environ.get("EMBODIMENT_SERVO_STEPS") or "2"))
+        pos_tol = float(os.environ.get("EMBODIMENT_SERVO_POS_TOL") or "0.004")
+        rot_tol = float(os.environ.get("EMBODIMENT_SERVO_ROT_TOL") or "0.08")
 
         rsenv = _robosuite_env(self)
         raw0 = rsenv._get_observations()
@@ -682,17 +682,17 @@ def apply(embodiment, gripper=None):
         sim = rsenv.sim
         model, data = _mj_model_data(sim)
 
-        pos_scale = float(os.environ.get("EMBODIMENT_POS_SCALE", "0.05"))
-        rot_scale = float(os.environ.get("EMBODIMENT_ROT_SCALE", "0.5"))
-        steps = max(1, int(os.environ.get("EMBODIMENT_SERVO_STEPS", "2")))
-        ori_w = float(os.environ.get("EMBODIMENT_IK_ORI_WEIGHT", "0.35"))
-        damping = float(os.environ.get("EMBODIMENT_IK_DAMPING", "0.08"))
-        max_dq = float(os.environ.get("EMBODIMENT_IK_MAX_DQ", "0.07"))
-        posture_gain = float(os.environ.get("EMBODIMENT_IK_POSTURE_GAIN", "0.15"))
-        limit_gain = float(os.environ.get("EMBODIMENT_IK_LIMIT_GAIN", "0.25"))
-        limit_margin = float(os.environ.get("EMBODIMENT_IK_LIMIT_MARGIN", "0.12"))
-        lower_sing = float(os.environ.get("EMBODIMENT_IK_SINGULAR_LOWER", "17.0"))
-        hard_sing = float(os.environ.get("EMBODIMENT_IK_SINGULAR_HARD", "30.0"))
+        pos_scale = float(os.environ.get("EMBODIMENT_POS_SCALE") or "0.05")
+        rot_scale = float(os.environ.get("EMBODIMENT_ROT_SCALE") or "0.5")
+        steps = max(1, int(os.environ.get("EMBODIMENT_SERVO_STEPS") or "2"))
+        ori_w = float(os.environ.get("EMBODIMENT_IK_ORI_WEIGHT") or "0.35")
+        damping = float(os.environ.get("EMBODIMENT_IK_DAMPING") or "0.08")
+        max_dq = float(os.environ.get("EMBODIMENT_IK_MAX_DQ") or "0.07")
+        posture_gain = float(os.environ.get("EMBODIMENT_IK_POSTURE_GAIN") or "0.15")
+        limit_gain = float(os.environ.get("EMBODIMENT_IK_LIMIT_GAIN") or "0.25")
+        limit_margin = float(os.environ.get("EMBODIMENT_IK_LIMIT_MARGIN") or "0.12")
+        lower_sing = float(os.environ.get("EMBODIMENT_IK_SINGULAR_LOWER") or "17.0")
+        hard_sing = float(os.environ.get("EMBODIMENT_IK_SINGULAR_HARD") or "30.0")
 
         raw0 = rsenv._get_observations()
         start_pos, start_mat = _eef_from_raw(raw0)

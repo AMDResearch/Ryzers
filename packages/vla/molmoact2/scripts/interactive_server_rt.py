@@ -41,16 +41,16 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 SUITE = os.environ.get("SUITE", "libero_object")
-TASK_ID = int(os.environ.get("TASK_ID", "3"))
-SEED = int(os.environ.get("SEED", "1000"))
+TASK_ID = int(os.environ.get("TASK_ID") or "3")
+SEED = int(os.environ.get("SEED") or "1000")
 THINK = os.environ.get("THINK", "1") == "1"
 CKPT = os.environ.get("CKPT", "allenai/MolmoAct2-Think-LIBERO")
-PORT = int(os.environ.get("PORT", "8081"))
-VIEW_RES = int(os.environ.get("VIEW_RES", "720"))    # live viewport (RT favors smoothness)
-VIDEO_RES = int(os.environ.get("VIDEO_RES", "600"))  # saved debug video (kept small)
-RT_HZ = float(os.environ.get("RT_HZ", "20"))         # wall-clock control rate
-RT_LOOKAHEAD = int(os.environ.get("RT_LOOKAHEAD", "0"))  # replan when buffer <= this (pipelining knob)
-RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS", "1200"))  # RT runs in wall time; holds burn budget, so allow completion
+PORT = int(os.environ.get("PORT") or "8081")
+VIEW_RES = int(os.environ.get("VIEW_RES") or "720")    # live viewport (RT favors smoothness)
+VIDEO_RES = int(os.environ.get("VIDEO_RES") or "600")  # saved debug video (kept small)
+RT_HZ = float(os.environ.get("RT_HZ") or "20")         # wall-clock control rate
+RT_LOOKAHEAD = int(os.environ.get("RT_LOOKAHEAD") or "0")  # replan when buffer <= this (pipelining knob)
+RT_MAX_STEPS = int(os.environ.get("RT_MAX_STEPS") or "1200")  # RT runs in wall time; holds burn budget, so allow completion
 OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
 SUITES = ["libero_object", "libero_goal", "libero_spatial", "libero_10"]
 DT = 1.0 / RT_HZ

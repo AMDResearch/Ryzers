@@ -7,16 +7,40 @@
 # what it needs. Set HF_TOKEN for gated repos.
 #
 #   HF_TOKEN=hf_xxx ryzers run /ryzers/download.sh
+#
+# Robustness: HF's Xet backend (*.xethub.hf.co) is a separate host from huggingface.co
+# and is frequently blocked/throttled on corporate networks, which makes a shard hang
+# mid-download. Default to the classic, resumable HTTPS path and retry so a dropped
+# connection resumes from cache instead of aborting the whole pre-fetch.
 set -euo pipefail
+
+export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
+export HF_HUB_ENABLE_HF_TRANSFER="${HF_HUB_ENABLE_HF_TRANSFER:-1}"
+export HF_HUB_DOWNLOAD_TIMEOUT="${HF_HUB_DOWNLOAD_TIMEOUT:-60}"
 
 if [ -n "${HF_TOKEN:-}" ]; then
   hf auth login --token "$HF_TOKEN" >/dev/null 2>&1 || true
 fi
 
+# hf download resumes partial blobs, so repeated attempts keep making progress.
+dl() {
+  local tries="${DL_RETRIES:-5}" n=1
+  while true; do
+    if hf download "$@"; then return 0; fi
+    if [ "$n" -ge "$tries" ]; then
+      echo "ERROR: 'hf download $*' failed after $tries attempts" >&2
+      return 1
+    fi
+    echo "  (attempt $n/$tries failed; retrying in 5s, resuming from cache...)" >&2
+    n=$((n + 1)); sleep 5
+  done
+}
+
+echo "==> HF backend: DISABLE_XET=$HF_HUB_DISABLE_XET HF_TRANSFER=$HF_HUB_ENABLE_HF_TRANSFER timeout=${HF_HUB_DOWNLOAD_TIMEOUT}s"
 echo "==> MolmoAct2-DROID (model, ~22 GB): smoke + DROID demos"
-hf download allenai/MolmoAct2-DROID
+dl allenai/MolmoAct2-DROID
 echo "==> MolmoAct2-DROID-Dataset: DROID open-loop demo"
-hf download allenai/MolmoAct2-DROID-Dataset --repo-type dataset
+dl allenai/MolmoAct2-DROID-Dataset --repo-type dataset
 echo "==> MolmoAct2-Think-LIBERO (model): LIBERO closed-loop demo"
-hf download allenai/MolmoAct2-Think-LIBERO
+dl allenai/MolmoAct2-Think-LIBERO
 echo "PASS: assets cached under ${HF_HOME:-/root/.cache/huggingface}"

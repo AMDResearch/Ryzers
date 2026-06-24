@@ -34,8 +34,8 @@ from PIL import Image
 EVAL_REPO = os.environ.get("EVAL_REPO", "allenai/MolmoAct2-DROID-Dataset")
 MODEL_REPO = os.environ.get("MODEL_REPO", "allenai/MolmoAct2-DROID")
 SERVER_DIR = os.environ.get("DROID_SERVER_DIR", "/repos/molmoact2/examples/droid")
-STRIDE = int(os.environ.get("STRIDE", "15"))
-NUM_STEPS = int(os.environ.get("NUM_STEPS", "10"))
+STRIDE = int(os.environ.get("STRIDE") or "15")
+NUM_STEPS = int(os.environ.get("NUM_STEPS") or "10")
 DTYPE = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}[
     os.environ.get("DTYPE", "bfloat16")]
 OUT_DIR = os.environ.get("OUT_DIR", "/outputs")
