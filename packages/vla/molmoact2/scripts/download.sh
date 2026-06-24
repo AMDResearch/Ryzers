@@ -8,14 +8,16 @@
 #
 #   HF_TOKEN=hf_xxx ryzers run /ryzers/download.sh
 #
-# Robustness: HF's Xet backend (*.xethub.hf.co) is a separate host from huggingface.co
-# and is frequently blocked/throttled on corporate networks, which makes a shard hang
-# mid-download. Default to the classic, resumable HTTPS path and retry so a dropped
-# connection resumes from cache instead of aborting the whole pre-fetch.
+# Robustness: these repos are Xet-stored; the plain-HTTP fallback serves from the Xet
+# bridge CDN, which rate-limits CONCURRENT anonymous requests (403 'no permits
+# available'). hf_transfer's 3 parallel streams trip that at the first uncached shard,
+# so we default to a single stream (HF_HUB_ENABLE_HF_TRANSFER=0) + Xet client off, and
+# retry so a dropped connection resumes from cache. Set HF_HUB_ENABLE_HF_TRANSFER=1
+# to go parallel where permits/auth allow it.
 set -euo pipefail
 
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
-export HF_HUB_ENABLE_HF_TRANSFER="${HF_HUB_ENABLE_HF_TRANSFER:-1}"
+export HF_HUB_ENABLE_HF_TRANSFER="${HF_HUB_ENABLE_HF_TRANSFER:-0}"
 export HF_HUB_DOWNLOAD_TIMEOUT="${HF_HUB_DOWNLOAD_TIMEOUT:-60}"
 
 if [ -n "${HF_TOKEN:-}" ]; then
