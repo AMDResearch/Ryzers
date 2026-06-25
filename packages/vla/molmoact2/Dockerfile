@@ -123,7 +123,10 @@ COPY test.py /ryzers/
 COPY scripts/model_smoke.py scripts/droid_openloop_demo.py scripts/libero_action_plot.py \
      scripts/interactive_server.py scripts/interactive_server_rt.py scripts/embodiment.py /ryzers/
 COPY demos/demo_smoke.sh demos/demo_droid.sh demos/demo_libero.sh demos/demo_interactive.sh \
-     demos/demo_interactive_rt.sh demos/demo_interactive_embodiment.sh scripts/download.sh /ryzers/
+     demos/demo_interactive_rt.sh demos/demo_interactive_embodiment.sh /ryzers/
+COPY scripts/_hf_common.sh scripts/download.sh scripts/download_smoke.sh scripts/download_droid.sh \
+     scripts/download_libero.sh scripts/download_interactive.sh scripts/download_interactive_rt.sh \
+     scripts/download_interactive_embodiment.sh /ryzers/
 RUN chmod +x /ryzers/*.sh
 
 # Default `ryzers run` (no CMD override) = lightweight env sign-of-life (no weights).
