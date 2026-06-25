@@ -10,14 +10,13 @@ This package runs [MolmoAct2](https://huggingface.co/collections/allenai/molmoac
 ```sh
 ryzers build molmoact2
 ryzers run
-ryzers run /ryzers/download.sh
 ```
 
-`ryzers run` with no command is a light ROCm environment check. `download.sh`
-preloads the MolmoAct2-DROID, MolmoAct2-DROID-Dataset, and
-MolmoAct2-Think-LIBERO assets into the mounted cache.
+`ryzers run` with no command is a light ROCm environment check. 
 
 Artifacts are written to `workspace/molmoact2/outputs`.
+
+For downloading weights faster from huggingface, set the environment variable HF_TOKEN to your own access token: `export HF_TOKEN=XXXX....XXXX` 
 
 ### Interactive Demo
 
@@ -164,5 +163,7 @@ The demo generates a scene video and a ground-truth versus predicted action plot
 - `THINK=0 NUM_STEPS=4` is the fast interactive default.
 - `PORT=...` changes the browser port.
 - `SEED=...`, `SUITE=...`, and `TASK_ID=...` make runs reproducible.
+- `ryzers run /ryzers/download.sh` preloads the MolmoAct2-DROID, MolmoAct2-DROID-Dataset, and
+MolmoAct2-Think-LIBERO assets into the mounted cache.
 
 Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
