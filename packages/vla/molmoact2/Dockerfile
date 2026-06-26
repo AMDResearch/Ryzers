@@ -119,6 +119,7 @@ RUN /opt/libero-venv/bin/python -c "import torch, lerobot, transformers, robosui
 
 # Demo entrypoints, embodiment assets, and env sign-of-life.
 COPY assets/xarm6 /ryzers/assets/xarm6
+RUN python /ryzers/assets/xarm6/fetch_meshes.py
 COPY test.py /ryzers/
 COPY scripts/model_smoke.py scripts/droid_openloop_demo.py scripts/libero_action_plot.py \
      scripts/interactive_server.py scripts/interactive_server_rt.py scripts/embodiment.py /ryzers/
