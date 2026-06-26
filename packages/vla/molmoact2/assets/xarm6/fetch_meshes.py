@@ -1,20 +1,16 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Fetch the verbatim third-party xArm6 mesh binaries from UFACTORY upstreams.
+"""Fetch the xArm6 mesh binaries from their official UFACTORY upstreams.
 
-We do NOT vendor the verbatim third-party mesh binaries in this package. The 23
-files listed below are downloaded here, byte-for-byte, from the permissively-
-licensed UFACTORY repositories and verified against a pinned SHA-256 manifest.
+We do NOT vendor any of the xArm6 mesh binaries (visual STL, vhacd collision
+OBJ/MTL, gripper STL) in this package. They are downloaded here, byte-for-byte,
+from the permissively-licensed UFACTORY repositories and verified against a
+pinned SHA-256 manifest. Only the AMD-authored MuJoCo wrappers (`robot.xml`,
+`xarm_gripper.xml`) live in the package; they reference the meshes this script
+materializes under `meshes/`.
 
-Vendored in the package (NOT fetched here; see MESH_PROVENANCE.md):
-  * robot.xml, xarm_gripper.xml          AMD-authored MuJoCo wrappers
-  * meshes/xarm6/collision/{base,link1..link6}_vhacd.obj  (7 files)
-        AMD-generated CoACD convex-decomposition collision hulls of the arm
-        links below. These are derivative geometry (not a verbatim third-party
-        binary), so they are kept in-tree; this fetcher never touches them.
-
-Fetched here (23 files, all byte-identical to the pinned upstream commits):
-  * arm visual STL + collision .mtl + link2_vhacd2.obj (16 files)
+Provenance (all 30 files byte-identical to the pinned upstream commits):
+  * arm visual STL + collision vhacd OBJ/MTL (23 files)
       xArm-Developer/uf-gym (MIT), urdf/xarm/xarm_description/meshes/xarm6/
   * gripper STL (7 files)
       xArm-Developer/xarm_ros2 @ humble (BSD-3-Clause),
@@ -60,10 +56,15 @@ MANIFEST = {
     "xarm6/visual/link4.stl": "2a9952085fef91045380dac9825d9ad5a75867196933bc2cb1c3a635c23b0b7e",
     "xarm6/visual/link5.stl": "bfca01aae4255803ba2f5391c93836b91e1761e069275e38a9656ff2d53f45a4",
     "xarm6/visual/link6.stl": "b90cb1b373e65c035d7965bde92f4e2aedacdbbd57785a9018cd996b6b0b688e",
-    # --- arm collision: uf-gym vhacd2 OBJ + all MTL (uf-gym) ---
-    # NOTE: the 7 base/link1..link6 _vhacd.obj hulls are AMD CoACD output and are
-    # vendored in-tree (see MESH_PROVENANCE.md); they are intentionally absent here.
+    # --- arm collision: vhacd OBJ + MTL (uf-gym) ---
+    "xarm6/collision/base_vhacd.obj": "4e64122a1689aa822c6d8b88fdf4e0fbc54fc94b02d92be0e0e8e1308b7e3e29",
+    "xarm6/collision/link1_vhacd.obj": "8cb5eceaa5fccafa5cbe94adec4e7701ade06c932a385b940b12eeb441a529ed",
+    "xarm6/collision/link2_vhacd.obj": "fc03ef74436b1abfd45842a3e555fb257eff7f3ecd76eb394a771afccf1c89ed",
     "xarm6/collision/link2_vhacd2.obj": "2fc7451ef8b21d2cbfd8ca34f5d28267215a355f8ba3b8b192e9cc0984edc284",
+    "xarm6/collision/link3_vhacd.obj": "932799e0038645092293eb3e197f5c550fd3a8a53cec97822f797ac63a537c92",
+    "xarm6/collision/link4_vhacd.obj": "5907222062d2528bb4cf2179a2f3e5fdb963b27e2d906c1348075e3dd6197463",
+    "xarm6/collision/link5_vhacd.obj": "10250a224167c8e14f00dbb277a15b71f18b3db102ee7730abbabe9850459895",
+    "xarm6/collision/link6_vhacd.obj": "cce755e58e1719514531b4eb96e32e9fbb71228af586691221aceea8272c07d9",
     "xarm6/collision/base.mtl": "e23b5279777ea3bcbaeb3a0c748f95a51d1dc3bcce1db8c035a9361512e73a66",
     "xarm6/collision/link1.mtl": "e23b5279777ea3bcbaeb3a0c748f95a51d1dc3bcce1db8c035a9361512e73a66",
     "xarm6/collision/link2.mtl": "e23b5279777ea3bcbaeb3a0c748f95a51d1dc3bcce1db8c035a9361512e73a66",
