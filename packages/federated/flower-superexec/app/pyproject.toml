@@ -10,8 +10,16 @@ license = "Apache-2.0"
 # torch and torchvision are intentionally omitted: they are provided by
 # the ROCm/PyTorch base image. Pinning them here would cause pip to
 # replace the ROCm build with the upstream CUDA/CPU wheel.
+# flwr is pinned to exactly the version installed by flower-base
+# (FLWR_VERSION in flower-base/Dockerfile). A loose lower bound like
+# "flwr>=1.26.0" lets `pip install /app` silently UPGRADE flwr in the
+# superexec image to whatever is newest on PyPI at build time, while
+# flower-superlink/flower-supernode stay at the pinned version. The
+# resulting version skew makes the SuperLink/SuperNode raise cryptic
+# server-side errors ("Exception calling application: 'config'" / "'script'")
+# on the Fleet handshake. Keep this pin in lockstep with flower-base.
 dependencies = [
-    "flwr>=1.26.0",
+    "flwr==1.26.1",
     "flwr-datasets[vision]>=0.5.0",
 ]
 
