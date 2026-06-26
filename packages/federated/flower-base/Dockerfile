@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Flower CLI binaries (flower-superlink, flower-supernode, flower-superexec)
 # all come from this single pip package. Torch + ROCm is provided by the
 # default rocm/pytorch base image, so no torch install is needed here.
-ARG FLWR_VERSION=1.26.1
+ARG FLWR_VERSION=1.30.0
 RUN pip3 install --no-cache-dir --break-system-packages \
     "flwr[simulation]==${FLWR_VERSION}" \
     "flwr-datasets[vision]>=0.5.0"
