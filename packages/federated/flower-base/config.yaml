@@ -9,4 +9,4 @@
 #   ryzers build --name flower-superexec flower-base flower-superexec
 
 build_arguments:
-- "FLWR_VERSION=1.26.1"
+- "FLWR_VERSION=1.32.0"
