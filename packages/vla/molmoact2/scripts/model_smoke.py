@@ -5,8 +5,7 @@
 Initializes the *real* MolmoAct2-DROID checkpoint (downloads ~22 GB once into the
 mounted HF cache), then runs a single action-prediction on a dummy observation to
 prove the whole flow-matching action path executes end-to-end on ROCm. Reuses the
-validated upstream `Policy` loader (bf16 dtype patches) baked at
-/repos/molmoact2/examples/droid.
+upstream `Policy` loader (bf16 dtype patches) baked at /repos/molmoact2/examples/droid.
 
 Env: MODEL_REPO (allenai/MolmoAct2-DROID), DTYPE (bfloat16), NUM_STEPS (10).
 Exits non-zero on any failure so `ryzers run` / CI catches a broken image.
@@ -53,8 +52,8 @@ def main() -> int:
         print("FAIL: torch is not a ROCm build.", file=sys.stderr)
         return 1
     if not torch.cuda.is_available():
-        print("FAIL: no ROCm device visible (check /dev/kfd, /dev/dri, "
-              "HSA_OVERRIDE_GFX_VERSION).", file=sys.stderr)
+        print("FAIL: no ROCm device visible (check /dev/kfd, /dev/dri).",
+              file=sys.stderr)
         return 1
     print(f"device[0]        : {torch.cuda.get_device_name(0)}")
 

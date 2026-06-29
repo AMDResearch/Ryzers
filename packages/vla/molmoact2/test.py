@@ -20,8 +20,7 @@ def main() -> int:
         return 1
     if not torch.cuda.is_available():
         print(
-            "FAIL: no ROCm device visible. Check --device=/dev/kfd, /dev/dri and "
-            "HSA_OVERRIDE_GFX_VERSION=11.5.1.",
+            "FAIL: no ROCm device visible. Check --device=/dev/kfd, /dev/dri.",
             file=sys.stderr,
         )
         return 1

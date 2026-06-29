@@ -12,7 +12,7 @@ once per episode (and runs a receding-horizon action queue), so a new instructio
 takes effect after `policy.reset()` + a fresh `env.reset()`. Resetting per command is
 both the desired UX and the fix for "it keeps doing the old task".
 
-Reuses the validated lerobot eval machinery verbatim (make_env / make_policy /
+Reuses the lerobot eval machinery verbatim (make_env / make_policy /
 processors / rollout); only the loop is ours (live instruction + streaming + video).
 Stdlib http.server only (no extra deps).
 
@@ -100,7 +100,7 @@ def _banner_frame(rgb, text, size):
 
 class Scene:
     """Holds a single (suite, task_id) vec env + its metadata. Built via make_env so
-    obs_type / processors match the validated eval path exactly."""
+    obs_type / processors match the lerobot eval path exactly."""
 
     def __init__(self, suite, task_id, env, scene_task, objects):
         self.suite, self.task_id = suite, task_id

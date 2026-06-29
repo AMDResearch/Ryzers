@@ -17,11 +17,10 @@
 # Only if you run this on a REMOTE/headless box, forward the port first:
 #   ssh -L 8081:localhost:8081 <host>
 #
-# FAST MODE by default: depth reasoning OFF (THINK=0) + num_steps=4. The overnight
-# closed-loop sweep showed this keeps 100% success on libero_object while running
-# ~2.9x faster than the full depth-reasoning path (which also adds a ~20s first-plan
-# stall), so the real-time view actually flows. Set THINK=1 for the full "Think"
-# spatial-reasoning path (slower; better on harder spatial tasks).
+# FAST MODE by default: depth reasoning OFF (THINK=0) + num_steps=4 — much faster
+# closed-loop with no measured success drop on libero_object, so the real-time view
+# flows. Set THINK=1 for the full "Think" spatial-reasoning path (slower; better on
+# harder spatial tasks).
 set -euo pipefail
 
 export SUITE="${SUITE:-libero_object}"

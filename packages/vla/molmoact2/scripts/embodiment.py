@@ -68,8 +68,8 @@ _UR5E_INIT_QPOS_ROBOTIQ85 = np.array([-0.2922, -1.6619, 1.8606, -1.7151, -1.5871
 # xArm6 (URDF -> MJCF -> robosuite). IK-solved so each selected gripper's grip site
 # starts at the Panda LIBERO home eef pose; see register_xarm6.
 _XARM6_INIT_QPOS_PANDA = np.array([0.0, -0.02, -1.0592, 0.0, 1.1359, -0.0005])
-# Native XArmGripper home: IK-solved against the validated xArm6+PandaGripper
-# grip-site absolute pose (pos+orientation), because the native TCP is longer.
+# Native XArmGripper home: IK-solved against the xArm6+PandaGripper grip-site
+# absolute pose (pos+orientation), because the native TCP is longer.
 _XARM6_INIT_QPOS_NATIVE = np.array([0.0, -0.0473763, -1.244843, 0.0, 1.34892, -0.0005])
 _PANDA_WRIST_CAM_IN_GRIPSITE = np.array([0.0, 0.05, -0.097])
 
@@ -670,7 +670,7 @@ def apply(embodiment, gripper=None):
         joint space, applies singularity and joint-limit margins, then sends a
         FollowJointTrajectory position command. In robosuite we approximate that
         with damped least-squares IK on MuJoCo's site Jacobian, a small posture
-        bias toward the validated xArm6 home, and per-substep joint clipping.
+        bias toward the xArm6 home, and per-substep joint clipping.
         """
         import mujoco
 

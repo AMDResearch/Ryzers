@@ -22,7 +22,7 @@ HOLD keeps the LAST gripper command (don't drop what you're holding). Replaying 
 Visually: the arm pauses mid-motion while "thinking" (buffer empty), then resumes when the
 chunk lands. This shows how planner speed affects control.
 
-Reuses the validated lerobot select_action / processor path verbatim; only the loop is ours.
+Reuses the lerobot select_action / processor path verbatim; only the loop is ours.
 Env: SUITE, TASK_ID, SEED, THINK (1), CKPT, PORT (8081), VIEW_RES (720), VIDEO_RES (600),
 RT_HZ (20), RT_LOOKAHEAD (0), OUT_DIR (/outputs). Open http://localhost:PORT.
 """

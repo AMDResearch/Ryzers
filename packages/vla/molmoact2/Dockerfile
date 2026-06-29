@@ -3,17 +3,16 @@
 #
 # MolmoAct2 (Ai2 VLA) on AMD Strix Halo (gfx1151) Ryzer package.
 # Layers the MolmoAct2 inference + DROID open-loop + LIBERO closed-loop stacks on
-# the verified Ryzer ROCm base (ryzerdocker:latest, torch 2.10.0+rocm7.2.2).
+# the default Ryzer ROCm base (rocm/pytorch, torch 2.10.0+rocm7.2.2).
 #
 # Three self-contained demos (see README), each run via `ryzers run`:
 #   1. /ryzers/demo_smoke.sh   full-model load + one prediction (capability 1)
 #   2. /ryzers/demo_droid.sh   random DROID episode, open-loop, video + GT-vs-pred plot
 #   3. /ryzers/demo_libero.sh  random LIBERO scene, closed-loop MuJoCo, video + action plot
 #
-# PORT NOTE: upstream allenai/molmoact2 pyproject pins torch==2.5.1 /
-# torchvision==0.20.1 from the CUDA-12.1 index. On AMD we KEEP the base image's
-# ROCm torch and install everything else; a build-time guard fails if torch is
-# swapped off ROCm. Other pins track allenai/molmoact2 @ cdf4b772.
+# We keep the base image's ROCm torch/torchvision (upstream's CUDA-only pins are not
+# installed); a build-time guard fails if torch is swapped off ROCm. Other deps track
+# allenai/molmoact2 @ cdf4b772.
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
@@ -23,8 +22,7 @@ ARG LEROBOT_REF=molmoact2-hf-inference
 
 WORKDIR /ryzers
 
-ENV HSA_OVERRIDE_GFX_VERSION=11.5.1 \
-    HF_HUB_ENABLE_HF_TRANSFER=0 \
+ENV HF_HUB_ENABLE_HF_TRANSFER=0 \
     HF_HUB_DISABLE_XET=1 \
     HF_HUB_DISABLE_TELEMETRY=1 \
     TOKENIZERS_PARALLELISM=false
@@ -55,10 +53,9 @@ RUN pip install --no-cache-dir \
       "imageio[ffmpeg]>=2.34" \
       "matplotlib>=3.8"
 
-# Bake the upstream MolmoAct2 source (host_server_droid.Policy = validated bf16
-# loader for the DROID model). Pinned to the commit the port was validated on.
-# `rm -rf` first so the build is idempotent even on a base that already carries a
-# /repos/molmoact2 (otherwise `git clone` aborts on a non-empty destination).
+# Bake the upstream MolmoAct2 source at the pinned commit (host_server_droid.Policy
+# is the bf16 loader the DROID demos use). `rm -rf` first keeps the build idempotent
+# if the base already carries a /repos/molmoact2.
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/* && \
     rm -rf /repos/molmoact2 && \
@@ -73,13 +70,13 @@ RUN python -c "import torch; assert torch.version.hip, 'torch is not a ROCm buil
 # paper's metric). Installed in an ISOLATED venv (/opt/libero-venv) on purpose:
 # the allenai/lerobot fork + the allenai/MolmoAct2-*-LIBERO checkpoints require
 # transformers 5.3, which would otherwise clobber the base /opt/venv transformers
-# 4.57 used by the validated DROID inference path. The isolated venv re-uses the
-# base ROCm torch/torchvision via a .pth, and a pip constraints file pins them so
-# the sim deps can never pull the default CUDA torch + nvidia-cu12 wheels.
+# 4.57 used by the DROID inference path. The isolated venv re-uses the base ROCm
+# torch/torchvision via a .pth, and a pip constraints file pins them so the sim deps
+# can never pull the default CUDA torch + nvidia-cu12 wheels.
 #   * MuJoCo renders headless via EGL on gfx1151 (base already ships the Mesa EGL
 #     stack); we only add the -dev headers + cmake/compiler that robosuite's
 #     egl_probe builds from source.
-#   * fork @ branch ${LEROBOT_REF} (LeRobot v0.5.1 at port time).
+#   * fork @ branch ${LEROBOT_REF}.
 # ============================================================================
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     apt-get install -y --no-install-recommends \

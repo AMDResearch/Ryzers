@@ -3,14 +3,10 @@
 
 ### ryzers build options
 
-# Public, pullable ROCm+PyTorch base (== ryzers.RYZERS_DEFAULT_INIT_IMAGE; the same image
-# ryzerdocker was built from). A locally-built tag here (e.g. ryzerdocker:latest from the
-# dreamzero sim project) breaks `ryzers build molmoact2` on a fresh machine with "pull
-# access denied ... ryzerdocker:latest". MolmoAct2 installs its own mujoco/robosuite (via
-# lerobot[libero]) + egl/osmesa libs, so it needs only this ROCm torch base for gfx1151.
-init_image: "rocm/pytorch:rocm7.2.2_ubuntu24.04_py3.12_pytorch_release_2.10.0"
+# init_image is omitted on purpose: ryzers defaults to RYZERS_DEFAULT_INIT_IMAGE
+# (the public rocm/pytorch ROCm+torch base), which is all this package needs.
 
-# Pin the upstream MolmoAct2 source the inference path was validated against.
+# Pin the upstream MolmoAct2 source + lerobot ref this package builds against.
 build_arguments:
 - "MOLMOACT2_COMMIT=cdf4b7728e0545366bf3366639fd86477ef59d04"
 - "LEROBOT_REF=molmoact2-hf-inference"
@@ -24,14 +20,10 @@ x11_display: false
 # the persistent /root/.cache/huggingface volume and are reused across runs.
 # Artifacts (videos + joint-angle plots) land under /outputs.
 environment_variables:
-- "HSA_OVERRIDE_GFX_VERSION=11.5.1"
 - "HF_HOME=/root/.cache/huggingface"
-# HF download backend. These repos are Xet-stored, so the plain-HTTP fallback serves
-# from the Xet bridge CDN, which rate-limits CONCURRENT anonymous requests (403
-# 'no permits available'). hf_transfer opens 3 parallel streams and trips that limit
-# at the first uncached shard (looked like 'stuck at 4/5'); a single stream works.
-# So default to single-stream + Xet client off. Override for speed on a network with
-# permits/auth: HF_HUB_ENABLE_HF_TRANSFER=1 ryzers run ...
+# HF download backend: default to single-stream with the Xet client off for reliable
+# anonymous downloads. Override for speed where permits/auth allow:
+#   HF_HUB_ENABLE_HF_TRANSFER=1 ryzers run ...
 - 'HF_HUB_DISABLE_XET=${HF_HUB_DISABLE_XET:-1}'
 - 'HF_HUB_ENABLE_HF_TRANSFER=${HF_HUB_ENABLE_HF_TRANSFER:-0}'
 - 'HF_HUB_DOWNLOAD_TIMEOUT=${HF_HUB_DOWNLOAD_TIMEOUT:-60}'
