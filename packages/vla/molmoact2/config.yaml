@@ -36,9 +36,6 @@ environment_variables:
 - "TORCH_BLAS_PREFER_HIPBLASLT=0"
 - "OUT_DIR=/outputs"
 # Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demo_*.sh).
-# Leave blank to let each demo pick a random episode or scene. Demo-specific tuning
-# (viewport/video resolution, per-arm gripper/IK/OSC/servo) is NOT forwarded here; it
-# lives in the demo scripts (case blocks) + embodiment.py and is edited there.
 - 'SEED=${SEED:-}'
 - 'EPISODE=${EPISODE:-}'
 - 'SUITE=${SUITE:-}'
