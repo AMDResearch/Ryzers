@@ -36,53 +36,25 @@ environment_variables:
 - "TORCH_BLAS_PREFER_HIPBLASLT=0"
 - "OUT_DIR=/outputs"
 # Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demo_*.sh).
-# Leave blank to let each demo pick a random episode or scene.
+# Leave blank to let each demo pick a random episode or scene. Demo-specific tuning
+# (viewport/video resolution, per-arm gripper/IK/OSC/servo) is NOT forwarded here; it
+# lives in the demo scripts (case blocks) + embodiment.py and is edited there.
 - 'SEED=${SEED:-}'
 - 'EPISODE=${EPISODE:-}'
 - 'SUITE=${SUITE:-}'
 - 'TASK_ID=${TASK_ID:-}'
 - 'THINK=${THINK:-}'
 - 'HF_TOKEN=${HF_TOKEN:-}'
-# Interactive demo (demo_interactive.sh / demo_interactive_rt.sh) knobs.
-- 'PORT=${PORT:-}'
-- 'VIEW_RES=${VIEW_RES:-}'
-- 'VIDEO_RES=${VIDEO_RES:-}'
-- 'RT_HZ=${RT_HZ:-}'
-- 'RT_LOOKAHEAD=${RT_LOOKAHEAD:-}'
-- 'RT_MAX_STEPS=${RT_MAX_STEPS:-}'
 # Flow-matching denoising steps (lower = a bit faster inference). Blank = model default.
 - 'NUM_STEPS=${NUM_STEPS:-}'
-# Real-time demo horizon extension for long tasks.
-- 'RT_HORIZON_MULT=${RT_HORIZON_MULT:-}'
-# Cross-embodiment demo knobs.
+# Interactive demo (demo_interactive.sh / demo_interactive_rt.sh) knobs.
+- 'PORT=${PORT:-}'
+- 'RT_HZ=${RT_HZ:-}'
+- 'RT_LOOKAHEAD=${RT_LOOKAHEAD:-}'
+# Sim horizon (max episode steps) for the real-time demo; raise for longer tasks.
+- 'RT_MAX_STEPS=${RT_MAX_STEPS:-}'
+# Cross-embodiment arm selector (panda | ur5e | xarm6).
 - 'EMBODIMENT=${EMBODIMENT:-}'
-- 'EMBODIMENT_GRIPPER=${EMBODIMENT_GRIPPER:-}'
-- 'EMBODIMENT_EXECUTOR=${EMBODIMENT_EXECUTOR:-}'
-- 'EMBODIMENT_SERVO_STEPS=${EMBODIMENT_SERVO_STEPS:-}'
-- 'EMBODIMENT_POS_SCALE=${EMBODIMENT_POS_SCALE:-}'
-- 'EMBODIMENT_ROT_SCALE=${EMBODIMENT_ROT_SCALE:-}'
-- 'EMBODIMENT_XARM6_CAMERA_MATCH=${EMBODIMENT_XARM6_CAMERA_MATCH:-}'
-- 'EMBODIMENT_UR5E_ROBOTIQ_INIT_BLEND=${EMBODIMENT_UR5E_ROBOTIQ_INIT_BLEND:-}'
-- 'EMBODIMENT_UR5E_ROBOTIQ_EEF_OFFSET=${EMBODIMENT_UR5E_ROBOTIQ_EEF_OFFSET:-}'
-- 'EMBODIMENT_UR5E_ROBOTIQ_CAMERA_OFFSET=${EMBODIMENT_UR5E_ROBOTIQ_CAMERA_OFFSET:-}'
-# Cross-embodiment fine-tuning knobs read by embodiment.py (IK/OSC/servo for the
-# non-Panda arms). Blank => the in-code default; set per run to tune, e.g.
-#   EMBODIMENT=xarm6 EMBODIMENT_IK_DAMPING=0.1 ryzers run /ryzers/demo_*.sh
-- 'EMBODIMENT_ROT_DEG=${EMBODIMENT_ROT_DEG:-}'
-- 'EMBODIMENT_CONTROL_FREQ=${EMBODIMENT_CONTROL_FREQ:-}'
-- 'EMBODIMENT_SERVO_POS_TOL=${EMBODIMENT_SERVO_POS_TOL:-}'
-- 'EMBODIMENT_SERVO_ROT_TOL=${EMBODIMENT_SERVO_ROT_TOL:-}'
-- 'EMBODIMENT_OSC_KP=${EMBODIMENT_OSC_KP:-}'
-- 'EMBODIMENT_OSC_DR=${EMBODIMENT_OSC_DR:-}'
-- 'EMBODIMENT_IK_ORI_WEIGHT=${EMBODIMENT_IK_ORI_WEIGHT:-}'
-- 'EMBODIMENT_IK_DAMPING=${EMBODIMENT_IK_DAMPING:-}'
-- 'EMBODIMENT_IK_MAX_DQ=${EMBODIMENT_IK_MAX_DQ:-}'
-- 'EMBODIMENT_IK_POSTURE_GAIN=${EMBODIMENT_IK_POSTURE_GAIN:-}'
-- 'EMBODIMENT_IK_LIMIT_GAIN=${EMBODIMENT_IK_LIMIT_GAIN:-}'
-- 'EMBODIMENT_IK_LIMIT_MARGIN=${EMBODIMENT_IK_LIMIT_MARGIN:-}'
-- 'EMBODIMENT_IK_SINGULAR_LOWER=${EMBODIMENT_IK_SINGULAR_LOWER:-}'
-- 'EMBODIMENT_IK_SINGULAR_HARD=${EMBODIMENT_IK_SINGULAR_HARD:-}'
-- 'XARM6_ROBOT_XML=${XARM6_ROBOT_XML:-}'
 
 volume_mappings:
 - "$PWD/workspace/molmoact2/outputs:/outputs"

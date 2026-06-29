@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
 """Idempotently patch the allenai/lerobot fork's eval to dump per-episode executed
 action trajectories (.npy) next to each rendered video, so we can make action
 plots for every LIBERO rollout. Safe to re-run."""

@@ -106,10 +106,10 @@ http://localhost:8081
 ```
 
 
-For longer-horizon tasks:
+For longer-horizon tasks (raise the max episode steps; default 1200):
 
 ```sh
-RT_HORIZON_MULT=10 ryzers run /ryzers/demo_interactive_rt.sh
+RT_MAX_STEPS=3000 ryzers run /ryzers/demo_interactive_rt.sh
 ```
 
 ### Closed-Loop LIBERO Evaluation
