@@ -4,7 +4,11 @@
 # SPDX-License-Identifier: MIT
 
 import os
-os.environ['PYOPENGL_PLATFORM'] = 'glx'
+# Use EGL for headless rendering (issue #66)
+if 'PYOPENGL_PLATFORM' not in os.environ:
+  os.environ['PYOPENGL_PLATFORM'] = 'egl'
+  
+import genesis as gs
 
 print("Testing Genesis installation...")
 
@@ -15,12 +19,8 @@ print(f"Genesis version: {gs.__version__}")
 print("Initializing Genesis with Vulkan backend...")
 gs.init(backend=gs.vulkan)
 
-# Create scene WITHOUT viewer (headless mode)
-print("Creating headless scene...")
+# Headless mode by default (set show_viewer=True if X11 display available)
 scene = gs.Scene(show_viewer=False)
-
-# Add entities
-print("Adding entities...")
 plane = scene.add_entity(gs.morphs.Plane())
 franka = scene.add_entity(
     gs.morphs.MJCF(file='xml/franka_emika_panda/panda.xml'),
