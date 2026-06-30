@@ -54,6 +54,8 @@ Once everything is loaded you can use the streamlit chat window to tell the robo
 
 ## Run benchmarks with local LLM
 
+### Ollama
+
 We'll append the ollama package to enable locally run models.
 
 ```bash
@@ -88,20 +90,17 @@ python src/rai_bench/rai_bench/examples/vlm_benchmark.py --model-name gemma3:4b 
 
 By default we mount the benchmark results in an experiments directory on the path you ran `ryzers run` from. You will find a `results_summary.csv` for an overview there along with more detailed logs.
 
+### Lemonade
+
 Using **Lemonade** instead of ollama:
 
 ```bash
-ryzers build ros o3de rai lemonade-sdk --name <image>:<tag>
-ryzers run --name <image>:<tag> bash
+ryzers build ros o3de rai lemonade-sdk
+ryzers run
 
 # --- Local model (Lemonade) ---
 source lemonade_env.sh     # or: source lemonade_env.sh <other-model>
 python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name Gemma-4-E2B-it-GGUF --vendor openai --levels trivial
-
-# --- Cloud model (OpenAI) ---
-export OPENAI_API_KEY=sk-your-real-key
-source openai_env.sh
-python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name gpt-4o --vendor openai --levels trivial
 ```
 
 ## Documentation
