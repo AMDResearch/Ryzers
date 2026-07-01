@@ -92,7 +92,7 @@ COPY test.sh /ryzers/test_rai.sh
 RUN chmod +x /ryzers/test_rai.sh
 COPY manipulation_demo.sh /ryzers/manipulation_demo.sh
 RUN chmod +x /ryzers/manipulation_demo.sh
-COPY lemonade_env.sh openai_env.sh /ryzers/
+COPY lemonade_env.sh /ryzers/
 
 EXPOSE 8501
 CMD /ryzers/test_rai.sh
