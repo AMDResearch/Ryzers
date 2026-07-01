@@ -92,16 +92,29 @@ By default we mount the benchmark results in an experiments directory on the pat
 
 ### Lemonade
 
-Using **Lemonade** instead of ollama:
+We'll append the lemonade-sdk package to serve models locally through Lemonade's OpenAI-compatible API.
 
 ```bash
 ryzers build ros o3de rai lemonade-sdk
 ryzers run
-
-# --- Local model (Lemonade) ---
-source lemonade_env.sh     # or: source lemonade_env.sh <other-model>
-python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name Gemma-4-E2B-it-GGUF --vendor openai --levels trivial
 ```
+
+By default `lemonade_env.sh` downloads and serves **Gemma-4-E2B-it-GGUF**. To use a different model, pass it as an argument (`source lemonade_env.sh <model>`) and update the `--model-name` flag to match. Again, below we give an example for running the lemonade-sdk on the same 3 benchmarks.
+
+```bash
+source lemonade_env.sh     # or: source lemonade_env.sh <other-model>
+
+# Run tool calling benchmark
+python src/rai_bench/rai_bench/examples/tool_calling_agent.py --model-name Gemma-4-E2B-it-GGUF --vendor openai --extra-tool-calls 5 --task-types basic --n-shots 5 --prompt-detail descriptive --complexities easy
+
+# Run manipulation benchmark
+python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name Gemma-4-E2B-it-GGUF --vendor openai --levels trivial
+
+# Run VLM benchmark (use a vision-capable model)
+python src/rai_bench/rai_bench/examples/vlm_benchmark.py --model-name Gemma-4-E2B-it-GGUF --vendor openai
+```
+
+Available models and serving config live in `lemonade_env.sh`.
 
 ## Documentation
 
