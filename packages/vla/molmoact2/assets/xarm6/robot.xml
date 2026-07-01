@@ -1,0 +1,73 @@
+<mujoco model="xarm6">
+  <asset>
+    <mesh name="base" file="meshes/xarm6/visual/base.stl" />
+    <mesh name="base_vhacd" file="meshes/xarm6/collision/base_vhacd.obj" />
+    <mesh name="link1" file="meshes/xarm6/visual/link1.stl" />
+    <mesh name="link1_vhacd" file="meshes/xarm6/collision/link1_vhacd.obj" />
+    <mesh name="link2" file="meshes/xarm6/visual/link2.stl" />
+    <mesh name="link2_vhacd" file="meshes/xarm6/collision/link2_vhacd.obj" />
+    <mesh name="link3" file="meshes/xarm6/visual/link3.stl" />
+    <mesh name="link3_vhacd" file="meshes/xarm6/collision/link3_vhacd.obj" />
+    <mesh name="link4" file="meshes/xarm6/visual/link4.stl" />
+    <mesh name="link4_vhacd" file="meshes/xarm6/collision/link4_vhacd.obj" />
+    <mesh name="link5" file="meshes/xarm6/visual/link5.stl" />
+    <mesh name="link5_vhacd" file="meshes/xarm6/collision/link5_vhacd.obj" />
+    <mesh name="link6" file="meshes/xarm6/visual/link6.stl" />
+    <mesh name="link6_vhacd" file="meshes/xarm6/collision/link6_vhacd.obj" />
+  </asset>
+  <actuator>
+    <motor ctrllimited="true" ctrlrange="-163 163" joint="joint1" name="torq_j1" />
+    <motor ctrllimited="true" ctrlrange="-163 163" joint="joint2" name="torq_j2" />
+    <motor ctrllimited="true" ctrlrange="-81 81" joint="joint3" name="torq_j3" />
+    <motor ctrllimited="true" ctrlrange="-81 81" joint="joint4" name="torq_j4" />
+    <motor ctrllimited="true" ctrlrange="-30.6 30.6" joint="joint5" name="torq_j5" />
+    <motor ctrllimited="true" ctrlrange="-30.6 30.6" joint="joint6" name="torq_j6" />
+  </actuator>
+  <worldbody>
+    <body name="base">
+      <camera mode="fixed" name="robotview" pos="1.0 0 0.4" quat="0.653 0.271 0.271 0.653" />
+      <inertial pos="0 0 0.09103" quat="0.981065 0.000747228 -0.0021866 -0.193666" mass="2.7" diaginertia="0.00495024 0.00494031 0.00221894" />
+      <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="base" />
+      <geom type="mesh" rgba="1 1 1 1" mesh="base_vhacd" />
+      <body name="link1" pos="0 0 0.267">
+        <inertial pos="-0.002 0.02692 -0.01332" quat="0.983139 0.180751 -0.00455228 0.0272976" mass="2.16" diaginertia="0.00539487 0.00519906 0.00281397" />
+        <joint name="joint1" pos="0 0 0" axis="0 0 1" range="-6.28319 6.28319" actuatorfrcrange="-163 163" damping="0.001" frictionloss="0.01" armature="0.1" />
+        <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link1" />
+        <geom type="mesh" rgba="1 1 1 1" mesh="link1_vhacd" />
+        <body name="link2" quat="0.707105 -0.707108 0 0">
+          <inertial pos="0.03531 -0.21398 0.03386" quat="0.71118 0.614686 0.139936 -0.311132" mass="1.71" diaginertia="0.017867 0.017867 0.017867" />
+          <joint name="joint2" pos="0 0 0" axis="0 0 1" range="-2.059 2.0944" actuatorfrcrange="-163 163" damping="0.001" frictionloss="0.01" armature="0.1" />
+          <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link2" />
+          <geom type="mesh" rgba="1 1 1 1" mesh="link2_vhacd" />
+          <body name="link3" pos="0.0535 -0.2845 0">
+            <inertial pos="0.06781 0.10749 0.01457" quat="0.119516 0.409082 -0.734824 0.527638" mass="1.384" diaginertia="0.004543 0.004543 0.004543" />
+            <joint name="joint3" pos="0 0 0" axis="0 0 1" range="-3.927 0.19198" actuatorfrcrange="-81 81" damping="0.001" frictionloss="0.01" armature="0.1" />
+            <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link3" />
+            <geom type="mesh" rgba="1 1 1 1" mesh="link3_vhacd" />
+            <body name="link4" pos="0.0775 0.3425 0" quat="0.707105 -0.707108 0 0">
+              <inertial pos="-0.00021 0.02578 -0.02538" quat="0.994019 0.0752563 -0.00686804 0.0788347" mass="1.115" diaginertia="0.00440091 0.00406855 0.00103407" />
+              <joint name="joint4" pos="0 0 0" axis="0 0 1" range="-6.28319 6.28319" actuatorfrcrange="-81 81" damping="0.001" frictionloss="0.01" armature="0.1" />
+              <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link4" />
+              <geom type="mesh" rgba="1 1 1 1" mesh="link4_vhacd" />
+              <body name="link5" quat="0.707105 0.707108 0 0">
+                <inertial pos="0.05428 0.01781 0.00543" quat="-0.0766302 0.578118 -0.269638 0.766291" mass="1.275" diaginertia="0.00289757 0.0023276 0.000951789" />
+                <joint name="joint5" pos="0 0 0" axis="0 0 1" range="-1.69297 3.14159" actuatorfrcrange="-30.6 30.6" damping="0.001" frictionloss="0.01" armature="0.1" />
+                <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="1 1 1 1" mesh="link5" />
+                <geom type="mesh" rgba="1 1 1 1" mesh="link5_vhacd" />
+                <body name="link6" pos="0.076 0.097 0" quat="0.707105 -0.707108 0 0">
+                  <inertial pos="0 0.00064 -0.00952" quat="0 0.707107 0 0.707107" mass="0.1096" diaginertia="7.9715e-05 4.8111e-05 4.5293e-05" />
+                  <joint name="joint6" pos="0 0 0" axis="0 0 1" range="-6.28319 6.28319" actuatorfrcrange="-30.6 30.6" damping="0.001" frictionloss="0.01" armature="0.1" />
+                  <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.753 0.753 0.753 1" mesh="link6" />
+                  <geom type="mesh" rgba="0.753 0.753 0.753 1" mesh="link6_vhacd" />
+                  <body name="right_hand" pos="0 0 0" quat="1 0 0 0">
+                    <camera mode="fixed" name="eye_in_hand" pos="0.05 0 0" quat="0 0.707108 0.707108 0" fovy="75" />
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

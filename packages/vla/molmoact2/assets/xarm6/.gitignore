@@ -1,0 +1,5 @@
+# xArm6 mesh binaries are NOT vendored here. All 30 are fetched byte-for-byte
+# from their official UFACTORY upstreams (uf-gym MIT + xarm_ros2 BSD-3) and
+# sha256-verified by fetch_meshes.py at image-build time. Keep them out of git
+# so the third-party geometry is never re-committed to this package.
+meshes/
