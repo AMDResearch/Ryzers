@@ -18,6 +18,8 @@ lemonade load "$MODEL"
 # value, so this works no matter which backend you ran last.
 sed -i 's|^base_url = .*|base_url = "http://localhost:13305/api/v0"|' /ryzers/rai/config.toml
 export OPENAI_API_KEY="lemonade"   # dummy; Lemonade ignores it
+# Point the [openai] model name to do the same sourced in lemonade.
+sed -i '/^\[openai\]/,/^\[/{s|^simple_model = .*|simple_model = "'"$MODEL"'"|; s|^complex_model = .*|complex_model = "'"$MODEL"'"|}' /ryzers/rai/config.toml
 
 # ROS env (runtime = interactive bash, so .bash)
 cd /ryzers/rai
@@ -26,3 +28,4 @@ source install/setup.bash
 
 echo "Lemonade ready. Run e.g.:"
 echo "  python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name $MODEL --vendor openai --levels trivial"
+echo "  bash /ryzers/manipulation_demo.sh"
