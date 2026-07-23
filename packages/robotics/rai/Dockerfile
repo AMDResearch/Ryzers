@@ -36,7 +36,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN echo "source $VIRTUAL_ENV/bin/activate" >> /root/.bashrc
 
 # Pin empy<4 (required by rosidl_generator_rs)
-RUN pip install --upgrade pip "setuptools<82" poetry "empy<4" lark && \
+RUN pip install --upgrade pip "setuptools<82" "empy<4" lark && \
     pip install --no-build-isolation openai-whisper==20231117
 
 # RAI framework (pinned commit)
@@ -44,12 +44,17 @@ WORKDIR /ryzers
 RUN git clone https://github.com/RobotecAI/rai.git
 
 WORKDIR /ryzers/rai
-RUN git checkout a097617
+RUN git checkout e54f8ca
 RUN vcs import < ros_deps.repos
 RUN vcs import < demos.repos
 
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction
+# TODO: Once upstream fixed remove the grabbing_point_tool patch
+# sed fixes an upstream bug: GetObjectPositionsTool's forward-ref to
+# GetGrabbingPointTool is never rebuilt, so under langchain 1.x / pydantic 2.x the
+# model is "not fully defined" and instantiation raises. Any avoids it.
+RUN sed -i 's/    get_grabbing_point_tool: "GetGrabbingPointTool"/    get_grabbing_point_tool: Any/' \
+        src/rai_core/rai/tools/ros2/manipulation/custom.py && \
+    pip install src/rai_core src/rai_whoami
 
 RUN rosdep init && \
     rosdep update && \
