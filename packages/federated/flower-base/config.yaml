@@ -1,0 +1,12 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# flower-base is a composable layer. It provides the flwr CLI on top of the
+# default ROCm/PyTorch base image. Most users will not run it directly;
+# instead chain it with one of:
+#   ryzers build --name flower-superlink flower-base flower-superlink
+#   ryzers build --name flower-supernode flower-base flower-supernode
+#   ryzers build --name flower-superexec flower-base flower-superexec
+
+build_arguments:
+- "FLWR_VERSION=1.32.0"

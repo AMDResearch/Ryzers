@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quickstart-pytorch"
+version = "1.0.1"
+description = "Federated Learning with PyTorch and Flower (Quickstart Example)"
+license = "Apache-2.0"
+# torch and torchvision are intentionally omitted: they are provided by
+# the ROCm/PyTorch base image. Pinning them here would cause pip to
+# replace the ROCm build with the upstream CUDA/CPU wheel.
+# flwr is pinned to exactly the version installed by flower-base
+# (FLWR_VERSION in flower-base/Dockerfile). A loose lower bound like
+# "flwr>=1.26.0" lets `pip install /app` silently UPGRADE flwr in the
+# superexec image to whatever is newest on PyPI at build time, while
+# flower-superlink/flower-supernode stay at the pinned version. The
+# resulting version skew makes the SuperLink/SuperNode raise cryptic
+# server-side errors ("Exception calling application: 'config'" / "'script'")
+# on the Fleet handshake. Keep this pin in lockstep with flower-base.
+dependencies = [
+    "flwr==1.32.0",
+    "flwr-datasets[vision]>=0.5.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.flwr.app]
+publisher = "flwrlabs"
+
+[tool.flwr.app.components]
+serverapp = "pytorchexample.server_app:app"
+clientapp = "pytorchexample.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 3
+fraction-evaluate = 0.5
+local-epochs = 1
+learning-rate = 0.1
+batch-size = 32
+
+# Flower requires the [tool.flwr.federations] table with a `default`
+# key; omitting it makes flwr fall back to its legacy-config migration
+# path, which fails with "failed to migrate legacy toml configuration".
+[tool.flwr.federations]
+default = "local"
+
+# `local` federation: targets the SuperLink ExecApi on the host loopback
+# (works under --network host). Used by `flwr run /app local`, which the
+# `submit` plugin type in run-superexec.sh invokes.
+[tool.flwr.federations.local]
+address = "127.0.0.1:9093"
+insecure = true
+
+# SuperLink default ports: 9091 = ServerAppIo (serverapp superexec),
+# 9092 = Fleet (SuperNode), 9093 = ExecApi (flwr run submitter).
