@@ -31,8 +31,10 @@ RUN cd /ryzers/xdna-driver/tools && \
 RUN cd /ryzers/xdna-driver/xrt/build/ && \
     ./build.sh -npu -opt -noctest
 
-# Build XDNA driver (-release also generates the .deb package)
+# Build XDNA driver (-release also generates the .deb); stub download_npufws so
+# firmware comes only from the linux-firmware deb, not repo.radeon.com
 RUN cd /ryzers/xdna-driver/build && \
+    sed -i '/^download_npufws()/,/^}/c\download_npufws() { :; } # firmware via Ubuntu linux-firmware deb (extract_npu_firmware.sh)' build.sh && \
     ./build.sh -release
 
 # Finally, save and install the XRT/XDNA debian packages
@@ -43,7 +45,11 @@ RUN mkdir /ryzers/debs && \
     cp /ryzers/xdna-driver/xrt/build/Release/xrt*-amd64-base.deb /ryzers/debs/ && \
 	dpkg -i /ryzers/debs/*.deb
 
-# Cleanup
+# Extract NPU firmware from Ubuntu's linux-firmware deb
+COPY extract_npu_firmware.sh /ryzers/extract_npu_firmware.sh
+RUN chmod +x /ryzers/extract_npu_firmware.sh && \
+    /ryzers/extract_npu_firmware.sh
+
 ENV SHELL=/bin/bash
 
 COPY test.sh /ryzers/
