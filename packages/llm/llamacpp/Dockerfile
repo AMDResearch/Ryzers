@@ -27,12 +27,29 @@ RUN apt-get update \
 && apt update \
 && apt install -y vulkan-sdk
 
+# ROCm 7.14+ has no /opt/rocm; the HIP CMake package ships in rocm-sdk-devel.
+RUN /opt/venv/bin/pip install \
+      --index-url https://repo.amd.com/rocm/whl-multi-arch \
+      --extra-index-url https://pypi.org/simple \
+      "rocm[devel]==7.14.0" \
+ && /opt/venv/bin/rocm-sdk init
+
+ENV ROCM_PATH=/opt/venv/lib/python3.12/site-packages/_rocm_sdk_devel
+
+# The wheel lib dirs are not on the loader path, so binaries fail on libhipblas.
+RUN printf '%s\n' \
+      /opt/venv/lib/python3.12/site-packages/_rocm_sdk_core/lib \
+      /opt/venv/lib/python3.12/site-packages/_rocm_sdk_libraries/lib \
+      /opt/venv/lib/python3.12/site-packages/_rocm_sdk_devel/lib \
+      > /etc/ld.so.conf.d/rocm-wheels.conf && ldconfig
+
 # Clone and build LlamaCPP
 WORKDIR /ryzers
 RUN git clone https://github.com/ggml-org/llama.cpp.git llamacpp && \
     cd llamacpp && \
-    HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
-    cmake -S . -B build -DLLAMA_CURL=ON -DGGML_VULKAN=1 -DGGML_HIP=ON -DAMDGPU_TARGETS=$GFXSTRING -DCMAKE_BUILD_TYPE=Release \
+    HIPCXX="$ROCM_PATH/lib/llvm/bin/clang++" HIP_PATH="$ROCM_PATH" \
+    cmake -S . -B build -DGGML_VULKAN=1 -DGGML_HIP=ON -DGPU_TARGETS=$GFXSTRING \
+    -DCMAKE_PREFIX_PATH="$(/opt/venv/bin/rocm-sdk path --cmake)" -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build --config Release -- -j 16
 
 # Copy test script

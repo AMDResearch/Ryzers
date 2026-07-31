@@ -1,3 +1,4 @@
+init_image: "rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0"
 
 build_arguments:            
 - "GFXSTRING=gfx1151"               # llamacpp needs the amdgpu gfx string for build
