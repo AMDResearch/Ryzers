@@ -5,14 +5,12 @@ ARG BASE_IMAGE
 FROM ${BASE_IMAGE}  
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV HSA_OVERRIDE_GFX_VERSION=11.0.0
 
 WORKDIR /ryzers
 
 # Basic environment setup
 ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONUNBUFFERED=1 \
-    HSA_OVERRIDE_GFX_VERSION=11.0.0
+    PYTHONUNBUFFERED=1
 
 # System packages: Vulkan + FFmpeg + EGL for headless rendering
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -34,7 +34,7 @@ ryzers run bash
 
 # inside docker container
 cd /ryzers
-HSA_OVERRIDE_GFX_VERSION=11.0.0 HF_TOKEN=<your_huggingface_token> python test_gemma3_hf.py
+HF_TOKEN=<your_huggingface_token> python test_gemma3_hf.py
 ```
 
 Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
