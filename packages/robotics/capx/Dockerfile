@@ -164,6 +164,16 @@ RUN if [ "$CAPX_SIM" = "libero" ]; then \
 # puts `capx` on the path). --no-build-isolation so it sees the base torch.
 RUN pip install --no-cache-dir --no-deps --no-build-isolation -e .
 
+# Ungated perception path (no HF_TOKEN): a FrankaControlApi variant that segments
+# via OWLv2 + SAM2 instead of the gated facebook/sam3. The leading \n is required —
+# upstream's __init__.py has no trailing newline.
+RUN printf '\n%s\n' \
+        'register_api("FrankaControlApiSam2", lambda env: FrankaControlApi(env, use_sam3=False))' \
+        >> capx/integrations/__init__.py \
+    && python3 -c "from capx.integrations import list_apis; assert 'FrankaControlApiSam2' in list_apis()"
+COPY franka_robosuite_cube_stack_sam2.yaml \
+     /ryzers/cap-x/env_configs/cube_stack/franka_robosuite_cube_stack_sam2.yaml
+
 # Entrypoint: optional HuggingFace login (SAM3 gated weights) + sign-of-life
 # test. Pass HF_TOKEN via config.yaml to enable SAM3 weight download.
 COPY test.sh /ryzers/test_capx.sh

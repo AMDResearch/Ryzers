@@ -1,0 +1,50 @@
+# Ungated-perception variant of env_configs/cube_stack/franka_robosuite_cube_stack.yaml.
+#
+# Upstream's configs segment with SAM3 (facebook/sam3), whose weights are GATED
+# on HuggingFace. This swaps in OWLv2 (open-vocab detection) + SAM2 (segment the
+# detected box), both ungated, so an eval runs with no HF_TOKEN.
+#
+# Baked into the image at /ryzers/cap-x/env_configs/cube_stack/ by the Dockerfile,
+# together with the FrankaControlApiSam2 registration it depends on.
+#
+# Usage: python3 capx/envs/launch.py \
+#          --config-path env_configs/cube_stack/franka_robosuite_cube_stack_sam2.yaml
+
+env:
+  _target_: capx.envs.tasks.franka.franka_pick_place.FrankaPickPlaceCodeEnv
+  cfg:
+    _target_: capx.envs.tasks.base.CodeExecEnvConfig
+    low_level: franka_robosuite_cubes_low_level
+    privileged: false
+    apis:
+      # FrankaControlApi(env, use_sam3=False) -> init_owlvit + init_sam2
+      - FrankaControlApiSam2
+
+api_servers:
+  # Ports are hard-wired client-side in capx/integrations/vision/{owlvit,sam2}.py
+  # (SERVICE_URL), so these must stay 8117 and 8113.
+  - _target_: capx.serving.launch_owlvit_server.main
+    device: cuda
+    port: 8117
+    host: 127.0.0.1
+
+  - _target_: capx.serving.launch_sam2_server.main
+    device: cuda
+    port: 8113
+    host: 127.0.0.1
+
+  - _target_: capx.serving.launch_contact_graspnet_server.main
+    port: 8115
+    host: 127.0.0.1
+
+  - _target_: capx.serving.launch_pyroki_server.main
+    port: 8116
+    host: 127.0.0.1
+    robot: panda_description
+    target_link: panda_hand
+
+record_video: true
+output_dir: ./outputs/eval_robosuite_cube_stack_sam2
+
+trials: 10
+num_workers: 2
