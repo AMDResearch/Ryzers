@@ -17,7 +17,7 @@ echo "gz found at: $(which gz)"
 
 # Check Gazebo version
 echo "Gazebo version:"
-gz --version
+gz sim --version
 
 # List available Gazebo commands
 echo "Available Gazebo commands:"
