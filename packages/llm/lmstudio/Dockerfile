@@ -7,9 +7,25 @@ FROM ${BASE_IMAGE}
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update package lists and install dependencies
-RUN apt-get update && apt-get install -y \
-    libfuse2 xdg-utils libgbm-dev\
+# Install Electron runtime dependencies.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libfuse2 \
+    xdg-utils \
+    libgbm1 \
+    libnspr4 \
+    libnss3 \
+    libatk1.0-0t64 \
+    libatk-bridge2.0-0t64 \
+    libcups2t64 \
+    libcairo2 \
+    libgtk-3-0t64 \
+    libpango-1.0-0 \
+    libxdamage1 \
+    libxkbcommon0 \
+    libasound2t64 \
+    libatspi2.0-0t64 \
+    xvfb \
+    xauth \
     && rm -rf /var/lib/apt/lists/*
 
 # Create application directory
