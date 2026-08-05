@@ -3,7 +3,7 @@
 #
 # MolmoAct2 (Ai2 VLA) on AMD Strix Halo (gfx1151) Ryzer package.
 # Layers the MolmoAct2 inference + DROID open-loop + LIBERO closed-loop stacks on
-# the default Ryzer ROCm base (rocm/pytorch, torch 2.10.0+rocm7.2.2).
+# the default Ryzer ROCm base (rocm/pytorch, torch 2.12.0+rocm7.14.0).
 #
 # Three self-contained demos (see README), each run via `ryzers run`:
 #   1. /ryzers/demo_smoke.sh   full-model load + one prediction (capability 1)
@@ -84,7 +84,11 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN rm -rf /opt/lerobot-allenai && git clone --branch ${LEROBOT_REF} --depth 1 \
-      https://github.com/allenai/lerobot.git /opt/lerobot-allenai
+      https://github.com/allenai/lerobot.git /opt/lerobot-allenai && \
+    sed -i \
+      -e 's/"torch>=2.7,<2.11.0"/"torch>=2.7,<2.13.0"/' \
+      -e 's/"torchvision>=0.22.0,<0.26.0"/"torchvision>=0.22.0,<0.28.0"/' \
+      /opt/lerobot-allenai/pyproject.toml
 
 RUN rm -rf /opt/libero-venv && python -m venv /opt/libero-venv && \
     echo "/opt/venv/lib/python3.12/site-packages" \
