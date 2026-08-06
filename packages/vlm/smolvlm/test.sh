@@ -12,4 +12,11 @@ MODEL="ggml-org/SmolVLM-500M-Instruct-GGUF"
 PROMPT="How do magnets work?"
 
 # Run
-llama-run hf://$MODEL "$PROMPT"
+llama-cli \
+    -hf "$MODEL" \
+    -p "$PROMPT" \
+    -n 64 \
+    --no-conversation \
+    --single-turn \
+    --simple-io \
+    </dev/null
