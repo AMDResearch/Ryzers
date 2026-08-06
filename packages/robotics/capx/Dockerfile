@@ -1,14 +1,5 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-#
-# CaP-X (https://github.com/capgym/cap-x) — Code-as-Policy agents for robot
-# manipulation — on AMD Ryzen AI via ROCm.
-#
-# This image runs the CaP-Gym EVAL path for two simulator families:
-#   - Robosuite (1.5.x)
-#   - LIBERO-PRO (robosuite 1.4.x)
-# Because the two pin conflicting robosuite versions, pick ONE per image with:
-#   --build-arg CAPX_SIM=robosuite   (default)   or   CAPX_SIM=libero
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
@@ -17,8 +8,7 @@ SHELL ["/bin/bash", "-lc"]
 
 # robosuite | libero
 ARG CAPX_SIM=robosuite
-# Pinned to an audited CaP-X commit so submodule gitlinks resolve to the exact
-# versions in CaP-X's uv.lock. Override to track upstream.
+# Pinned to tested CaP-X commit
 ARG CAPX_REF=53e9966d7a8e2fa7494676772bccc35280f5c0ed
 
 # MuJoCo headless rendering uses EGL/OpenGL rather than CUDA.
@@ -44,8 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN git config --global credential.helper store
 
 # Pin-constraints that protect the base ROCm torch and match CaP-X's
-# uv override-dependencies. torch/torchvision are pinned to the base image's
-# installed versions so pip will NEVER pull a different (CUDA) build.
+# uv override-dependencies.
 RUN python3 - <<'PY' > /ryzers/constraints.txt
 import torch, torchvision
 print(f"torch=={torch.__version__.split('+')[0]}")
@@ -56,9 +45,7 @@ PY
 # resolution in its lockfile. In particular, Robosuite 1.5.1 still calls the
 # pre-3.10 mj_fullM API, so allowing the current MuJoCo release breaks startup.
 # FIX: CaP-X also pins PyOpenGL-accelerate==3.1.6, but that version has no cp312
-# wheel and fails to compile on the base image's Python 3.12. -accelerate is an
-# optional perf add-on (not required), so we omit the pin and only constrain
-# PyOpenGL itself (pure-python, installs fine).
+# wheel and fails to compile on the base image's Python 3.12.
 RUN printf '%s\n' \
         'numpy==1.26.4' \
         'PyOpenGL==3.1.6' \
@@ -72,7 +59,7 @@ RUN printf '%s\n' \
         'pyglet==2.1.13' \
     >> /ryzers/constraints.txt && cat /ryzers/constraints.txt
 
-# Clone CaP-X. Clone WITHOUT --recurse-submodules, then init only the submodules
+# Clone WITHOUT --recurse-submodules, then init only the submodules
 # the eval images actually use. This skips curobo (huge + nested CUDA submodules),
 # b1k (BEHAVIOR/Isaac Sim), and verl (RL training) — none needed for the
 # Robosuite/LIBERO eval path, and a large time/space saving.
@@ -109,10 +96,7 @@ RUN pip install --no-cache-dir -c /ryzers/constraints.txt \
 RUN pip install --no-cache-dir --no-deps "pyrender==0.1.45"
 
 # PyRoKi (JAX-based IK / trajopt — the DEFAULT motion layer; replaces cuRobo for
-# the Robosuite/LIBERO bench). CaP-X's uv.lock resolves jax/jaxlib to plain CPU
-# 0.4.29 wheels (no CUDA/ROCm jax plugin), so IK runs on CPU jax exactly as
-# upstream ships it. pyroki + jaxls pinned to the lockfile commits; --no-deps so
-# they can't re-resolve jax off the 0.4.29 pin.
+# the Robosuite/LIBERO bench).
 RUN pip install --no-cache-dir -c /ryzers/constraints.txt \
         "jax==0.4.29" "jaxlib==0.4.29" \
         jaxlie jax_dataclasses jaxtyping loguru termcolor \
@@ -120,10 +104,7 @@ RUN pip install --no-cache-dir -c /ryzers/constraints.txt \
         "git+https://github.com/brentyi/jaxls.git@6fe7cf9d56223736b2c0272d080ec7346203c648" \
         "git+https://github.com/chungmin99/pyroki.git@95afccc22658c461ab1042a048ae4e9c24bc2a47"
 
-# SAM3 (pure-PyTorch, runs on ROCm torch). Weights are GATED on HuggingFace —
-# request access at https://huggingface.co/facebook/sam3 and pass HF_TOKEN at
-# run time (the entrypoint logs in). See README for an ungated SAM2/OWLv2
-# alternative that needs no token.
+# SAM3 (pure-PyTorch, runs on ROCm torch).
 RUN pip install --no-cache-dir -c /ryzers/constraints.txt \
         -e capx/third_party/sam3
 

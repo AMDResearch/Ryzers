@@ -15,12 +15,6 @@ environment_variables:
 # simplest path is OpenRouter, exactly like upstream.
 # - "OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx"
 
-# CAPX_LLM_* configures the optional stage 3 agentic evaluation.
-# - "CAPX_LLM_SERVER_URL=https://openrouter.ai/api/v1/chat/completions"
-# - "CAPX_LLM_MODEL=google/gemini-3.1-pro-preview"
-# - "CAPX_LLM_TRIALS=1"
-# - "CAPX_LLM_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx"
-
 # --- SAM3 perception weights (OPTIONAL): gated on HuggingFace -------------
 # SAM3 (facebook/sam3) requires HF access approval
 # - "HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxx"
