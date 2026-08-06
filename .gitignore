@@ -21,6 +21,13 @@ poetry.lock
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
+# Ryzer run scratch/cache dirs (model weights, HF/Lemonade caches)
+workspace/
+llamacpp_cache/
+ryzers.run.*.sh
+ryzers/_ryzers.yaml
+tests/build_logs/
+
 # Django-specific
 *.pot
 *.pyc
