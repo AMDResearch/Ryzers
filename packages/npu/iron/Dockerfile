@@ -1,14 +1,12 @@
 ARG BASE_IMAGE=xdna
 FROM ${BASE_IMAGE}
 
-# Where we'll install the build backend
 WORKDIR /ryzers
 COPY setup.sh /ryzers/setup.sh
 COPY entrypoint.sh /ryzers/entrypoint.sh
 
-# Set environment variable to suppress prompts in scripts
 ENV DEBIAN_FRONTEND=noninteractive
-SHELL ["/bin/bash", "-l", "-c"]
+SHELL ["/bin/bash", "-c"]
 
 # IRON requires python venv
 RUN apt-get -y install python3.12-venv
@@ -33,7 +31,7 @@ RUN cd /ryzers/mlir-aie && \
     source /opt/xilinx/xrt/setup.sh && \
     source /ryzers/mlir-aie/utils/quick_setup.sh
 
-# Copy the new AIE pragma utils.h to mlir_aie/include/ so it's picked up when doing #include "aie_kernel_utils.h"
+# Make AIE kernel utils visible to mlir_aie include path
 RUN cp /ryzers/mlir-aie/aie_kernels/aie_kernel_utils.h /ryzers/mlir-aie/ironenv/lib/python3.12/site-packages/mlir_aie/include/
 
 # Install jupyter for notebooks
@@ -43,7 +41,6 @@ RUN source /ryzers/setup.sh && \
 # Cleanup
 ENV SHELL=/bin/bash
 
-# Make sure to source the setup script on docker start
 ENTRYPOINT ["/ryzers/entrypoint.sh"]
 
 COPY test.sh /ryzers/test.sh

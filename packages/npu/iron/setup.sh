@@ -20,10 +20,12 @@ export PEANOWRAP2_FLAGS="-O2 -std=c++20 --target=aie2-none-unknown-elf ${WARNING
 export PEANOWRAP2P_FLAGS="-O2 -std=c++20 --target=aie2p-none-unknown-elf ${WARNING_FLAGS} -DNDEBUG -I ${MLIR_AIE_INSTALL_DIR}/include "
 
 examine_output=$(xrt-smi examine)
-if echo $examine_output | grep -E "Phoenix|Hawk" > /dev/null; then
-    export NPU=npu1
-elif echo $examine_output | grep -E "Strix|Krackan" > /dev/null; then
+# Match on AIE architecture (aie2p=npu2, aie2=npu1); check aie2p first since
+# "aie2p" contains the substring "aie2".
+if echo "$examine_output" | grep -Eiq "Strix|Krackan|aie2p"; then
     export NPU=npu2
+elif echo "$examine_output" | grep -Eiq "Phoenix|Hawk|aie2"; then
+    export NPU=npu1
 else
     echo "No recognized NPU found"
 fi

@@ -1,8 +1,8 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-environment_variables:
-- "HSA_OVERRIDE_GFX_VERSION=11.0.0"  # Required for HIP to write kernels
+# HSA_OVERRIDE_GFX_VERSION is not set: ROCm 7.2.2 detects the iGPUs natively.
+# On older ROCm, set it per silicon (see README "Supported silicon").
 
 docker_extra_run_flags:
     - "--device=/dev/accel/accel0:/dev/accel/accel0"

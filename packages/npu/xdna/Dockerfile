@@ -15,25 +15,31 @@ RUN apt-get update && apt-get install -y \
 	git \
 	curl \
 	bash \
-	wget
+	wget \
+	cmake \
+	ninja-build \
+	build-essential
 
 RUN git clone https://github.com/amd/xdna-driver && \
     cd xdna-driver && \
     git checkout $DRIVER_VERSION && \
     git submodule update --init --recursive
 
-# Install build dependencies
-RUN cd /ryzers/xdna-driver/tools && \
+# Install build dependencies (xrtdeps.sh -docker skips host kernel headers; jq
+# is the only extra package amdxdna_deps.sh would add)
+RUN cd /ryzers/xdna-driver && \
     apt-get update && \
-    ./amdxdna_deps.sh -docker
+    apt-get install -y jq && \
+    ./xrt/src/runtime_src/tools/scripts/xrtdeps.sh -docker
 
 # Build XRT
 RUN cd /ryzers/xdna-driver/xrt/build/ && \
     ./build.sh -npu -opt -noctest
 
-# Build XDNA driver (-release also generates the .deb package)
+# Build the XDNA userspace (-release generates the xrt_plugin .deb); -nokmod
+# skips the kernel module, which is built and loaded on the host (see README)
 RUN cd /ryzers/xdna-driver/build && \
-    ./build.sh -release
+    ./build.sh -release -nokmod
 
 # Finally, save and install the XRT/XDNA debian packages
 # these will also need to be installed on the host system

@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: MIT
 
 environment_variables:
-- "HSA_OVERRIDE_GFX_VERSION=11.0.0"  # Required for HIP to write kernels
+# HSA_OVERRIDE_GFX_VERSION is not set: ROCm 7.2.2 detects the iGPUs natively.
+# On older ROCm, set it per silicon (see README "Supported silicon").
 - "RYZEN_AI_DIR=/ryzers/RyzenAI-SW/Ryzen-AI-CVML-Library"
 - "LD_LIBRARY_PATH=/ryzers/RyzenAI-SW/Ryzen-AI-CVML-Library/linux:/opt/xilinx/xrt/lib"
 
