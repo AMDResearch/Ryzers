@@ -4,4 +4,5 @@
 # SPDX-License-Identifier: MIT
 
 cd act
-python3 record_sim_episodes.py --task_name sim_transfer_cube_scripted --dataset_dir data --num_episodes 1
+MUJOCO_GL=egl PYOPENGL_PLATFORM=egl \
+    python3 record_sim_episodes.py --task_name sim_transfer_cube_scripted --dataset_dir data --num_episodes 1

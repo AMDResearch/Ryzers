@@ -15,9 +15,24 @@ fi
 
 echo "lm-studio found at: $(which lm-studio)"
 
-# Test LM Studio help (with timeout since it's a GUI app)
+missing_libraries="$(ldd /lm-studio | awk '/not found/')"
+if [[ -n "$missing_libraries" ]]; then
+    echo "FAIL: missing LM Studio libraries"
+    echo "$missing_libraries"
+    exit 1
+fi
+
 echo "Checking LM Studio CLI..."
-timeout 10s lm-studio --no-sandbox --help 2>/dev/null || echo "LM Studio help check completed (timeout expected for GUI app)"
+set +e
+timeout 10s xvfb-run -a lm-studio --no-sandbox >/tmp/lmstudio-test.log 2>&1
+status=$?
+set -e
+
+if [[ $status -ne 0 && $status -ne 124 ]]; then
+    cat /tmp/lmstudio-test.log
+    echo "FAIL: LM Studio exited with status $status"
+    exit "$status"
+fi
 
 # Check if the LM Studio directory exists
 if [[ -d "/opt/lm-studio" ]]; then

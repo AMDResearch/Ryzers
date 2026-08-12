@@ -3,13 +3,16 @@
 
 ARG BASE_IMAGE=ros
 FROM ${BASE_IMAGE}
+
 ARG ROS_DISTRO=jazzy
 ENV ROS_DISTRO=${ROS_DISTRO}
 ENV DEBIAN_FRONTEND=noninteractive
 
-# ROS2 dependencies
+# ROS2 dependencies. Graphics packages (libgl1-mesa-dri + vulkan) added for the
+# O3DE renderer, which the base image doesn't fully provide
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git unzip ffmpeg libportaudio2 python3-venv \
+    libgl1-mesa-dri libvulkan1 mesa-vulkan-drivers vulkan-tools \
     ros-${ROS_DISTRO}-rai-interfaces \
     ros-${ROS_DISTRO}-moveit \
     ros-${ROS_DISTRO}-gazebo-msgs \
@@ -33,19 +36,25 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN echo "source $VIRTUAL_ENV/bin/activate" >> /root/.bashrc
 
 # Pin empy<4 (required by rosidl_generator_rs)
-RUN pip install --upgrade pip "setuptools<82" poetry "empy<4" lark && \
+RUN pip install --upgrade pip "setuptools<82" "empy<4" lark && \
     pip install --no-build-isolation openai-whisper==20231117
 
 # RAI framework (pinned commit)
 WORKDIR /ryzers
 RUN git clone https://github.com/RobotecAI/rai.git
+
 WORKDIR /ryzers/rai
-RUN git checkout a097617
+RUN git checkout e54f8ca
 RUN vcs import < ros_deps.repos
 RUN vcs import < demos.repos
 
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction
+# TODO: Once upstream fixed remove the grabbing_point_tool patch
+# sed fixes an upstream bug: GetObjectPositionsTool's forward-ref to
+# GetGrabbingPointTool is never rebuilt, so under langchain 1.x / pydantic 2.x the
+# model is "not fully defined" and instantiation raises. Any avoids it.
+RUN sed -i 's/    get_grabbing_point_tool: "GetGrabbingPointTool"/    get_grabbing_point_tool: Any/' \
+        src/rai_core/rai/tools/ros2/manipulation/custom.py && \
+    pip install src/rai_core src/rai_whoami
 
 RUN rosdep init && \
     rosdep update && \
@@ -56,16 +65,36 @@ RUN . ./scripts/download_demo.sh manipulation
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     colcon build --symlink-install
 
-# Reinstall ROCm torch (poetry deps pull CUDA torch)
-RUN pip install torch torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/rocm7.2/ \
-    --force-reinstall --no-deps
+# rai_bench / rai_sim live in the repo but aren't declared as poetry/colcon
+# deps, so install from source; rai_perception comes from PyPI. It must go
+# before the torch re-pin below (it would otherwise pull CUDA torch back in)
+RUN pip install src/rai_bench && \
+    pip install src/rai_sim && \
+    pip install rai-perception
+
+# Pre-download detection/segmentation weights (~1.5 GB) via rai-perception's own
+# downloader, so model/URL bumps flow through automatically. Lands in the default
+# ~/.cache/rai/vision/weights/ the services read at runtime.
+# NOTE: relies on the `download-perception-models` console script staying stable.
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
+    . install/setup.sh && \
+    download-perception-models
+
+# RAI dependencies can pull CUDA torch. Restore the ROCm 7.14 gfx1151 wheels
+# from the same repository used by the base image.
+RUN pip install --force-reinstall \
+    --index-url https://repo.amd.com/rocm/whl-multi-arch/ \
+    "torch[device-gfx1151]==2.12.0+rocm7.14.0" \
+    "torchvision[device-gfx1151]==0.27.0+rocm7.14.0" \
+    "torchaudio==2.11.0+rocm7.14.0"
 
 WORKDIR /ryzers
+
 COPY test.sh /ryzers/test_rai.sh
 RUN chmod +x /ryzers/test_rai.sh
 COPY manipulation_demo.sh /ryzers/manipulation_demo.sh
 RUN chmod +x /ryzers/manipulation_demo.sh
+COPY lemonade_env.sh /ryzers/
 
 EXPOSE 8501
 CMD /ryzers/test_rai.sh
