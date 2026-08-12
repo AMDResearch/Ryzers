@@ -4,9 +4,6 @@
 
 set -e
 
-# Patch test training script to run quickly
-sed -i 's/training_steps = 5000/training_steps = 2/' /ryzers/lerobot/examples/training/train_policy.py
-sed -i 's/batch_size=64/batch_size=4/' /ryzers/lerobot/examples/training/train_policy.py
-
-# Run Test
-python /ryzers/lerobot/examples/training/train_policy.py
+# Exercise a GPU forward/backward pass without relying on torchvision's removed
+# VideoReader API.
+python /ryzers/test_lerobot.py

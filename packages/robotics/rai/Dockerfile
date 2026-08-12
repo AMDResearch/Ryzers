@@ -80,16 +80,13 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     . install/setup.sh && \
     download-perception-models
 
-# Reinstall ROCm torch (poetry deps pull CUDA torch)
-RUN pip install torch torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/rocm7.2/ \
-    --force-reinstall --no-deps
-
-# Swap the CUDA triton (pulled with torch above) for the ROCm build; the CUDA
-# one lacks triton.backends, which ROCm torch imports via inductor
-RUN pip uninstall -y triton && \
-    pip install pytorch-triton-rocm \
-        --index-url https://download.pytorch.org/whl/rocm7.2/ --no-deps
+# RAI dependencies can pull CUDA torch. Restore the ROCm 7.14 gfx1151 wheels
+# from the same repository used by the base image.
+RUN pip install --force-reinstall \
+    --index-url https://repo.amd.com/rocm/whl-multi-arch/ \
+    "torch[device-gfx1151]==2.12.0+rocm7.14.0" \
+    "torchvision[device-gfx1151]==0.27.0+rocm7.14.0" \
+    "torchaudio==2.11.0+rocm7.14.0"
 
 WORKDIR /ryzers
 

@@ -4,9 +4,8 @@
 # Headless mode (no X11 display needed)
 x11_display: false
 
-# Strix Point gfx1150 compatibility
+# Headless EGL rendering
 environment_variables:
-  - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
   - "PYOPENGL_PLATFORM=egl"
 
 # Meshcat visualization

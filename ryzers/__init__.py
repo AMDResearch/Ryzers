@@ -3,7 +3,7 @@
 
 import os
 
-RYZERS_DEFAULT_INIT_IMAGE = "rocm/pytorch:rocm7.2.2_ubuntu24.04_py3.12_pytorch_release_2.10.0"
+RYZERS_DEFAULT_INIT_IMAGE = "rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0"
 RYZERS_DEFAULT_RUN_FLAGS = "-it --rm --shm-size 16G --cap-add=SYS_PTRACE  --network=host --ipc=host"
 
 # Auto-detect packages path in editable mode
