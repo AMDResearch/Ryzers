@@ -1,0 +1,36 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+#
+
+init_image: "rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0"
+
+build_arguments:
+- "CAPX_SIM=robosuite"     # robosuite | libero  (mutually exclusive families)
+
+### ryzers run options
+
+environment_variables:
+# --- LLM provider (REQUIRED): an OpenAI-compatible endpoint ---------------
+# CaP-X queries an LLM over an OpenAI-compatible /chat/completions API. The
+# simplest path is OpenRouter, exactly like upstream.
+# - "OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxx"
+
+# --- SAM3 perception weights (OPTIONAL): gated on HuggingFace -------------
+# SAM3 (facebook/sam3) requires HF access approval
+# - "HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxx"
+
+# --- Rendering -----------------------------------------------------------
+- "MUJOCO_GL=egl"
+- "PYOPENGL_PLATFORM=egl"
+
+# Persist the HuggingFace weight cache (SAM3/GraspNet) across runs, and expose
+# eval outputs (videos, per-trial rewards) on the host.
+volume_mappings:
+- "~/.cache/huggingface:/root/.cache/huggingface"
+- "$PWD/packages/robotics/capx/outputs:/ryzers/cap-x/outputs"
+
+# CaP-X serves perception + web UI on localhost ports. Ryzers runs with host
+# networking, so these are reachable directly. If you need to expose the
+# interactive web UI to another host, map it:
+# port_mappings:
+# - "8200:8200"   # CaP-X web UI
