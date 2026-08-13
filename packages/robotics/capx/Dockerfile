@@ -152,6 +152,22 @@ RUN printf '\n%s\n' \
         'register_api("FrankaControlApiSam2", lambda env: FrankaControlApi(env, use_sam3=False))' \
         >> capx/integrations/__init__.py \
     && python3 -c "from capx.integrations import list_apis; assert 'FrankaControlApiSam2' in list_apis()"
+
+# A cold start can spend several minutes downloading and loading the SAM2 and
+# OWLv2 weights. Upstream starts trials after 120 seconds even when those
+# services are still unavailable, causing the first trials to fail.
+RUN python3 - <<'PY'
+from pathlib import Path
+
+path = Path("/ryzers/cap-x/capx/envs/runner.py")
+source = path.read_text()
+old = "api_servers: list | None, wait_timeout: float = 120.0"
+new = "api_servers: list | None, wait_timeout: float = 900.0"
+if old not in source:
+    raise RuntimeError("CaP-X API server timeout declaration changed upstream")
+path.write_text(source.replace(old, new, 1))
+PY
+
 COPY franka_robosuite_cube_stack_sam2.yaml \
      /ryzers/cap-x/env_configs/cube_stack/franka_robosuite_cube_stack_sam2.yaml
 

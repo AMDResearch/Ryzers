@@ -24,11 +24,13 @@ api_servers:
   # Ports are hard-wired client-side in capx/integrations/vision/{owlvit,sam2}.py
   # (SERVICE_URL), so these must stay 8117 and 8113.
   - _target_: capx.serving.launch_owlvit_server.main
+    model_name: google/owlv2-large-patch14-ensemble
     device: cuda
     port: 8117
     host: 127.0.0.1
 
   - _target_: capx.serving.launch_sam2_server.main
+    model_name: facebook/sam2.1-hiera-base-plus
     device: cuda
     port: 8113
     host: 127.0.0.1

@@ -107,40 +107,59 @@ If you **do not have both of these keys**, follow the instructions below to get 
 
 ## Other Running Methods
 
-The LLM must support vision because CaP-X sends images. Any OpenAI-compatible multimodal server works.
+Note that the single-turn API configs here (the `*_sam2.yaml` pick/stack tasks) send **no images** to the LLM - OWLv2/SAM2/GraspNet do the perception and the model only composes code from named objects and numeric poses, so a strong text-only coder/reasoner works well. Only the visual-feedback (`*_multiturn_vf.yaml`, `use_visual_feedback: true`) and image-differencing (`*_vdm.yaml`) configs send rendered frames to the LLM and therefore require a multimodal model.
 
 ### Local LLM: llama.cpp
 
-Build llama.cpp into the image, open a shell, and start a vision model:
+Build llama.cpp into the image, open a shell, and start a model. The recommended
+default is **GPT-OSS-20B** (`ggml-org/gpt-oss-20b-GGUF`, MXFP4, ~12 GB), a strong
+local reasoning model that we found worked well on cube stacking tasks.
 
 ```bash
 ryzers build capx llamacpp
 ryzers run bash
 
-export PATH=/ryzers/llamacpp/build/bin:$PATH
-llama-server -hf ggml-org/gemma-4-12b-it-GGUF:Q4_0 \
-    --host 127.0.0.1 --port 11434 \
-    --n-gpu-layers 999 --jinja \
-    >/tmp/llama.log 2>&1 &
+llama-server -hf ggml-org/gpt-oss-20b-GGUF \
+  --host 127.0.0.1 --port 11434 \
+  --n-gpu-layers 999 --ctx-size 8192 --parallel 1 \
+  --jinja --flash-attn on \
+  --reasoning-format auto --temp 1.0 --top-p 1.0 --top-k 0 \
+  >/tmp/llama.log 2>&1 &
 ```
+
+If this is the first time you're downloading the model it may take a while, you can monitor progress by tailing the log:
+
+```
+tail -f /tmp/llama.log
+```
+
+Wait for `listening on http://127.0.0.1:11434`, then stop `tail` with
+<kbd>Ctrl</kbd>+<kbd>C</kbd>. The server continues running in the background.
 
 [Lemonade](../../llm/lemonade-sdk/) and [Ollama](../../llm/ollama/) can also be composed into the image. Use their OpenAI-compatible chat-completions URL with `--server-url`.
 
 ### SAM2 + OWLv2: no HF token
 
-Use the ungated cube-stack config:
+Pre-download the local vision models before launching CaP-X:
 
 ```bash
-python3 capx/envs/launch.py \
-    --config-path env_configs/cube_stack/franka_robosuite_cube_stack_sam2.yaml
-```
-
-The models download automatically, or you can pre-download them with:
-
-```bash
-hf download facebook/sam2.1-hiera-large
+hf download facebook/sam2.1-hiera-base-plus
 hf download google/owlv2-large-patch14-ensemble
 ```
+
+Then use the ungated cube-stack config:
+
+```bash
+cd /ryzers/cap-x
+python3 capx/envs/launch.py \
+  --config-path env_configs/cube_stack/franka_robosuite_cube_stack_sam2.yaml \
+  --model gpt-oss-20b \
+  --server-url http://127.0.0.1:11434/v1/chat/completions \
+  --max-tokens 4096 --temperature 1.0 \
+  --total-trials 1 --num-workers 1
+```
+
+When running with a local config the vision pipeline and all other services may take 5 minutes or more to start. This is an upfront startup cost. When we run multiple trials each trial should take ~1 minute to complete after initial startup.
 
 The ready ungated visual configs are cube stack above and `env_configs/two_arm_lift/franka_robosuite_two_arm_lift.yaml`. Other tasks need task-specific API changes; replacing only `api_servers:` is not sufficient.
 
@@ -166,8 +185,9 @@ python3 capx/envs/launch.py \
 cd /ryzers/cap-x
 python3 capx/envs/launch.py \
     --config-path env_configs/cube_stack/franka_robosuite_cube_stack.yaml \
-    --model gemma-4-12b-it \
+    --model gpt-oss-20b \
     --server-url http://127.0.0.1:11434/v1/chat/completions \
+    --max-tokens 4096 --temperature 1.0 \
     --total-trials 10 --num-workers 1
 ```
 
@@ -176,8 +196,9 @@ python3 capx/envs/launch.py \
 cd /ryzers/cap-x
 python3 capx/envs/launch.py \
     --config-path env_configs/cube_stack/franka_robosuite_cube_stack_sam2.yaml \
-    --model gemma-4-12b-it \
+    --model gpt-oss-20b \
     --server-url http://127.0.0.1:11434/v1/chat/completions \
+    --max-tokens 4096 --temperature 1.0 \
     --total-trials 10 --num-workers 1
 ```
 
@@ -210,7 +231,7 @@ Suites are selected by `low_level.suite_name` / `task_id` in the config: `libero
 
 ## References
 
-- CaP-X: <https://github.com/capgym/cap-x> · [paper](https://arxiv.org/abs/2603.22435) · [project page](https://capgym.github.io/)
+- CaP-X: <https://github.com/capgym/cap-x>
 - LIBERO-PRO: <https://github.com/uynitsuj/LIBERO-PRO>
 - Robosuite: <https://github.com/ARISE-Initiative/robosuite>
 - llama.cpp: <https://github.com/ggml-org/llama.cpp>
