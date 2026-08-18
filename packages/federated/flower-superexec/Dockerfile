@@ -11,6 +11,16 @@ WORKDIR /app
 COPY app/ /app/
 RUN pip3 install --no-cache-dir --break-system-packages /app
 
+# Re-assert the py3.14-compatible datasets. `pip install /app` above
+# re-resolves the app's deps and, because flwr-datasets 0.5.0 hard-pins
+# datasets<=3.1.0, downgrades datasets from the 4.x pinned in flower-base
+# back to 3.1.0 — which reintroduces the py3.14 dill/pickle crash
+# (_batch_setitems() TypeError) on the first dataset load. Keep this in
+# lockstep with DATASETS_VERSION in flower-base/Dockerfile.
+ARG DATASETS_VERSION=4.8.5
+RUN pip3 install --no-cache-dir --break-system-packages \
+    "datasets==${DATASETS_VERSION}"
+
 WORKDIR /ryzers
 COPY test.sh /ryzers/test_flower-superexec.sh
 COPY run-superexec.sh /ryzers/run-superexec.sh
