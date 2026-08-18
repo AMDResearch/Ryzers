@@ -22,9 +22,10 @@ These dockerfiles will also be pushed and actively maintained in their original 
 | LLM                     | [`ollama`](packages/llm/ollama), [`llamacpp`](packages/llm/llamacpp), [`lmstudio`](packages/llm/lmstudio), [`GEPA`](packages/llm/gepa), [`Lemonade`](packages/llm/lemonade-sdk)   |
 | VLM                     | [`Gemma3`](packages/vlm/gemma3), [`SmolVLM`](packages/vlm/smolvlm), [`Phi-4`](packages/vlm/phi4), [`LFM2-VL`](packages/vlm/lfm2vl) |
 | VLA                     | [`OpenVLA`](packages/vla/openvla), [`SmolVLA`](packages/vla/smolvla), [`GR00T-N1.5`](packages/vla/gr00t), [`openpi`](packages/vla/openpi), [`CogACT`](packages/vla/cogact), [`MolmoAct`](packages/vla/molmoact), [`MolmoAct2`](packages/vla/molmoact2) |
+| World-Action Models     | [`FastWAM`](packages/wam/fastwam) |
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
 | Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot), [`ACT`](packages/robotics/act), [`RAI`](packages/robotics/rai), [`CaP-X`](packages/robotics/capx)    |
-| Simulation                |  [`Genesis`](packages/robotics/genesis), [`PyDrake`](packages/robotics/pydrake)  |
+| Simulation                |  [`Genesis`](packages/robotics/genesis), [`PyDrake`](packages/robotics/pydrake), [`LIBERO`](packages/simulation/libero), [`RoboTwin`](packages/simulation/robotwin)  |
 | Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam), [`ncnn`](packages/vision/ncnn), [`DINOv3`](packages/vision/dinov3), [`SAM3`](packages/vision/sam3), [`Ultralytics`](packages/vision/ultralytics) |
 | Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval), [`Ryzen AI CVML`](packages/npu/ryzenai_cvml)  |
 | Adaptive SoCs           | [`PYNQ.remote`](packages/adaptive-socs/pynq-remote) |
