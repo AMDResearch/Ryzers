@@ -86,11 +86,25 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
 RUN rm -rf /opt/lerobot-allenai && git clone --branch ${LEROBOT_REF} --depth 1 \
       https://github.com/allenai/lerobot.git /opt/lerobot-allenai
 
+# The ${LEROBOT_REF} pyproject pins torch<2.11 / torchvision<0.26 / torchcodec<0.11,
+# written before the rocm7.14 base (torch 2.12.0 / torchvision 0.27.0). Lift those
+# ceilings just enough to admit the base ROCm torch/torchvision and the matching
+# torchcodec 0.12 (upstream: "0.12 needs torch==2.12"), so the LIBERO venv resolves
+# against the base build instead of demanding a torch downgrade.
+RUN sed -i -E \
+      -e 's/"torch>=2\.7,<2\.11\.0"/"torch>=2.7,<2.13.0"/' \
+      -e 's/"torchvision>=0\.22\.0,<0\.26\.0"/"torchvision>=0.22.0,<0.28.0"/' \
+      -e 's/torchcodec>=0\.3\.0,<0\.11\.0/torchcodec>=0.3.0,<0.13.0/' \
+      /opt/lerobot-allenai/pyproject.toml && \
+    grep -nE '"torch(vision)?>=|torchcodec>=' /opt/lerobot-allenai/pyproject.toml
+
 RUN rm -rf /opt/libero-venv && python -m venv /opt/libero-venv && \
-    echo "/opt/venv/lib/python3.12/site-packages" \
-      > "/opt/libero-venv/lib/python3.12/site-packages/zz_base_site.pth" && \
+    base_sp="$(/opt/venv/bin/python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')" && \
+    venv_sp="$(/opt/libero-venv/bin/python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')" && \
+    echo "$base_sp" > "$venv_sp/zz_base_site.pth" && \
     /opt/venv/bin/pip freeze | grep -iE '^(torch|torchvision)==' > /opt/torch-constraints.txt && \
     echo "torch constraints:" && cat /opt/torch-constraints.txt && \
+    CMAKE_POLICY_VERSION_MINIMUM=3.5 \
     PIP_CONSTRAINT=/opt/torch-constraints.txt /opt/libero-venv/bin/pip install --no-cache-dir \
       "/opt/lerobot-allenai[libero]"
 
