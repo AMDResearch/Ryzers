@@ -77,3 +77,9 @@ dist/
 
 # docs
 docs/_build/
+
+# Per-package local working artifacts (raw rollouts/plots/profiles kept locally for
+# observation; never committed - curated small clips go in each package's assets/)
+packages/**/artifacts/
+# Repo-root holding for artifacts pending manual package assignment (never committed)
+artifacts_unsorted/

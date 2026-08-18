@@ -1,0 +1,11 @@
+RoboTwin-Platform/RoboTwin   (RoboTwin 2.0 dual-arm manipulation benchmark; SAPIEN/Vulkan sim + mplib motion planning)
+https://github.com/RoboTwin-Platform/RoboTwin
+commit bf44be51cf5717a5595ce59447f2cf5263d2aa95   (de-vendored: cloned at build time into /opt/RoboTwin, then patched with patches/robotwin_rocm.patch)
+
+Build-time dependency (ROCm/HIP point-cloud ops, built from source for gfx1151):
+facebookresearch/pytorch3d
+https://github.com/facebookresearch/pytorch3d
+commit c8fcd83ff96fa0a5893c0b994f9285d7aa772540
+
+Sim assets (embodiments/objects/configs) are third-party and fetched at run time by
+scripts/setup_robotwin.sh into the /sim_models mount; never baked into the image.

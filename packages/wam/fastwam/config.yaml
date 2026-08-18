@@ -1,0 +1,64 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# ROCm 7.14 base (rocm/pytorch torch 2.10.0), the current standard for these ports.
+init_image: rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.10.0
+
+build_arguments:
+- "FASTWAM_COMMIT=45d8e1458921d83f8ad6cf9ce993d371208dabd0"
+
+gpu_support: true
+x11_display: false
+
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.5.1"
+- "HF_HOME=/root/.cache/huggingface"
+- 'HF_HUB_DISABLE_XET=${HF_HUB_DISABLE_XET:-1}'
+- 'HF_HUB_ENABLE_HF_TRANSFER=${HF_HUB_ENABLE_HF_TRANSFER:-0}'
+- 'HF_HUB_DOWNLOAD_TIMEOUT=${HF_HUB_DOWNLOAD_TIMEOUT:-60}'
+- "HF_HUB_DISABLE_TELEMETRY=1"
+- "TOKENIZERS_PARALLELISM=false"
+- "DIFFSYNTH_MODEL_BASE_PATH=/models/diffsynth"
+- "MUJOCO_GL=egl"
+- "PYOPENGL_PLATFORM=egl"
+- "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
+- "TORCH_BLAS_PREFER_HIPBLASLT=0"
+- "OUT_DIR=/outputs"
+# Exact planning-path caches (bit-identical output, ~1.45x faster). Default-on; set to 0 to
+# restore upstream behavior for debugging/parity checks.
+- 'FASTWAM_TEXT_KV_CACHE=${FASTWAM_TEXT_KV_CACHE:-1}'
+# Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demos/demo_*.sh).
+- 'HF_TOKEN=${HF_TOKEN:-}'
+- 'NUM_STEPS=${NUM_STEPS:-}'
+- 'SEED=${SEED:-}'
+- 'TAG=${TAG:-}'
+- 'SUITE=${SUITE:-}'
+- 'TASK_ID=${TASK_ID:-}'
+- 'NUM_TASKS=${NUM_TASKS:-}'
+- 'NUM_TRIALS=${NUM_TRIALS:-}'
+- 'NUM_EPISODES=${NUM_EPISODES:-}'
+- 'NUM_VIDEOS=${NUM_VIDEOS:-}'
+- 'VISUALIZE_FUTURE=${VISUALIZE_FUTURE:-}'
+# Interactive/real-time LIBERO demo knobs (require the simulation/libero base).
+- 'PORT=${PORT:-}'
+- 'VIEW_RES=${VIEW_RES:-}'
+- 'VIDEO_RES=${VIDEO_RES:-}'
+- 'RT_HZ=${RT_HZ:-}'
+- 'CKPT=${CKPT:-}'
+- 'DATASET_STATS=${DATASET_STATS:-}'
+- 'MIXED_PRECISION=${MIXED_PRECISION:-}'
+- 'NUM_INFERENCE_STEPS=${NUM_INFERENCE_STEPS:-}'
+- 'REPLAN_STEPS=${REPLAN_STEPS:-}'
+- 'NUM_STEPS_WAIT=${NUM_STEPS_WAIT:-}'
+- 'POLICY_FACTORY=${POLICY_FACTORY:-}'
+# Interactive/closed-loop RoboTwin demo knobs (require the simulation/robotwin base).
+- 'TASK=${TASK:-}'
+- 'TASKS=${TASKS:-}'
+- 'TASK_CONFIG=${TASK_CONFIG:-}'
+- 'MAX_STEPS=${MAX_STEPS:-}'
+- 'ACTION_HORIZON=${ACTION_HORIZON:-}'
+
+volume_mappings:
+- "$PWD/workspace/fastwam/outputs:/outputs"
+- "$PWD/workspace/fastwam/models:/models"
+- "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"

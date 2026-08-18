@@ -1,0 +1,12 @@
+Lifelong-Robot-Learning/LIBERO   (LIBERO MuJoCo/robosuite manipulation benchmark; the closed-loop sim base)
+https://github.com/Lifelong-Robot-Learning/LIBERO
+commit 8f1084e3132a39270c3a13ebe37270a43ece2a01  (master HEAD; the Dockerfile shallow-clones the default branch)
+  libero/libero/envs        OffScreenRenderEnv (headless EGL) + robosuite OSC_POSE controllers
+  libero/libero/benchmark   task suites the sim_libero harness exposes
+
+Pinned pip deps (from the Dockerfile, held by PIP_CONSTRAINT so they never replace the base ROCm torch/numpy):
+  robosuite==1.4.0   bddl==1.0.1   mujoco==3.3.2   gym==0.25.2   numpy==1.26.4
+  (robosuite's numba has no py3.12 wheel for numpy 2.x, so numpy is pinned 1.26.4; LIBERO installs --no-deps)
+
+LIBERO bddl/init assets are cloned into the image at build time from the public repo; no upstream
+weights or binaries are vendored into this repo.
