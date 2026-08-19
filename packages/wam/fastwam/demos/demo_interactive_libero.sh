@@ -2,12 +2,11 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Interactive LIBERO demo (chunk-replay) driven by the FastWAM policy, served over
-# HTTP/MJPEG. Requires the simulation/libero base image (the harness + LIBERO stack):
+# Interactive LIBERO demo (chunk-replay; FastWAM policy over HTTP/MJPEG). Requires the
+# simulation/libero base:
 #   ryzers build libero fastwam
 #   ryzers run /ryzers/demos/demo_interactive_libero.sh
-# View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>). First run downloads
-# the Wan2.2 base + LIBERO checkpoint into the mounted cache.
+# View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>).
 set -euo pipefail
 if [ ! -d /opt/sim/sim_libero ]; then
   echo "ERROR: simulation/libero base not found (no /opt/sim/sim_libero)." >&2

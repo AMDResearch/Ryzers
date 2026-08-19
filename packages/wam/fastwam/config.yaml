@@ -1,7 +1,7 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# ROCm 7.14 base (rocm/pytorch torch 2.10.0), the current standard for these ports.
+# ROCm 7.14 base (rocm/pytorch torch 2.10.0).
 init_image: rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.10.0
 
 build_arguments:
@@ -24,8 +24,7 @@ environment_variables:
 - "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
 - "TORCH_BLAS_PREFER_HIPBLASLT=0"
 - "OUT_DIR=/outputs"
-# Exact planning-path caches (bit-identical output, ~1.45x faster). Default-on; set to 0 to
-# restore upstream behavior for debugging/parity checks.
+# Planning-path caches (bit-exact, ~1.45x). Set to 0 to restore upstream behavior.
 - 'FASTWAM_TEXT_KV_CACHE=${FASTWAM_TEXT_KV_CACHE:-1}'
 # Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demos/demo_*.sh).
 - 'HF_TOKEN=${HF_TOKEN:-}'

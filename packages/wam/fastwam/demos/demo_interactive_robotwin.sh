@@ -2,12 +2,11 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Interactive RoboTwin demo (chunk-replay) driven by the FastWAM policy, served over
-# HTTP/MJPEG. Requires the simulation/robotwin base image (the harness + SAPIEN stack):
+# Interactive RoboTwin demo (chunk-replay; FastWAM policy over HTTP/MJPEG). Requires the
+# simulation/robotwin base:
 #   ryzers build robotwin fastwam
 #   ryzers run /ryzers/demos/demo_interactive_robotwin.sh
-# View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>). First run downloads the
-# RoboTwin sim assets into the mounted cache.
+# View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>).
 set -euo pipefail
 if [ ! -d /opt/sim/sim_robotwin ]; then
   echo "ERROR: simulation/robotwin base not found (no /opt/sim/sim_robotwin)." >&2

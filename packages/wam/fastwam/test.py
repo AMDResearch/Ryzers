@@ -1,12 +1,7 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Environment sign-of-life for the slim FastWAM policy image on Strix Halo (gfx1151).
-
-Runs inside the built image with NO model weights. Proves the container has (1) a working
-ROCm torch on the iGPU and (2) the FastWAM package + its runtime deps import cleanly,
-before we pull the multi-GB Wan2.2 base + checkpoint. This image ships no simulator; the
-LIBERO/RoboTwin stacks live in the simulation/* base images this policy chains onto.
-Exits non-zero on any failure so `ryzers run` / CI catches a broken image early.
+"""Env sign-of-life for the FastWAM policy image on Strix Halo (gfx1151): checks ROCm torch
+on the iGPU and that FastWAM + runtime deps import, with no model weights. Non-zero on failure.
 """
 import sys
 

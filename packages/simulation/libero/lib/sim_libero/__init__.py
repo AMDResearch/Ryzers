@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: MIT
 """Model-agnostic LIBERO simulator harness.
 
-Ships the LIBERO env glue, a `Policy` seam, generic closed-loop/interactive harnesses,
-and a built-in RandomPolicy. Any policy/model (FastWAM, MolmoACT2, ...) drives the sim by
-providing a `build_policy() -> Policy` factory selected via POLICY_FACTORY.
+LIBERO env glue, a `Policy` seam, closed-loop/interactive runners, and a RandomPolicy.
+Policies plug in via a `build_policy() -> Policy` factory selected by POLICY_FACTORY.
 """
 from sim_libero._torch_compat import patch_torch_load
 

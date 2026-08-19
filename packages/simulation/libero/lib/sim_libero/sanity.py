@@ -1,10 +1,7 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Headless sanity rollout for the LIBERO simulator base image.
-
-Loads a policy (default: built-in RandomPolicy), rolls it through one scene for a
-bounded number of steps, and saves an MP4 of the composed agentview|wrist view. Proves
-the ROCm/EGL render + MuJoCo step + video encode path work end-to-end with no model.
+"""Headless sanity rollout: rolls a policy (default RandomPolicy) through one scene and
+saves an MP4. Exercises the ROCm/EGL render + MuJoCo step + video encode path, no model.
 
 Env: SUITE, TASK_ID, SEED, STEPS, OUT_DIR, POLICY_FACTORY (module:function).
 """

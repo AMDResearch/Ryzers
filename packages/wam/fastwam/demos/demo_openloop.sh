@@ -2,9 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Open-loop replay: feed ground-truth observations from released LeRobot episodes
-# and overlay predicted vs GT action chunks. Writes per-episode overlays, aggregate
-# MAE graphs and summary.json to /outputs/openloop/openloop_<TAG>.
+# Open-loop replay: overlay predicted vs GT action chunks + write MAE graphs and
+# summary.json to /outputs/openloop/openloop_<TAG>.
 #   DATASET=libero   ryzers run /ryzers/demos/demo_openloop.sh
 #   DATASET=robotwin NUM_EPISODES=100 ryzers run /ryzers/demos/demo_openloop.sh
 set -euo pipefail

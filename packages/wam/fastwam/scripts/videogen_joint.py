@@ -2,15 +2,9 @@
 # SPDX-License-Identifier: MIT
 """Open-loop imagined-video generation for FastWAM on Strix Halo (gfx1151).
 
-Runs the joint video+action denoising path (`FastWAM.infer_joint`) from a single
-ground-truth start frame + proprio + language prompt, at the standard FastWAM
-setting (20 inference steps, no step reduction). Decodes the imagined future clip
-and writes a two-column MP4: ground-truth future (left) vs FastWAM imagined
-(right), per workspace rule 2.a. Reports the joint-path latency (video+action)
-per clip and in aggregate.
-
-Reuses the upstream `RobotVideoDataset` + `FastWAMProcessor` so cam-concat,
-resize/crop, [-1,1] normalization and proprio normalization match training.
+Runs the joint video+action path (infer_joint) from a GT start frame + proprio + prompt,
+writes a side-by-side GT-vs-imagined MP4 and reports joint-path latency. Reuses upstream
+RobotVideoDataset + FastWAMProcessor so preprocessing matches training.
 
 Env: FASTWAM_REPO, CONFIG_NAME, CKPT, DATASET_STATS, DATASET_DIR, NUM_VIDEOS(10),
      NUM_STEPS(20), OUT_DIR, TAG, SEED, FPS(6).

@@ -2,9 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Interactive LIBERO demo (chunk-replay) served over HTTP/MJPEG. Defaults to the
-# built-in RandomPolicy; a policy image chains on top and sets POLICY_FACTORY to drive
-# it with a real model. View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>).
+# Interactive LIBERO demo (chunk-replay) over HTTP/MJPEG. Default RandomPolicy; set
+# POLICY_FACTORY for a real model. View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>).
 #   ryzers run /ryzers/demos/demo_interactive.sh
 #   POLICY_FACTORY=fastwam_libero_policy:build_policy ryzers run /ryzers/demos/demo_interactive.sh
 set -euo pipefail

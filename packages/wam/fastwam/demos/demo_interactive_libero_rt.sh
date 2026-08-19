@@ -2,9 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Real-time LIBERO demo driven by the FastWAM policy: the sim steps at wall-clock RT_HZ
-# and the robot HOLDs (pauses) while FastWAM plans, so planner latency is visible.
-# Requires the simulation/libero base image:
+# Real-time LIBERO demo (FastWAM policy): sim steps at RT_HZ and the robot HOLDs while
+# FastWAM plans, so planner latency is visible. Requires the simulation/libero base:
 #   ryzers build libero fastwam
 #   ryzers run /ryzers/demos/demo_interactive_libero_rt.sh
 # View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>).

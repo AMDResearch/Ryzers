@@ -1,13 +1,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Model-agnostic LIBERO simulator base image for AMD Strix Halo (gfx1151).
-# Ships the LIBERO/MuJoCo/robosuite closed-loop stack (headless EGL) plus the
-# sim_libero harness (Policy seam + closed-loop/interactive/sanity runners and a
-# built-in RandomPolicy). No policy/model code lives here: any policy chains on top
-# of this image (ryzers build simulation/libero <policy>) and is selected at runtime
-# via POLICY_FACTORY. LIBERO assets are cloned into the image; datasets/weights are
-# supplied by the policy layer or mounted at runtime, never baked here.
+# Model-agnostic LIBERO sim base for Strix Halo (gfx1151): LIBERO/MuJoCo/robosuite
+# closed-loop stack (headless EGL) + sim_libero harness. Policies chain on top and
+# are selected at runtime via POLICY_FACTORY; weights/datasets are never baked here.
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
@@ -24,13 +20,9 @@ RUN apt-get update && \
       libegl-dev libgles-dev libosmesa6-dev libglew-dev libglu1-mesa libglu1-mesa-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# LIBERO closed-loop sim. numpy is pinned to 1.26.4 (robosuite's numba has no py3.12
-# wheel for numpy 2.x); the constraint then protects the base ROCm torch + numpy so
-# they are never replaced by transitive deps. LIBERO installs with --no-deps for the
-# same reason. `future`, `cloudpickle`, `gym==0.25.2` and `termcolor` are LIBERO/robosuite
-# runtime imports not declared as install deps (previously pulled in transitively by the
-# fastwam install), so they are added explicitly. The `libero` package ships no top-level
-# __init__.py, so it resolves via PYTHONPATH.
+# numpy pinned 1.26.4 (robosuite numba has no py3.12/numpy-2 wheel); constraint keeps the
+# base ROCm torch+numpy. LIBERO installs --no-deps; missing runtime imports added explicitly.
+# libero ships no top-level __init__.py, so PYTHONPATH resolves it.
 ENV PYTHONPATH=/opt/LIBERO:/opt/sim
 RUN pip install --no-cache-dir "numpy==1.26.4" && \
     pip freeze | grep -iE "^(torch|torchvision|torchcodec|numpy)==" > /opt/torch-constraints.txt && \
@@ -41,18 +33,16 @@ RUN pip install --no-cache-dir "numpy==1.26.4" && \
     git clone --depth 1 https://github.com/Lifelong-Robot-Learning/LIBERO /opt/LIBERO && \
     PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir --no-deps -e /opt/LIBERO
 
-# The sim harness (Policy seam, closed-loop/interactive/sanity runners, RandomPolicy).
+# The sim harness (Policy seam + runners + RandomPolicy).
 COPY lib/ /opt/sim/
 
-# Install the torch.load compat shim as a startup .pth in site-packages so it applies to
-# every Python process in the image (including any policy's own eval script, which need
-# not import sim_libero) without shadowing the distro's sitecustomize. See _torch_compat.
+# torch.load compat shim as a startup .pth so it applies to every Python process
+# (incl. a policy's own eval script). See _torch_compat.
 RUN cp /opt/sim/sim_libero_compat.pth "$(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')/"
 
-# First `import libero.libero` writes ~/.libero/config.yaml interactively; feed defaults
-# so it is baked into the image and never prompts at runtime. Also verify the deeper
-# env import (robosuite controllers) and the sim_libero harness resolve. No GPU render
-# here (build has no device); the sanity demo exercises rendering at run time.
+# First `import libero.libero` prompts to write ~/.libero/config.yaml; feed defaults so it
+# bakes in and never prompts at runtime. Also verifies the stack imports (no GPU render at
+# build time; the sanity demo exercises rendering at run time).
 RUN printf 'N\nN\nN\nN\nN\n' | python -c "import mujoco, robosuite; from libero.libero import benchmark; from libero.libero.envs import OffScreenRenderEnv; import sim_libero; from sim_libero.policy import load_policy; print('OK mujoco', mujoco.__version__, '| sim_libero + LIBERO envs import cleanly')"
 
 COPY test.py /ryzers/

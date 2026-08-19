@@ -1,13 +1,6 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Environment sign-of-life for the RoboTwin simulator base image (Strix Halo, gfx1151).
-
-Runs inside the built image with NO model. Proves the container has (1) the SAPIEN / mplib
-stack importing cleanly on ROCm and (2) the de-vendored RoboTwin + sim_robotwin harness +
-built-in RandomPolicy resolving, before a policy image is chained on top. Does not render
-(that needs a GPU device, exercised by demo_sim_sanity.sh at run time). Exits non-zero on
-any failure so `ryzers run` / CI catches a broken image early.
-"""
+"""Import sign-of-life for the RoboTwin base image: SAPIEN/mplib on ROCm + de-vendored RoboTwin + harness resolve (no model, no render)."""
 import os
 import sys
 

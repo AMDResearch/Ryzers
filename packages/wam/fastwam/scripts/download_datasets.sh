@@ -2,10 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Fetch the preprocessed LeRobot datasets used by the open-loop / video-imagination
-# demos into the mounted model volume. Sources:
-#   LIBERO   : yuanty/LIBERO-fastwam       (4x tar.gz)
-#   RoboTwin : yuanty/robotwin2.0-fastwam  (split archives, concatenated)
+# Fetch preprocessed LeRobot datasets (LIBERO: yuanty/LIBERO-fastwam, RoboTwin:
+# yuanty/robotwin2.0-fastwam) into the model volume.
 #   ryzers run /ryzers/scripts/download_datasets.sh [libero|robotwin|all]
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"

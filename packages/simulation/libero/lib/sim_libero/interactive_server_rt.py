@@ -1,30 +1,20 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Real-time (_RT) LIBERO demo (model-agnostic).
+"""Real-time LIBERO demo (model-agnostic): planning decoupled from the sim so latency is
+visible.
 
-The real-time sibling of interactive_server.py. The clean demo freezes the world during
-each policy forward and fast-replays the chunk, hiding planner latency. Here planning is
-decoupled from the simulator so you can SEE the latency:
+A SIM thread steps the MuJoCo env at wall-clock RT_HZ, consuming one action per tick from
+a shared buffer; when empty (planner still thinking) it applies a HOLD. A PLANNER thread
+refills the buffer from a snapshot of the latest obs (never touches the env; MuJoCo isn't
+thread-safe).
 
-  * a SIM thread owns the MuJoCo env and steps it at wall-clock RT_HZ (LIBERO's control
-    rate). Each tick it consumes one action from a shared buffer; if the buffer is empty
-    (the planner is still thinking) it applies a HOLD action so the robot stays put.
-  * a PLANNER thread runs policy.predict_action_chunk on a snapshot of the latest obs to
-    refill the buffer. It never touches the env (MuJoCo isn't thread-safe).
-
-HOLD is safe because LIBERO uses an OSC_POSE controller with control_delta=True: the 7-D
-action is [dx,dy,dz, droll,dpitch,dyaw, gripper]. Zeroing the 6 delta dims => target ==
-current pose => the controller holds position. The gripper dim is absolute, so HOLD keeps
-the LAST commanded gripper (don't drop what you're holding). Replaying the last motion
-action would re-integrate the delta and drift, so HOLD must be zeros.
-
-The policy is chosen via POLICY_FACTORY=module:function (default RandomPolicy). Use the
-environment dropdown to switch tasks; the last run's video stays on screen with a download
-link.
+HOLD = zero the 6 OSC_POSE delta dims (control_delta=True => target==current pose, robot
+holds) while keeping the last absolute gripper. Zeros, not the last action, to avoid delta
+drift.
 
 Env: SUITE, TASK_ID, SEED, PORT (8081), OUT_DIR (/sim_outputs), VIEW_RES (720),
-VIDEO_RES (720), RENDER_RES (512, HD sim render), RT_HZ (20), RT_MAX_STEPS (1200),
-MAX_STEPS (0=suite default), POLICY_FACTORY.
+VIDEO_RES (720), RENDER_RES (512), RT_HZ (20), RT_MAX_STEPS (1200), MAX_STEPS (0=suite
+default), POLICY_FACTORY.
 """
 import copy
 import json

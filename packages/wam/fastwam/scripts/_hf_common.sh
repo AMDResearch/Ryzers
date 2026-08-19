@@ -2,13 +2,11 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Shared HF pre-fetch helper for the download_*.sh scripts. Source it, then call
+# Shared HF pre-fetch helper for download_*.sh: source it, then call
 # `hf_prefetch <repo> [files...] [--local-dir DIR]`.
 #
-# FastWAM pins huggingface-hub==0.29.2, whose CLI is `huggingface-cli` (not the
-# newer `hf`). Defaults to a single stream + Xet client off for reliable anonymous
-# downloads, and retries so a dropped connection resumes from cache. Set
-# HF_HUB_ENABLE_HF_TRANSFER=1 for parallel speed where permits/auth allow.
+# FastWAM pins huggingface-hub==0.29.2 (CLI `huggingface-cli`); Xet off + retries for
+# reliable anonymous downloads. Set HF_HUB_ENABLE_HF_TRANSFER=1 for parallel speed.
 export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
 export HF_HUB_ENABLE_HF_TRANSFER="${HF_HUB_ENABLE_HF_TRANSFER:-0}"
 export HF_HUB_DOWNLOAD_TIMEOUT="${HF_HUB_DOWNLOAD_TIMEOUT:-60}"

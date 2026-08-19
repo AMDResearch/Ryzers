@@ -1,18 +1,11 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""FastWAM LIBERO policy adapter for the simulation/libero harness.
-
-Implements the model-agnostic `sim_libero.Policy` seam by wrapping the FastWAM world-action
-model. Reuses the *validated* eval machinery from experiments/libero/eval_libero_single.py
-verbatim (config compose, model instantiate + checkpoint load, processor/normalizer, and
-`_predict_action_chunk`) so interactive/closed-loop rollouts match the shipped numbers.
-
-Selected at runtime by the sim harness via
-  POLICY_FACTORY=fastwam_libero_policy:build_policy
+"""FastWAM LIBERO policy adapter: wraps the model behind the sim_libero.Policy seam, reusing
+experiments/libero/eval_libero_single.py verbatim. Selected via
+POLICY_FACTORY=fastwam_libero_policy:build_policy.
 
 Env: CKPT, DATASET_STATS, MIXED_PRECISION (bf16), SUITE, NUM_INFERENCE_STEPS,
 REPLAN_STEPS, NUM_STEPS_WAIT, FASTWAM_REPO (/repos/fastwam).
-Requires /repos/fastwam and its experiments/libero dir on PYTHONPATH (the demo sets this).
 """
 import os
 

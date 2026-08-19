@@ -1,10 +1,7 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Built-in no-model policy for simulator sanity checks.
-
-Emits small random end-effector deltas so the arm visibly moves, proving the LIBERO
-env renders and steps without any learned model. This is the default policy when
-POLICY_FACTORY is unset.
+"""Built-in no-model policy: emits small random end-effector deltas so the arm moves.
+Default when POLICY_FACTORY is unset.
 """
 import numpy as np
 

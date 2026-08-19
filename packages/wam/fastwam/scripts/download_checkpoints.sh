@@ -2,9 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Fetch the released FastWAM checkpoints + dataset stats (yuanty/fastwam) into the
-# mounted model volume. LIBERO (~12 GB) and/or RoboTwin (~12 GB). The Wan2.2 base
-# is fetched separately by the upstream loader on first model run.
+# Fetch released FastWAM checkpoints + stats (yuanty/fastwam) into the model volume.
+# The Wan2.2 base is fetched separately by the upstream loader on first run.
 #   ryzers run /ryzers/scripts/download_checkpoints.sh [libero|robotwin|all]
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"

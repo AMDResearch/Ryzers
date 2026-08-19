@@ -1,16 +1,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Interactive RoboTwin demo (model-agnostic, chunk-replay).
+"""Interactive RoboTwin demo (model-agnostic, chunk-replay): press Run to re-seed and roll a task, streaming the live 4-view as MJPEG.
 
-Command-driven showcase: the sim sits IDLE on a task scene until you press Run (or send an
-instruction); then it re-seeds the scene and rolls that one task to completion (or until
-Stop), streaming the live composed 4-view (head|observer over left|right wrist) to the
-browser as MJPEG and saving a debug MP4. Use the environment dropdown to switch to any
-RoboTwin task; the last run's video stays on screen with a download link.
-
-The policy is chosen at runtime via POLICY_FACTORY=module:function (default: the built-in
-RandomPolicy shipped with this simulator). Any model that implements sim_robotwin.Policy
-can drive this demo. Stdlib http.server only.
+Policy via POLICY_FACTORY=module:function (default RandomPolicy). Stdlib http.server only.
 
 Env: TASK, TASK_CONFIG, SEED, PORT (8082), OUT_DIR (/sim_outputs), VIEW_RES (720),
 VIDEO_RES (720), MAX_STEPS (0=task step limit), POLICY_FACTORY.

@@ -1,23 +1,12 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""FastWAM RoboTwin policy adapter for the simulation/robotwin interactive harness.
-
-Implements the model-agnostic `sim_robotwin.Policy` seam by wrapping the FastWAM world-action
-model. Reuses the *validated* RoboTwin deploy policy from
-experiments/robotwin/fastwam_policy/deploy_policy.py verbatim (config compose, model
-instantiate + checkpoint load, processor/normalizer, image/state builders and
-`_infer_action_chunk`) so interactive rollouts match the closed-loop numbers.
-
-Selected at runtime by the sim harness via
-  POLICY_FACTORY=fastwam_robotwin_policy:build_policy
-
-The parity-critical closed-loop path does NOT use this adapter: it runs RoboTwin's own
-script/eval_policy.py against the same deploy_policy.py plugin. This wrapper only bridges
-that plugin's inference into the interactive Policy seam.
+"""FastWAM RoboTwin policy adapter: wraps the model behind the sim_robotwin.Policy seam,
+reusing experiments/robotwin/fastwam_policy/deploy_policy.py verbatim. Selected via
+POLICY_FACTORY=fastwam_robotwin_policy:build_policy. The parity-critical closed-loop path
+uses RoboTwin's own eval_policy.py against the same plugin, not this adapter.
 
 Env: CKPT, DATASET_STATS, MIXED_PRECISION (bf16), REPLAN_STEPS, NUM_INFERENCE_STEPS,
-ACTION_HORIZON, FASTWAM_REPO (/repos/fastwam). Requires /repos/fastwam,
-/repos/fastwam/experiments/robotwin and /opt/sim on PYTHONPATH (the demo sets this).
+ACTION_HORIZON, FASTWAM_REPO (/repos/fastwam).
 """
 import os
 

@@ -1,11 +1,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Model-agnostic LIBERO environment glue for the simulation/libero package.
-
-Vendored from FastWAM's experiments/libero/libero_utils.py so this simulator package has
-zero dependency on any policy/model repo. Provides just the pieces a closed-loop or
-interactive harness needs: build an env for a benchmark task, pull the agentview+wrist
-image, the no-op action, per-suite horizons, and the list of shipped suites.
+"""LIBERO environment glue, vendored from FastWAM's experiments/libero/libero_utils.py so
+this package has no dependency on a policy repo. Builds a task env, pulls the
+agentview+wrist image, the no-op action, per-suite horizons, and the suite list.
 """
 import contextlib
 import logging
@@ -13,12 +10,9 @@ import os
 import pathlib
 import warnings
 
-# Quiet the noisy third-party import chatter (not errors). robosuite logs a "no private
-# macro file" WARNING via its logger; gym prints its "unmaintained / NumPy 2.0" notice
-# straight to stderr at import time (NOT through warnings, so a filter can't catch it).
-# Suppress robosuite by raising its logger to ERROR, and gym by eagerly importing it once
-# with stderr redirected -- later imports (by libero/robosuite) hit the module cache and
-# stay quiet. Real errors still propagate (logger level is ERROR, not CRITICAL).
+# Quiet noisy third-party import chatter: raise robosuite's logger to ERROR, and import
+# gym once with stderr redirected (its NumPy-2 notice bypasses warnings). Real errors
+# still propagate.
 for _name in ("robosuite_logs", "robosuite"):
     logging.getLogger(_name).setLevel(logging.ERROR)
 with contextlib.redirect_stderr(open(os.devnull, "w")):
@@ -26,8 +20,7 @@ with contextlib.redirect_stderr(open(os.devnull, "w")):
         import gym  # noqa: F401
     except Exception:  # noqa: BLE001
         pass
-# Set the warnings filter AFTER importing gym: gym resets the warnings registry on import,
-# which would otherwise wipe this filter and let robosuite's deprecated-.warn() notice leak.
+# Filter set AFTER gym import: gym resets the warnings registry, which would wipe this.
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import numpy as np
@@ -59,10 +52,7 @@ def get_benchmark_dict():
 
 
 def list_envs():
-    """Enumerate every shipped (suite, task_id, description) for the env-picker dropdown.
-
-    Cheap: reads task metadata from the benchmark registry without building any sim env.
-    """
+    """Enumerate every shipped (suite, task_id, description); reads metadata, builds no env."""
     out = []
     bench = get_benchmark_dict()
     for suite in SUITES:
@@ -96,7 +86,7 @@ def get_libero_env(task, resolution, seed):
 
 
 def get_libero_dummy_action():
-    """No-op action (open gripper) used to settle the sim while the robot does nothing."""
+    """No-op action (open gripper) to settle the sim."""
     return [0, 0, 0, 0, 0, 0, -1]
 
 

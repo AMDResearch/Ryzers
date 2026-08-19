@@ -2,11 +2,8 @@
 # SPDX-License-Identifier: MIT
 """Model-agnostic LIBERO episode loop (chunk-replay).
 
-Mirrors FastWAM's validated eval stepping exactly, but calls a generic Policy for the
-action chunk instead of a hard-wired model: settle for `num_steps_wait` no-ops, then
-repeatedly predict a chunk and execute its first `replan_steps` actions, rendering each
-step through an `on_frame` callback. Used by both the sanity runner and the clean
-interactive server.
+Settle for `num_steps_wait` no-ops, then repeatedly predict a chunk and execute its
+first `replan_steps` actions, rendering each step via `on_frame`.
 """
 from sim_libero.libero_env import get_libero_dummy_action, get_libero_image, get_max_steps
 

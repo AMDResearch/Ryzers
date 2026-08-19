@@ -2,19 +2,12 @@
 # SPDX-License-Identifier: MIT
 """Interactive LIBERO demo (model-agnostic, chunk-replay).
 
-Command-driven showcase: the sim sits IDLE on a scene until you send an instruction;
-then it resets the env + policy and runs that one task to completion (or until Stop),
-streaming the composed agentview|wrist view to the browser as MJPEG and saving a debug
-MP4 (executed command banner on top). Use the environment dropdown to switch to any
-shipped LIBERO task; the last run's video stays on screen with a download link.
-
-The policy is chosen at runtime via POLICY_FACTORY=module:function (default: the built-in
-RandomPolicy shipped with this simulator). Any model that implements sim_libero.Policy can
-drive this demo. Stdlib http.server only.
+Sits IDLE until you send an instruction, then resets the env + policy and runs one task,
+streaming the agentview|wrist view as MJPEG and saving an MP4. Policy chosen via
+POLICY_FACTORY=module:function (default RandomPolicy). Stdlib http.server only.
 
 Env: SUITE, TASK_ID, SEED, PORT (8080), OUT_DIR (/sim_outputs), VIEW_RES (720),
-VIDEO_RES (720), RENDER_RES (512, HD sim render; policy still resizes to its own input),
-MAX_STEPS (0=suite default), POLICY_FACTORY.  View: ssh -L 8080:localhost:8080 <host>.
+VIDEO_RES (720), RENDER_RES (512), MAX_STEPS (0=suite default), POLICY_FACTORY.
 """
 import json
 import os

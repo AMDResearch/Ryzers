@@ -1,12 +1,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""RoboTwin task-env wrapper for the model-agnostic harness.
+"""RoboTwin task-env wrapper: resolves task/embodiment/camera configs and drives a Base_Task.
 
-Factors out the config resolution that RoboTwin's script/eval_policy.py and
-script/collect_data.py both do inline (task_config yml + embodiment + camera configs),
-so the interactive/sanity harness can build and drive a configured Base_Task without
-duplicating RoboTwin's argument plumbing. RoboTwin uses relative paths (./task_config,
-./assets, ./description, envs.<task>), so we chdir into ROBOTWIN_ROOT once at import.
+RoboTwin uses relative paths (./task_config, ./assets, envs.<task>), so we chdir into
+ROBOTWIN_ROOT.
 """
 import importlib
 import os
@@ -30,11 +27,7 @@ def _instantiate_task(task_name):
 
 
 def _unstable_error():
-    """RoboTwin's UnStableError (raised when placed objects don't settle at a seed).
-
-    Imported lazily because it's only importable after the chdir + PYTHONPATH wiring.
-    Falls back to a never-matching sentinel so callers can still `except` it safely.
-    """
+    """RoboTwin's UnStableError (unsettled objects at a seed); lazy import, sentinel fallback."""
     try:
         _ensure_cwd()
         from envs.utils.create_actor import UnStableError  # noqa: WPS433
@@ -46,12 +39,7 @@ def _unstable_error():
 
 
 def list_tasks():
-    """Enumerate available RoboTwin task names (envs/<task>.py) for the env-picker dropdown.
-
-    Best-effort: lists modules under envs/ whose file name matches a task class, skipping the
-    base/util modules. A task that fails to build is caught at build time, so an over-broad
-    entry is harmless.
-    """
+    """Best-effort list of RoboTwin task names (envs/<task>.py) for the env-picker dropdown."""
     _ensure_cwd()
     envs_dir = os.path.join(ROBOTWIN_ROOT, "envs")
     skip = {"__init__", "utils", "camera"}
@@ -72,7 +60,7 @@ def list_tasks():
 def load_task_args(task_name, task_config):
     """Build the RoboTwin `args` dict for a task (mirrors eval_policy.py / collect_data.py)."""
     _ensure_cwd()
-    from envs import CONFIGS_PATH  # noqa: WPS433 - available only after chdir + PYTHONPATH
+    from envs import CONFIGS_PATH  # noqa: WPS433
 
     with open(f"./task_config/{task_config}.yml", "r", encoding="utf-8") as f:
         args = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -123,13 +111,9 @@ class RoboTwinScene:
     @classmethod
     def build_stable(cls, task_name, task_config="demo_clean", seed=0, video_dir=None,
                      max_attempts=15):
-        """Build a scene, advancing the seed past ones whose objects don't settle.
+        """Build a scene, advancing the seed past ones that raise UnStableError (unsettled objects).
 
-        Some RoboTwin tasks (e.g. pick_diverse_bottles) randomize object placement and
-        reject seeds where the physics settle check fails, raising ``UnStableError``.
-        RoboTwin's own eval_policy.py skips such seeds and tries the next one; this mirrors
-        that so the interactive/sanity harness self-heals instead of dead-ending on a bad
-        seed. The returned scene's ``.seed`` reflects the seed that actually succeeded.
+        Mirrors RoboTwin's eval_policy.py seed-skipping; .seed reflects the seed that succeeded.
         """
         unstable = _unstable_error()
         attempts = max(1, int(max_attempts))
@@ -183,13 +167,7 @@ class RoboTwinScene:
         self.env.set_instruction(instruction=instruction)
 
     def scene_objects(self):
-        """Best-effort list of manipulable objects placed in the scene.
-
-        RoboTwin tasks store their actors as instance attributes on the env. We first try a
-        segmentation/actor registry if present, then fall back to scanning for SAPIEN
-        entity-like attributes (have get_pose + get_name), excluding the robots/table. Purely
-        cosmetic for the viewport panel, so any failure yields an empty list.
-        """
+        """Best-effort list of manipulable objects in the scene (cosmetic viewport panel)."""
         env = self.env
         names = []
         try:
@@ -229,12 +207,9 @@ class RoboTwinScene:
         return np.asarray(obs["joint_action"]["vector"], dtype=np.float32)
 
     def ee_state_vector(self, obs=None):
-        """Current absolute end-effector pose in RoboTwin's raw sim frame, laid out exactly
-        as ``take_action(action_type="ee")`` expects: [left_xyz(3), left_quat_wxyz(4),
-        left_grip(1), right_xyz(3), right_quat_wxyz(4), right_grip(1)] -> [16].
-
-        This is the EE counterpart of ``state_vector`` (qpos). The RT demo re-issues it to
-        HOLD the arms in place (freeze the current pose) while an EE-space policy is planning.
+        """Current absolute EE pose for take_action(action_type="ee"):
+        [left_xyz(3), left_quat_wxyz(4), left_grip(1), right_xyz(3), right_quat_wxyz(4), right_grip(1)] -> [16].
+        EE counterpart of state_vector; RT demo re-issues it to HOLD while an EE policy plans.
         """
         obs = obs or self.env.now_obs
         ep = obs["endpose"]
@@ -245,8 +220,7 @@ class RoboTwinScene:
         return np.concatenate([left, right])
 
     def take_action(self, action, action_type="qpos"):
-        # qpos rows are joint-space (float32 like RoboTwin's data); ee rows are absolute
-        # end-effector poses that RoboTwin's planner solves with IK (keep float64 precision).
+        # qpos rows -> float32 (RoboTwin's data); ee rows -> float64 (planner IK precision).
         dtype = np.float64 if action_type == "ee" else np.float32
         self.env.take_action(np.asarray(action, dtype=dtype), action_type=action_type)
 

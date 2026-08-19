@@ -2,10 +2,8 @@
 # SPDX-License-Identifier: MIT
 """Env-var readers that treat an empty string as unset.
 
-The ryzers run wrapper passes optional knobs as `-e VAR=${VAR:-}`, i.e. an empty string
-when the host did not set them. Plain os.environ.get(key, default) would then return ""
-(not the default) and break int()/float() parsing, so these helpers fall back to the
-default whenever the value is missing or empty.
+ryzers run passes optional knobs as `-e VAR=${VAR:-}` (empty when unset), so plain
+os.environ.get would return "" and break int()/float(); these fall back to the default.
 """
 import os
 

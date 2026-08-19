@@ -2,19 +2,13 @@
 # SPDX-License-Identifier: MIT
 """Open-loop replay eval for FastWAM on Strix Halo (gfx1151).
 
-Feeds ground-truth observations from released LeRobot episodes into the model and
-compares the predicted action chunk against the dataset's ground-truth action chunk
-(in the model's normalized action space). Produces per-dimension GT-vs-prediction
-overlay plots (workspace rule 2.a) and error metrics.
+Feeds GT observations from released LeRobot episodes into infer_action and compares the
+predicted action chunk against GT (normalized space); writes per-dim overlay plots and
+error metrics. Reuses upstream RobotVideoDataset + FastWAMProcessor so preprocessing
+matches training.
 
-Reuses the upstream `RobotVideoDataset` + `FastWAMProcessor` so the 2-cam/3-cam
-concat, resize/crop, [-1,1] normalization and action/state normalization match
-training exactly. The only override is the text-embedding cache, which is unused
-here because `infer_action` re-encodes the prompt string on the fly.
-
-Config-driven for both embodiments:
-  - LIBERO   : CONFIG_NAME=sim_libero   (2 cams, 224x448, action 7, min/max)
-  - RoboTwin : CONFIG_NAME=sim_robotwin (3 cams, 384x320, action 14, z-score)
+Config-driven: CONFIG_NAME=sim_libero (2 cams, 224x448, action 7) or sim_robotwin
+(3 cams, 384x320, action 14).
 
 Env: FASTWAM_REPO, CONFIG_NAME, CKPT, DATASET_STATS, DATASET_DIR, NUM_EPISODES,
      NUM_STEPS(20), OUT_DIR, TAG.
@@ -193,7 +187,7 @@ def main() -> int:
             print(f"ep{k:03d} idx={idx:7d}  normMSE={norm_mse:.4f}  normMAE={norm_mae_dim.mean():.4f}  "
                   f"rawMAE={raw_mae_dim.mean():.4f}  {latency:.2f}s")
 
-        # Per-dim GT vs prediction overlay for the first few episodes (rule 2.a: overlay on same axes).
+        # Per-dim GT vs prediction overlay for the first few episodes.
         if k >= NUM_PLOT_EPISODES:
             continue
         D = gt.shape[1]

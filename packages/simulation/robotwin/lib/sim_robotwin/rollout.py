@@ -1,13 +1,6 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Model-agnostic RoboTwin episode loop (chunk-replay).
-
-Mirrors RoboTwin's own eval loop but against the sim_robotwin.Policy seam: get an
-observation, ask the policy for a [T, action_dim] joint-space chunk, execute the first
-`replan_steps` rows via TASK_ENV.take_action, then replan. Each executed step yields a
-live composed frame (head|observer over left|right wrist) to the on_frame callback. No
-torch or model code here.
-"""
+"""Model-agnostic RoboTwin episode loop (chunk-replay): predict a [T, action_dim] chunk, execute the first `replan_steps` rows, replan."""
 from collections import deque
 
 

@@ -1,17 +1,10 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Model-agnostic RoboTwin 2.0 simulator base image for AMD Strix Halo (gfx1151).
-# Ships the SAPIEN (offscreen Vulkan ray-tracing) + mplib motion-planning closed-loop
-# stack plus the sim_robotwin harness (Policy seam + interactive/sanity runners and a
-# built-in scripted expert / random policy). No policy/model code lives here: any policy
-# chains on top of this image (ryzers build simulation/robotwin <policy>) and drops a
-# RoboTwin policy/<name> plugin selected at runtime. curobo (CUDA-only, and its NVIDIA
-# Warp dependency has no ROCm backend) is replaced by mplib; the OIDN denoiser is disabled
-# via scripts/patches/robotwin_rocm.patch. PyTorch3D is built from upstream (ROCm/HIP port) for
-# gfx1151 to provide the point-cloud ops (envs/camera.py FPS/kNN, 3D policies). RoboTwin is
-# cloned from upstream at a pinned commit (de-vendored); sim assets are third-party and
-# fetched at runtime by scripts/setup_robotwin.sh, never baked here.
+# Model-agnostic RoboTwin 2.0 simulator base for AMD Strix Halo (gfx1151): SAPIEN (offscreen
+# Vulkan RT) + mplib stack + sim_robotwin harness. curobo (CUDA/Warp, no ROCm) -> mplib; OIDN
+# off via robotwin_rocm.patch; pytorch3d built from source for gfx1151 (point-cloud ops).
+# RoboTwin de-vendored (upstream @ pin); assets fetched at runtime, never baked.
 
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
@@ -31,9 +24,8 @@ RUN apt-get update && \
       ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
-# SAPIEN sim deps under a torch/numpy constraint so the base ROCm torch stays put.
-# setuptools is pinned <81 because sapien/mplib import the removed pkg_resources.
-# numpy is pinned to 1.26.4 last so it protects the base torch stack from transitive bumps.
+# SAPIEN deps under a torch/numpy constraint to keep base ROCm torch. setuptools<81 (sapien/mplib
+# use removed pkg_resources); numpy 1.26.4 pinned last to protect the base torch stack.
 RUN pip freeze | grep -iE "^(torch|torchvision|torchcodec)==" > /opt/torch-constraints.txt && \
     PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir \
       "setuptools<81" \
@@ -44,13 +36,8 @@ RUN pip freeze | grep -iE "^(torch|torchvision|torchcodec)==" > /opt/torch-const
     PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir --no-deps "mplib==0.2.1" && \
     pip install --no-cache-dir "numpy==1.26.4"
 
-# PyTorch3D (ROCm/HIP) built from upstream at a pinned commit for gfx1151. Enables the
-# point-cloud ops (pytorch3d.ops FPS/kNN used by envs/camera.py and 3D policies like DP3)
-# on AMD. Upstream added ROCm support in facebookresearch/pytorch3d PR #2039: torch's
-# BuildExtension auto-hipifies the .cu sources and hipcub/rocThrust ship in the base ROCm
-# image, so no CUB_HOME is needed. Built with --no-build-isolation so setup.py sees the
-# base ROCm torch (torch.version.hip). PIP_CONSTRAINT keeps the base torch/numpy pinned.
-# The build-time check only asserts the compiled _C extension exists (no GPU at build).
+# PyTorch3D (ROCm/HIP) built from source @ pin for gfx1151 (point-cloud ops FPS/kNN). torch's
+# BuildExtension auto-hipifies the sources; --no-build-isolation so setup.py sees base ROCm torch.
 ARG P3D_COMMIT=c8fcd83ff96fa0a5893c0b994f9285d7aa772540
 RUN PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir ninja fvcore iopath && \
     git clone https://github.com/facebookresearch/pytorch3d /tmp/pytorch3d && \
@@ -61,12 +48,7 @@ RUN PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir ninja f
     rm -rf /tmp/pytorch3d && \
     python -c "import os, glob, pytorch3d; so=glob.glob(os.path.dirname(pytorch3d.__file__)+'/_C*.so'); assert so, 'pytorch3d _C extension not built'; print('pytorch3d', pytorch3d.__version__, 'gfx1151 _C:', os.path.basename(so[0]))"
 
-# De-vendored RoboTwin: clone upstream at the pinned commit into /opt/RoboTwin, then apply
-# the compatibility patch there. It bundles the ROCm changes (curobo->mplib, OIDN off,
-# optional open3d, expert seed pre-check off) with the model-agnostic eval-harness
-# adaptations to script/eval_policy.py + envs/_base_task.py (configurable output dir /
-# episode count / skip-obs, and the 4-view eval-frame compositor the harness streams). The
-# pin matches the commit the patch was generated against, so it applies to a fresh clone.
+# Clone upstream RoboTwin @ pin, then apply ROCm patch (curobo->mplib, OIDN off) + harness adaptations.
 ARG RT_COMMIT=bf44be51cf5717a5595ce59447f2cf5263d2aa95
 COPY scripts/patches/robotwin_rocm.patch /tmp/robotwin_rocm.patch
 RUN git clone https://github.com/RoboTwin-Platform/RoboTwin /opt/RoboTwin && \

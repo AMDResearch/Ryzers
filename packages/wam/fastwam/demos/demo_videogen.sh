@@ -2,8 +2,7 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Video imagination (joint path): predict future frames from the first observation
-# and write side-by-side GT-vs-imagined clips + per-clip latency to
+# Video imagination (joint path): write side-by-side GT-vs-imagined clips + latency to
 # /outputs/videogen/videogen_<TAG>.
 #   DATASET=libero   ryzers run /ryzers/demos/demo_videogen.sh
 #   DATASET=robotwin NUM_VIDEOS=10 ryzers run /ryzers/demos/demo_videogen.sh

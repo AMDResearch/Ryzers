@@ -1,12 +1,10 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Model-agnostic policy interface for the LIBERO simulator harness.
+"""Model-agnostic policy interface (ABC) for the LIBERO harness.
 
-A policy plugs into the closed-loop / interactive harness by implementing this ABC. The
-harness owns the env, rendering, streaming and the episode loop; the policy only turns an
-observation + instruction into an action chunk. Any model (FastWAM, MolmoACT2, VLA-JEPA,
-...) ships a factory `build_policy() -> Policy` and is selected at runtime via the
-`POLICY_FACTORY=module:function` env var (default: the built-in RandomPolicy).
+The harness owns the env/rendering/loop; a policy turns (obs, instruction) into an
+action chunk. Ship a `build_policy() -> Policy` factory selected via
+POLICY_FACTORY=module:function (default RandomPolicy).
 """
 import importlib
 from abc import ABC, abstractmethod

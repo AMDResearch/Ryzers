@@ -1,10 +1,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# ROCm 7.14 base (rocm/pytorch torch 2.10.0), the current standard for these ports.
+# ROCm 7.14 base (rocm/pytorch torch 2.10.0).
 init_image: rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.10.0
-# This is a model-agnostic simulator base; chain a policy on top with
-#   ryzers build simulation/libero <policy>
+# Model-agnostic sim base; chain a policy: ryzers build simulation/libero <policy>
 
 gpu_support: true
 x11_display: false
@@ -15,9 +14,7 @@ environment_variables:
 - "PYOPENGL_PLATFORM=egl"
 - "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
 - "TORCH_BLAS_PREFER_HIPBLASLT=0"
-# Distinct container target so this base's outputs mount does not collide with a
-# policy layer's /outputs when chained (ryzers concatenates volume mappings). When a
-# policy (e.g. fastwam) is chained on top, its /outputs wins for the policy demos.
+# Distinct mount target so this base's outputs don't collide with a chained policy's /outputs.
 - "OUT_DIR=/sim_outputs"
 # Sim/harness knobs (override from the host: VAR=... ryzers run /ryzers/demos/demo_*.sh).
 - 'SUITE=${SUITE:-}'

@@ -1,10 +1,7 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Shared rendering helpers for the LIBERO interactive/sanity harness.
-
-Pure-stdlib + Pillow/imageio; no torch, no policy code. Handles MJPEG frame encoding,
-the composed agentview|wrist viewport, the command banner, and even-dimension MP4 saving
-(FFmpeg's yuv420p encoder rejects odd width/height).
+"""Rendering helpers (Pillow/imageio): MJPEG encode, composed agentview|wrist viewport,
+command banner, and even-dimension MP4 saving (yuv420p rejects odd width/height).
 """
 import io
 import os
@@ -30,10 +27,7 @@ def encode_jpeg(rgb, quality=88):
 
 
 def compose_view(imgs, height=None):
-    """Stitch the {image, wrist_image} dict from get_libero_image side-by-side.
-
-    Optionally upscale to `height` px tall for a crisper live viewport (aspect kept).
-    """
+    """Stitch {image, wrist_image} side-by-side; optionally upscale to `height` px."""
     parts = []
     for key in ("image", "wrist_image"):
         if key in imgs:
@@ -47,10 +41,7 @@ def compose_view(imgs, height=None):
 
 
 def banner_frame(rgb, text, size, tag=""):
-    """Downscale the frame to `size` px wide and add a top banner with the command.
-
-    Output width/height are forced even so the H.264 yuv420p encoder accepts them.
-    """
+    """Downscale to `size` px wide and add a command banner; dims forced even for yuv420p."""
     img = Image.fromarray(np.ascontiguousarray(rgb))
     w = size
     h = int(round(img.height * size / img.width))
@@ -73,11 +64,10 @@ def banner_frame(rgb, text, size, tag=""):
 
 
 def save_mp4(frames, path, fps=20):
-    """Save RGB frames to an MP4 (H.264, yuv420p). Frames must share even dimensions.
+    """Save RGB frames to an MP4 (H.264, yuv420p); frames must share even dimensions.
 
-    imageio-ffmpeg already injects `-pix_fmt yuv420p` for libx264, so we set it via the
-    writer's `pixelformat` (not output_params) to avoid ffmpeg's "Multiple -pix_fmt
-    options" warning from passing it twice.
+    pixelformat (not output_params) avoids ffmpeg's "Multiple -pix_fmt options" warning,
+    since imageio-ffmpeg already injects `-pix_fmt yuv420p` for libx264.
     """
     import imageio
 

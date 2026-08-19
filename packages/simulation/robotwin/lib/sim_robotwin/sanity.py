@@ -1,12 +1,6 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Headless sanity rollout for the RoboTwin simulator base image.
-
-Loads a policy (default: built-in RandomPolicy), sets up one task episode, rolls it for a
-bounded number of steps, and saves an MP4 of the live composed 4-view (head|observer over
-left|right wrist). Proves the ROCm/Vulkan SAPIEN render + mplib TOPP execution + 4-view
-compose + video encode path work end-to-end with no model. This exercises the same runtime
-path the closed-loop eval uses (RoboTwin's curobo expert pre-check is disabled on ROCm).
+"""Headless sanity rollout: proves ROCm/Vulkan SAPIEN render + mplib execution + 4-view compose + encode with no model.
 
 Env: TASK, TASK_CONFIG, SEED, MAX_STEPS, OUT_DIR, POLICY_FACTORY (module:function).
 """

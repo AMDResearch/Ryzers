@@ -1,12 +1,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Environment sign-of-life for the LIBERO simulator base image (Strix Halo, gfx1151).
+"""Environment sign-of-life for the LIBERO sim base image (Strix Halo, gfx1151).
 
-Runs inside the built image with NO model. Proves the container has (1) the LIBERO /
-MuJoCo / robosuite stack importing cleanly and (2) the sim_libero harness + built-in
-RandomPolicy resolving, before a policy image is chained on top. Does not render (that
-needs a GPU device, exercised by demo_sim_sanity.sh at run time). Exits non-zero on any
-failure so `ryzers run` / CI catches a broken image early.
+Imports the LIBERO/MuJoCo/robosuite stack and resolves the sim_libero harness +
+RandomPolicy, with no model and no render. Exits non-zero on failure.
 """
 import sys
 

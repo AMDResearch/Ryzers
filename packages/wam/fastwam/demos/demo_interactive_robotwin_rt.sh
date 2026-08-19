@@ -2,9 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Real-time interactive RoboTwin demo driven by the FastWAM policy, served over HTTP/MJPEG.
-# Execution is decoupled from planning so the browser SEES planner latency (arms HOLD while
-# the model thinks). Requires the simulation/robotwin base image:
+# Real-time interactive RoboTwin demo (FastWAM policy over HTTP/MJPEG); arms HOLD while the
+# model plans so planner latency is visible. Requires the simulation/robotwin base:
 #   ryzers build robotwin fastwam
 #   ryzers run /ryzers/demos/demo_interactive_robotwin_rt.sh
 # View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>).

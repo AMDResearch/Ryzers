@@ -2,10 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Interactive RoboTwin demo (chunk-replay) served over HTTP/MJPEG. Defaults to the built-in
-# RandomPolicy; a policy image chains on top and sets POLICY_FACTORY to drive it with a real
-# model. Fetches sim assets on first run. View at http://localhost:PORT
-# (ssh -L PORT:localhost:PORT <host>).
+# Interactive RoboTwin demo (chunk-replay, HTTP/MJPEG). Default RandomPolicy; set POLICY_FACTORY
+# to drive a real model. View at http://localhost:PORT (ssh -L PORT:localhost:PORT <host>).
 #   ryzers run /ryzers/demos/demo_interactive.sh
 #   POLICY_FACTORY=fastwam_robotwin_policy:build_policy ryzers run /ryzers/demos/demo_interactive.sh
 set -euo pipefail

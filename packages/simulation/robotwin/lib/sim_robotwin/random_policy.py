@@ -1,12 +1,6 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Built-in model-free policy for the RoboTwin simulator base image.
-
-Emits a small random walk in joint space around the current qpos (grippers held), so the
-interactive/sanity harness renders live 4-view motion and exercises the Policy seam + the
-mplib TOPP execution path end-to-end with no model weights. It does not solve tasks; it is
-the RoboTwin analog of sim_libero's RandomPolicy and the default when no policy is chained.
-"""
+"""Built-in model-free policy: small joint-space random walk (grippers held); default when no policy is chained."""
 import numpy as np
 
 from sim_robotwin.policy import Policy

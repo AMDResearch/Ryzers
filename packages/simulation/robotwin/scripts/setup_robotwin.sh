@@ -2,11 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Fetch RoboTwin 2.0 third-party configs + simulation assets (embodiments, objects)
-# into the mounted volume and wire them into the de-vendored RoboTwin at /opt/RoboTwin.
-# Idempotent: re-run is a no-op once the marker exists.
-#   Configs : RoboTwin-Platform/RoboTwin @ RT_COMMIT (raw GitHub, text)
-#   Assets  : TianxingChen/RoboTwin2.0 (embodiments.zip, objects.zip)
+# Fetch RoboTwin 2.0 configs + assets into the mounted volume and wire them into the
+# de-vendored RoboTwin at /opt/RoboTwin. Idempotent (marker-gated).
 set -euo pipefail
 RT_COMMIT="${RT_COMMIT:-bf44be51cf5717a5595ce59447f2cf5263d2aa95}"
 RAW="https://raw.githubusercontent.com/RoboTwin-Platform/RoboTwin/${RT_COMMIT}"

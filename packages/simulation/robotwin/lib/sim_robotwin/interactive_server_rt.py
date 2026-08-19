@@ -1,23 +1,10 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Real-time (_RT) RoboTwin demo (model-agnostic).
+"""Real-time RoboTwin demo (model-agnostic): planning decoupled from execution to SHOW planner latency.
 
-The real-time sibling of interactive_server.py. The clean demo replays each predicted
-chunk back-to-back, hiding planner latency. Here planning is decoupled from execution so
-you can SEE the latency:
-
-  * an EXEC thread owns the RoboTwin task env and consumes one qpos action per tick from a
-    shared buffer; if the buffer is empty (the planner is still thinking) it HOLDs the
-    current joint pose (grippers preserved) so the arms stay put.
-  * a PLANNER thread runs policy.predict_action_chunk on a snapshot of the latest obs to
-    refill the buffer. It never touches the env (SAPIEN isn't thread-safe).
-
-HOLD re-issues the current joint vector (arms unchanged, both grippers at their last
-commanded value), so the robot freezes rather than drifting while the model thinks.
-
-The policy is chosen via POLICY_FACTORY=module:function (default RandomPolicy). Use the
-environment dropdown to switch tasks; the last run's video stays on screen with a download
-link.
+EXEC thread owns the env and consumes one action/tick (HOLDs current pose when the buffer is
+empty); PLANNER thread refills the buffer from an obs snapshot (never touches the env; SAPIEN
+isn't thread-safe). Policy via POLICY_FACTORY (default RandomPolicy).
 
 Env: TASK, TASK_CONFIG, SEED, PORT (8083), OUT_DIR (/sim_outputs), VIEW_RES (720),
 VIDEO_RES (720), MAX_STEPS (0=task step limit), POLICY_FACTORY.
@@ -134,8 +121,7 @@ def engine_thread():
         buf = deque()
         buflock = threading.Lock()
         obs0 = sc.get_obs()
-        # HOLD re-issues the current pose in whatever space the policy commands: the qpos joint
-        # vector for qpos policies, or the absolute EE pose for EE-space policies (X-WAM).
+        # HOLD re-issues the current pose in the policy's space (qpos vector, or EE pose for EE policies).
         hold_vec = sc.ee_state_vector(obs0) if action_type == "ee" else sc.state_vector(obs0)
         shared = {"obs": obs0, "done": False, "hold": 0, "total": 0,
                   "last_vec": hold_vec}

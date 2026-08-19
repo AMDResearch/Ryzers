@@ -1,13 +1,6 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Shared rendering helpers for the RoboTwin interactive/sanity harness.
-
-Pure-stdlib + Pillow/imageio; no torch, no policy code. Handles MJPEG frame encoding,
-a live viewport (upscaled RoboTwin eval frame: head|observer over left|right wrist), the
-command banner, and even-dimension MP4 saving (FFmpeg's yuv420p encoder rejects odd
-width/height). The composed frame itself is produced by RoboTwin's own
-Base_Task._get_eval_video_frame(), so this module only rescales/annotates/encodes it.
-"""
+"""Rendering helpers (Pillow/imageio): JPEG encode, viewport upscale, command banner, even-dim MP4 save."""
 import io
 import os
 
@@ -41,10 +34,7 @@ def view_frame(rgb, height=None):
 
 
 def banner_frame(rgb, text, size, tag=""):
-    """Downscale the frame to `size` px wide and add a top banner with the command.
-
-    Output width/height are forced even so the H.264 yuv420p encoder accepts them.
-    """
+    """Downscale to `size` px wide + top command banner; dims forced even for H.264 yuv420p."""
     img = Image.fromarray(np.ascontiguousarray(np.asarray(rgb)[:, :, :3]))
     w = size
     h = int(round(img.height * size / img.width))
@@ -67,12 +57,7 @@ def banner_frame(rgb, text, size, tag=""):
 
 
 def save_mp4(frames, path, fps=15):
-    """Save RGB frames to an MP4 (H.264, yuv420p). Frames must share even dimensions.
-
-    imageio-ffmpeg already injects `-pix_fmt yuv420p` for libx264, so we set it via the
-    writer's `pixelformat` (not output_params) to avoid ffmpeg's "Multiple -pix_fmt
-    options" warning from passing it twice.
-    """
+    """Save RGB frames to an MP4 (H.264, yuv420p); frames must share even dimensions."""
     import imageio
 
     with imageio.get_writer(

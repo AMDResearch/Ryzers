@@ -2,10 +2,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Closed-loop LIBERO rollouts in MuJoCo (headless EGL) driven by FastWAM. Writes
-# per-task results + rollout videos to /outputs/closedloop/<TAG> and an aggregate
-# success_summary.json. Set VISUALIZE_FUTURE=true for the slow path that also
-# renders the model's imagined future video alongside each rollout.
+# Closed-loop LIBERO rollouts in MuJoCo (headless EGL) driven by FastWAM. Writes per-task
+# results + videos and success_summary.json to /outputs/closedloop/<TAG>.
+# Set VISUALIZE_FUTURE=true to also render the imagined future video per rollout.
 #   ryzers run /ryzers/demos/demo_closedloop_libero.sh
 #   NUM_TASKS=1 NUM_TRIALS=3 VISUALIZE_FUTURE=true ryzers run /ryzers/demos/demo_closedloop_libero.sh
 set -uo pipefail

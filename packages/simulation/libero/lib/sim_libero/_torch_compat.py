@@ -2,13 +2,9 @@
 # SPDX-License-Identifier: MIT
 """torch.load compatibility shim for LIBERO's pickled assets.
 
-LIBERO stores per-task init-states as numpy-backed pickled tensors and loads them via
-torch.load. PyTorch >= 2.6 flipped the torch.load default to weights_only=True, which
-rejects those pickles. Restore the pre-2.6 default so the LIBERO assets baked into the
-image load. Safe here: the files are trusted assets shipped in the simulator image.
-
-Applied globally via sitecustomize.py (so the upstream fastwam eval script, which does not
-import sim_libero, is covered) and also from sim_libero.__init__ for direct library use.
+PyTorch >= 2.6 defaults torch.load to weights_only=True, rejecting LIBERO's pickled
+init-states. Restore weights_only=False (trusted assets shipped in the image). Applied via
+a startup .pth (covers any policy's eval script) and from sim_libero.__init__.
 """
 
 

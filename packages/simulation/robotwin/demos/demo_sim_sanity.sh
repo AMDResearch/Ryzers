@@ -2,12 +2,8 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Model-free sanity rollout for the RoboTwin simulator base. Fetches the RoboTwin sim
-# assets on first run, then loads the built-in RandomPolicy (no weights), sets up one task
-# scene on the iGPU (offscreen Vulkan RT), rolls it via mplib TOPP, and saves an MP4 of the
-# live 4-view (head|observer over left|right wrist) to /sim_outputs. Proves the ROCm/Vulkan
-# SAPIEN render + mplib execution + 4-view compose + video encode path work with no model
-# (the same runtime path the closed-loop eval uses; the curobo expert pre-check is off).
+# Model-free sanity rollout: fetch assets, run RandomPolicy on one task, save a 4-view MP4.
+# Proves the ROCm/Vulkan SAPIEN render + mplib execution + encode path with no model.
 #   ryzers run /ryzers/demos/demo_sim_sanity.sh
 #   TASK=lift_pot MAX_STEPS=80 ryzers run /ryzers/demos/demo_sim_sanity.sh
 set -euo pipefail

@@ -2,17 +2,9 @@
 # SPDX-License-Identifier: MIT
 """Planning-latency benchmark + per-part breakdown for FastWAM on Strix Halo (gfx1151).
 
-Measures steady-state (warm) latency of one full `infer_action` with DEFAULT forward
-settings (num_inference_steps=20), broken down into:
-  - text encoder   (umt5-xxl T5, encode_prompt)
-  - vision encoder (Wan VAE, encode input image -> first-frame latents)
-  - world prefill  (video DiT prefill of the video KV cache)
-  - diffusion plan (action-DiT flow-matching denoise loop)
-
-It also compares SDPA attention backends to show the flash-attention effect:
-  - MATH   : force torch math kernel (no flash)
-  - FLASH  : force flash/AOTriton (+ efficient/math fallback for masked ops)
-  - default: torch auto-selects (prefers flash where eligible)
+Times a warm infer_action (num_inference_steps=20) split into text encoder, vision encoder,
+world prefill and diffusion plan, and compares SDPA backends (MATH vs FLASH/AOTriton vs
+default) to show the flash-attention effect.
 
 Env: FASTWAM_REPO, CKPT, CONFIG_NAME, NUM_STEPS(20), BENCH_ITERS(5).
 """

@@ -1,10 +1,7 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""LIBERO scene wrapper for the interactive/sanity harness (model-agnostic).
-
-Builds a single OffScreenRenderEnv for a (suite, task_id) via the vendored glue and
-exposes the scene's native instruction, initial state, and object list. No policy or
-model code here.
+"""LIBERO scene wrapper: builds one OffScreenRenderEnv for a (suite, task_id) and
+exposes its instruction, initial state, and object list.
 """
 import numpy as np
 
@@ -31,11 +28,9 @@ class Scene:
         self.objects = self._list_objects()
 
     def _list_objects(self):
-        """Best-effort manipulable-object names for the viewport panel.
+        """Best-effort object names for the viewport panel (cosmetic; [] on failure).
 
-        Tries the benchmark task's declared objects of interest, then falls back to parsing
-        the task's BDDL `(:objects ...)` block (instance names like `akita_black_bowl_1`,
-        normalised to `akita black bowl`). Cosmetic only, so any failure yields [].
+        Uses the task's declared object_of_interest, else parses the BDDL `(:objects ...)`.
         """
         try:
             names = list(getattr(self.task, "object_of_interest", []) or [])

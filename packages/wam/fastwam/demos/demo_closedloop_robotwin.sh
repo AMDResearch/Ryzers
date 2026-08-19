@@ -2,11 +2,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# Closed-loop RoboTwin 2.0 rollouts (SAPIEN offscreen Vulkan RT) driven by FastWAM, on the
-# de-vendored simulation/robotwin base. Requires the chain:  ryzers build robotwin fastwam.
-# RoboTwin's own script/eval_policy.py is the model-agnostic runner; this drops the FastWAM
-# policy plugin into /opt/RoboTwin/policy (via eval_robotwin_single.py's symlink) and runs
-# it. Per-task rollout videos + results land under /outputs.
+# Closed-loop RoboTwin 2.0 rollouts driven by FastWAM on the simulation/robotwin base
+# (requires: ryzers build robotwin fastwam). Runs RoboTwin's own eval_policy.py with the
+# FastWAM plugin; per-task videos + results land under /outputs.
 #   ryzers run /ryzers/demos/demo_closedloop_robotwin.sh
 #   TASKS="click_bell lift_pot" NUM_EPISODES=10 ryzers run /ryzers/demos/demo_closedloop_robotwin.sh
 set -uo pipefail
@@ -24,7 +22,7 @@ export PYTHONPATH="/repos/fastwam/src:/repos/fastwam:/repos/fastwam/experiments/
 CKPT=$REL/robotwin_uncond_3cam_384.pt
 [ -f "$CKPT" ] || { echo "missing $CKPT -> run scripts/download_checkpoints.sh robotwin" >&2; exit 1; }
 
-# Fetch RoboTwin assets + wire them into /opt/RoboTwin (idempotent; sim base script).
+# Fetch RoboTwin assets + wire into /opt/RoboTwin (idempotent).
 bash /ryzers/scripts/setup_robotwin.sh
 
 cd /repos/fastwam

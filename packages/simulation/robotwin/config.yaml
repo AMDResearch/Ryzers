@@ -1,10 +1,9 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# ROCm 7.14 base (rocm/pytorch torch 2.10.0), the current standard for these ports.
+# ROCm 7.14 base (rocm/pytorch torch 2.10.0).
 init_image: rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.10.0
-# This is a model-agnostic simulator base; chain a policy on top with
-#   ryzers build simulation/robotwin <policy>
+# Model-agnostic base; chain a policy: ryzers build simulation/robotwin <policy>
 
 gpu_support: true
 x11_display: false
@@ -21,13 +20,11 @@ environment_variables:
 - "TOKENIZERS_PARALLELISM=false"
 - 'HF_TOKEN=${HF_TOKEN:-}'
 - "ROBOTWIN_ROOT=/opt/RoboTwin"
-# Assets live under a distinct container path (/sim_models) so this base's models mount
-# does not collide with a policy layer's /models (weights) when chained (ryzers concatenates
-# volume mappings and Docker rejects two mounts to the same container path).
+# Distinct container path (/sim_models) so this base's mount doesn't collide with a chained
+# policy's /models (Docker rejects two mounts to the same path).
 - "ROBOTWIN_ASSETS_DIR=/sim_models/robotwin_assets"
-# Distinct container target so this base's outputs mount does not collide with a
-# policy layer's /outputs when chained (ryzers concatenates volume mappings). When a
-# policy (e.g. fastwam) is chained on top, its /outputs wins for the policy demos.
+# Distinct container path (/sim_outputs) so this base's mount doesn't collide with a chained
+# policy's /outputs.
 - "OUT_DIR=/sim_outputs"
 # Sim/harness knobs (override from the host: VAR=... ryzers run /ryzers/demos/demo_*.sh).
 - 'TASK=${TASK:-}'

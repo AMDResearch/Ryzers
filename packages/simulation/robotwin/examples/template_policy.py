@@ -1,23 +1,18 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""COPY-ME template: plug your own VLA/WAM into the RoboTwin simulator base (interactive).
+"""COPY-ME template: plug your model into the RoboTwin sim base (interactive seam).
 
-The simulation/robotwin image is model-agnostic. To drive the *interactive* showcase with
-your model you do NOT edit this package: you build YOUR ryzer FROM the sim base and ship an
-adapter like this one, then select it at runtime.
+The sim base is model-agnostic; don't edit this package. Build YOUR ryzer FROM it and ship an
+adapter like this, selected at runtime.
 
-Three steps
------------
-1. In your model package's Dockerfile, chain on the sim base:
+1. Chain on the sim base in your Dockerfile (install your model UNDER the base torch+numpy
+   pins; RoboTwin/mplib need numpy 1.26.4):
 
        ARG BASE_IMAGE
        FROM ${BASE_IMAGE}
-       # install your model UNDER the base's torch+numpy pins (RoboTwin/mplib need
-       # numpy 1.26.4). See the FastWAM package's scripts/strip_cuda_torch.py for a
-       # working PIP_CONSTRAINT reference.
        COPY scripts/adapters/ /opt/model-adapters/
 
-   Build the chain:   ryzers build robotwin <yourmodel> --name <yourmodel>-robotwin
+   Build:   ryzers build robotwin <yourmodel> --name <yourmodel>-robotwin
 
 2. Implement the two methods below.
 
@@ -27,10 +22,8 @@ Three steps
        POLICY_FACTORY=template_policy:build_policy \
          ryzers run --name <yourmodel>-robotwin /ryzers/demos/demo_interactive.sh
 
-For the parity-critical CLOSED-LOOP eval, RoboTwin uses its own model-agnostic runner
-(script/eval_policy.py + policy/<name>/deploy_policy.py) instead of this seam - drop your
-`policy/<name>` plugin into /opt/RoboTwin/policy. This template is for the interactive
-showcase (the LIBERO-style live Policy seam).
+Interactive seam only; closed-loop eval uses RoboTwin's script/eval_policy.py +
+policy/<name>/deploy_policy.py runner.
 
 Contract
 --------
@@ -41,10 +34,9 @@ obs           : RoboTwin observation dict. Useful keys:
                   obs["joint_action"]["vector"]              (14,) current qpos:
                       [left_arm(6), left_gripper(1), right_arm(6), right_gripper(1)]  (aloha-agilex)
 instruction   : str, the natural-language task.
-return        : np.ndarray [T, 14] float32, execute-ready joint-space qpos rows in the same
-                layout as obs["joint_action"]["vector"]. The harness runs each row via
-                TASK_ENV.take_action(row, action_type="qpos"), executing the first
-                `replan_steps` rows before calling you again.
+return        : np.ndarray [T, 14] float32 qpos rows (same layout as obs["joint_action"]["vector"]);
+                harness runs each row via TASK_ENV.take_action(row, action_type="qpos"), executing
+                the first `replan_steps` rows before calling you again.
 """
 import numpy as np
 
