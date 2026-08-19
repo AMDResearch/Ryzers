@@ -35,19 +35,18 @@ ryzers run --name fastwam-libero /ryzers/demos/demo_closedloop_libero.sh       #
 Closed-loop libero task, rendered headless via EGL.
 
 <p align="center">
-  <img src="assets/closedloop_libero_alphabet_soup.gif" width="220">
-  <img src="assets/closedloop_libero_cream_cheese.gif" width="220">
-  <img src="assets/closedloop_libero_bbq_sauce.gif" width="220">
-  <img src="assets/closedloop_libero_butter.gif" width="220">
+  <img src="assets/closedloop_libero_alphabet_soup.gif" width="420">
+  <br>
+  <img src="assets/closedloop_libero_cream_cheese.gif" width="420">
   <br><em>Closed-loop LIBERO-object rollouts.</em>
 </p>
 
-With `VISUALIZE_FUTURE=true` the slow path also renders the imagined future next to the real
-rollout (ground truth left, imagined right).
+With `VISUALIZE_FUTURE=true` the slow path also renders the imagined future stacked over the
+real rollout (imagined top, ground truth bottom).
 
 <p align="center">
   <img src="assets/closedloop_slow_gt_vs_imagined.gif" width="420">
-  <br><em>Slow path: real rollout vs the model's imagined future.</em>
+  <br><em>Slow path: imagined future (top) vs the real rollout (bottom).</em>
 </p>
 
 ### Interactive and closed-loop RoboTwin 2.0
@@ -61,11 +60,10 @@ TASKS="click_bell lift_pot" NUM_EPISODES=10 \
 ```
 
 <p align="center">
-  <img src="assets/closedloop_robotwin_beat_block_hammer.gif" width="220">
-  <img src="assets/closedloop_robotwin_click_bell.gif" width="220">
-  <img src="assets/closedloop_robotwin_lift_pot.gif" width="220">
-  <img src="assets/closedloop_robotwin_handover_block.gif" width="220">
-  <br><em>Closed-loop RoboTwin rollouts: beat block hammer, click bell, lift pot, handover block.</em>
+  <img src="assets/closedloop_robotwin_click_bell.gif" width="400">
+  <br>
+  <img src="assets/closedloop_robotwin_lift_pot.gif" width="400">
+  <br><em>Closed-loop RoboTwin rollouts: click bell (top), lift pot (bottom).</em>
 </p>
 
 ### Video imagination
@@ -78,9 +76,8 @@ DATASET=libero ryzers run --name fastwam /ryzers/demos/demo_videogen.sh
 ```
 
 <p align="center">
-  <img src="assets/imagination_libero.gif" width="380">
-  <img src="assets/imagination_robotwin.gif" width="380">
-  <br><em>Ground truth vs imagined future, LIBERO (left) and RoboTwin (right).</em>
+  <img src="assets/imagination_robotwin.gif" width="480">
+  <br><em>RoboTwin: ground truth (left) vs imagined future (right).</em>
 </p>
 
 
