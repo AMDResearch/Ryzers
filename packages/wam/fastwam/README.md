@@ -8,7 +8,7 @@ PyTorch port: upstream runs on the base image's ROCm torch and only the CUDA tor
 stripped.
 
 FastWAM ships no simulator. It is a slim policy layer that the model-agnostic simulation bases
-attach to through a runtime `Policy` adapter (`adapters/fastwam_{libero,robotwin}_policy.py`,
+attach to through a runtime `Policy` adapter (`scripts/adapters/fastwam_{libero,robotwin}_policy.py`,
 selected by `POLICY_FACTORY`). It chains on top of a simulator base for closed-loop and
 interactive runs, or runs standalone on the plain base for the non-sim demos.
 

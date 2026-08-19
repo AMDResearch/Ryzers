@@ -16,7 +16,7 @@ Three steps
        # LIBERO/robosuite/MuJoCo stack (it needs numpy 1.26.4). The FastWAM package's
        # scripts/strip_cuda_torch.py + `PIP_CONSTRAINT=$(pip freeze | grep numpy)` is a
        # working reference for this.
-       COPY adapters/ /opt/model-adapters/
+       COPY scripts/adapters/ /opt/model-adapters/
 
    Build the chain:   ryzers build libero <yourmodel> --name <yourmodel>-libero
 

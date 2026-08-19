@@ -8,7 +8,7 @@
 # chains on top of this image (ryzers build simulation/robotwin <policy>) and drops a
 # RoboTwin policy/<name> plugin selected at runtime. curobo (CUDA-only, and its NVIDIA
 # Warp dependency has no ROCm backend) is replaced by mplib; the OIDN denoiser is disabled
-# via patches/robotwin_rocm.patch. PyTorch3D is built from upstream (ROCm/HIP port) for
+# via scripts/patches/robotwin_rocm.patch. PyTorch3D is built from upstream (ROCm/HIP port) for
 # gfx1151 to provide the point-cloud ops (envs/camera.py FPS/kNN, 3D policies). RoboTwin is
 # cloned from upstream at a pinned commit (de-vendored); sim assets are third-party and
 # fetched at runtime by scripts/setup_robotwin.sh, never baked here.
@@ -68,10 +68,10 @@ RUN PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir ninja f
 # episode count / skip-obs, and the 4-view eval-frame compositor the harness streams). The
 # pin matches the commit the patch was generated against, so it applies to a fresh clone.
 ARG RT_COMMIT=bf44be51cf5717a5595ce59447f2cf5263d2aa95
-COPY patches/robotwin_rocm.patch /ryzers/patches/robotwin_rocm.patch
+COPY scripts/patches/robotwin_rocm.patch /tmp/robotwin_rocm.patch
 RUN git clone https://github.com/RoboTwin-Platform/RoboTwin /opt/RoboTwin && \
     git -C /opt/RoboTwin checkout ${RT_COMMIT} && \
-    git -C /opt/RoboTwin apply --whitespace=nowarn /ryzers/patches/robotwin_rocm.patch && \
+    git -C /opt/RoboTwin apply --whitespace=nowarn /tmp/robotwin_rocm.patch && \
     echo "applied robotwin_rocm.patch @ ${RT_COMMIT:0:8}" && \
     rm -rf /opt/RoboTwin/.git
 

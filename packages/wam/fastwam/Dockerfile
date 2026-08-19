@@ -35,7 +35,7 @@ RUN git clone https://github.com/yuantianyuan01/FastWAM /repos/fastwam && \
 # cross-attention K/V + text-embedding across a plan's diffusion steps. Shipped as a reviewable
 # diff against the pinned upstream commit (upstream caches only video self-attn K/V). Default-on
 # at runtime; disable with FASTWAM_TEXT_KV_CACHE=0.
-COPY patches/fastwam_kv_cache.patch /tmp/fastwam_kv_cache.patch
+COPY scripts/patches/fastwam_kv_cache.patch /tmp/fastwam_kv_cache.patch
 RUN git -C /repos/fastwam apply --verbose /tmp/fastwam_kv_cache.patch
 
 # Pin the base's torch + numpy so the FastWAM install (and its extras) never replaces
@@ -54,7 +54,7 @@ RUN python /ryzers/scripts/strip_cuda_torch.py /repos/fastwam/pyproject.toml && 
 # build_policy; harmless (unused) on the plain base. On its own dir so demos add it to
 # PYTHONPATH. The RoboTwin closed-loop instead uses the repo's own experiments/robotwin/
 # fastwam_policy plugin via RoboTwin's script/eval_policy.py.
-COPY adapters/ /opt/fastwam-adapters/
+COPY scripts/adapters/ /opt/fastwam-adapters/
 
 RUN python -c "import torch; assert torch.version.hip, 'torch is not a ROCm build: '+torch.__version__; import fastwam; from fastwam.runtime import create_fastwam; print('OK fastwam on torch', torch.__version__, 'hip', torch.version.hip)"
 

@@ -15,7 +15,7 @@ Three steps
        # install your model UNDER the base's torch+numpy pins (RoboTwin/mplib need
        # numpy 1.26.4). See the FastWAM package's scripts/strip_cuda_torch.py for a
        # working PIP_CONSTRAINT reference.
-       COPY adapters/ /opt/model-adapters/
+       COPY scripts/adapters/ /opt/model-adapters/
 
    Build the chain:   ryzers build robotwin <yourmodel> --name <yourmodel>-robotwin
 
