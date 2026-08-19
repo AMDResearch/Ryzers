@@ -10,14 +10,14 @@ interactive rollouts.
 ### Build
 
 ```sh
-ryzers build simulation/robotwin
+ryzers build robotwin
 ryzers run     # test.py: ROCm torch + SAPIEN/mplib import sign-of-life
 ```
 
 ### Example: RoboTwin 2.0 with FastWAM
 
 ```sh
-ryzers build simulation/robotwin fastwam
+ryzers build robotwin fastwam --name fastwam-robotwin
 ryzers run --name fastwam-robotwin /ryzers/demos/demo_closedloop_robotwin.sh
 ```
 

@@ -11,8 +11,8 @@ ryzers run --name fastwam                                 # test.py: ROCm torch 
 
 For building the image with simulation support, chain the appropriate simulation package to the build.
 ```
-ryzers build simulation/libero   fastwam --name fastwam-libero     # chain the model on the LIBERO base
-ryzers build simulation/robotwin fastwam --name fastwam-robotwin   # chain the model on the RoboTwin base
+ryzers build libero   fastwam --name fastwam-libero     # chain the model on the LIBERO base
+ryzers build robotwin fastwam --name fastwam-robotwin   # chain the model on the RoboTwin base
 ```
 
 Artifacts are written to `workspace/*/outputs`. Set `HF_TOKEN` for faster or gated downloads.

@@ -7,14 +7,14 @@ that WAM and VLA packages chain on for closed-loop and interactive rollouts.
 ### Build
 
 ```sh
-ryzers build simulation/libero
+ryzers build libero
 ryzers run     # test.py: sim import + headless render sign-of-life
 ```
 
 ### Example: LIBERO with FastWAM
 
 ```sh
-ryzers build simulation/libero fastwam
+ryzers build libero fastwam --name fastwam-libero
 ryzers run --name fastwam-libero /ryzers/demos/demo_closedloop_libero.sh
 ```
 

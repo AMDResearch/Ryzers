@@ -30,7 +30,7 @@ RUN pip freeze | grep -iE "^(torch|torchvision|torchcodec)==" > /opt/torch-const
     PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir \
       "setuptools<81" \
       "sapien==3.0.0b1" "transforms3d==0.4.2" "trimesh==4.4.3" "gymnasium==0.29.1" \
-      toppra scipy "pyglet<2" termcolor moviepy av matplotlib pydantic zarr h5py lxml \
+      toppra "scipy<1.15" "pyglet<2" termcolor moviepy av matplotlib pydantic zarr h5py lxml \
       "imageio>=2.34" "imageio-ffmpeg>=0.5" "pillow>=10" opencv-python-headless \
       huggingface_hub && \
     PIP_CONSTRAINT=/opt/torch-constraints.txt pip install --no-cache-dir --no-deps "mplib==0.2.1" && \

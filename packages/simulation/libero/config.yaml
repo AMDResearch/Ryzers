@@ -3,7 +3,7 @@
 
 # ROCm 7.14 base (rocm/pytorch torch 2.10.0).
 init_image: rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.10.0
-# Model-agnostic sim base; chain a policy: ryzers build simulation/libero <policy>
+# Model-agnostic sim base; chain a policy: ryzers build libero <policy>
 
 gpu_support: true
 x11_display: false
