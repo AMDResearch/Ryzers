@@ -1,0 +1,45 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# ROCm 7.14 base (rocm/pytorch torch 2.10.0).
+init_image: rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.10.0
+# Model-agnostic base; chain a policy: ryzers build robotwin <policy>
+
+gpu_support: true
+x11_display: false
+
+environment_variables:
+- "HSA_OVERRIDE_GFX_VERSION=11.5.1"
+- "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
+- "TORCH_BLAS_PREFER_HIPBLASLT=0"
+- "HF_HOME=/root/.cache/huggingface"
+- 'HF_HUB_DISABLE_XET=${HF_HUB_DISABLE_XET:-1}'
+- 'HF_HUB_ENABLE_HF_TRANSFER=${HF_HUB_ENABLE_HF_TRANSFER:-0}'
+- 'HF_HUB_DOWNLOAD_TIMEOUT=${HF_HUB_DOWNLOAD_TIMEOUT:-60}'
+- "HF_HUB_DISABLE_TELEMETRY=1"
+- "TOKENIZERS_PARALLELISM=false"
+- 'HF_TOKEN=${HF_TOKEN:-}'
+- "ROBOTWIN_ROOT=/opt/RoboTwin"
+# Distinct container path (/sim_models) so this base's mount doesn't collide with a chained
+# policy's /models (Docker rejects two mounts to the same path).
+- "ROBOTWIN_ASSETS_DIR=/sim_models/robotwin_assets"
+# Distinct container path (/sim_outputs) so this base's mount doesn't collide with a chained
+# policy's /outputs.
+- "OUT_DIR=/sim_outputs"
+# Sim/harness knobs (override from the host: VAR=... ryzers run /ryzers/demos/demo_*.sh).
+- 'TASK=${TASK:-}'
+- 'TASK_CONFIG=${TASK_CONFIG:-}'
+- 'SEED=${SEED:-}'
+- 'NUM_EPISODES=${NUM_EPISODES:-}'
+- 'PORT=${PORT:-}'
+- 'VIEW_RES=${VIEW_RES:-}'
+- 'VIDEO_RES=${VIDEO_RES:-}'
+- 'RT_HZ=${RT_HZ:-}'
+- 'MAX_STEPS=${MAX_STEPS:-}'
+# Policy selection: module:function returning a sim_robotwin.Policy (default RandomPolicy).
+- 'POLICY_FACTORY=${POLICY_FACTORY:-}'
+
+volume_mappings:
+- "$PWD/workspace/simulation-robotwin/outputs:/sim_outputs"
+- "$PWD/workspace/simulation-robotwin/models:/sim_models"
+- "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"

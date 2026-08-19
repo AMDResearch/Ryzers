@@ -1,0 +1,213 @@
+diff --git a/src/fastwam/models/wan22/action_dit.py b/src/fastwam/models/wan22/action_dit.py
+index f6716e6..5838e0f 100644
+--- a/src/fastwam/models/wan22/action_dit.py
++++ b/src/fastwam/models/wan22/action_dit.py
+@@ -229,6 +229,7 @@ class ActionDiT(nn.Module):
+         timestep: torch.Tensor,
+         context: torch.Tensor,
+         context_mask: Optional[torch.Tensor] = None,
++        precomputed_context_emb: Optional[torch.Tensor] = None,
+     ) -> Dict[str, Any]:
+         if action_tokens.ndim != 3:
+             raise ValueError(
+@@ -281,7 +282,8 @@ class ActionDiT(nn.Module):
+         t_mod = self.time_projection(t).unflatten(1, (6, self.hidden_dim))
+ 
+         tokens = self.action_encoder(action_tokens)
+-        context_emb = self.text_embedding(context)
++        # `text_embedding(context)` is constant across a plan's diffusion steps; allow reuse.
++        context_emb = precomputed_context_emb if precomputed_context_emb is not None else self.text_embedding(context)
+         context_attn_mask = context_mask.unsqueeze(1).expand(-1, seq_len, -1)
+         freqs = self.freqs[:seq_len].view(seq_len, 1, -1).to(tokens.device)
+ 
+diff --git a/src/fastwam/models/wan22/fastwam.py b/src/fastwam/models/wan22/fastwam.py
+index 106beb3..4157b39 100644
+--- a/src/fastwam/models/wan22/fastwam.py
++++ b/src/fastwam/models/wan22/fastwam.py
+@@ -1,3 +1,4 @@
++import os
+ from typing import Any, Optional, Sequence, Union
+ 
+ import torch
+@@ -85,6 +86,14 @@ class FastWAM(torch.nn.Module):
+         self.loss_lambda_video = float(loss_lambda_video)
+         self.loss_lambda_action = float(loss_lambda_action)
+ 
++        # Exact inference-time caches (default on; disable with FASTWAM_TEXT_KV_CACHE=0).
++        # (1) encode_prompt memo: instruction is constant across a replan episode.
++        # (2) per-plan action cross-attn K/V + text-embedding cache: context is constant
++        #     across a plan's diffusion steps. Both are numerically exact (bit-identical).
++        self._text_kv_cache_enabled = os.environ.get("FASTWAM_TEXT_KV_CACHE", "1") != "0"
++        self._prompt_cache: dict = {}
++        self._prompt_cache_cap = 16
++
+         self.to(self.device)
+ 
+     @classmethod
+@@ -205,6 +214,11 @@ class FastWAM(torch.nn.Module):
+                 "Prompt encoding requires loaded text encoder/tokenizer. "
+                 "Set `load_text_encoder=true` or provide precomputed `context/context_mask`."
+             )
++        cache_key = prompt if (self._text_kv_cache_enabled and isinstance(prompt, str)) else None
++        if cache_key is not None:
++            hit = self._prompt_cache.get(cache_key)
++            if hit is not None:
++                return hit
+         ids, mask = self.tokenizer(prompt, return_mask=True, add_special_tokens=True)
+         ids = ids.to(self.device)
+         mask = mask.to(self.device, dtype=torch.bool)
+@@ -214,7 +228,12 @@ class FastWAM(torch.nn.Module):
+         for i, v in enumerate(seq_lens):
+             prompt_emb[i, v:] = 0
+         mask = torch.ones_like(mask)
+-        return prompt_emb.to(device=self.device), mask
++        result = (prompt_emb.to(device=self.device), mask)
++        if cache_key is not None:
++            if len(self._prompt_cache) >= self._prompt_cache_cap:
++                self._prompt_cache.clear()
++            self._prompt_cache[cache_key] = result
++        return result
+ 
+     def _append_proprio_to_context(
+         self,
+@@ -701,12 +720,15 @@ class FastWAM(torch.nn.Module):
+         video_kv_cache: list[dict[str, torch.Tensor]],
+         attention_mask: torch.Tensor,
+         video_seq_len: int,
++        precomputed_context_emb: Optional[torch.Tensor] = None,
++        action_cross_kv: Optional[list] = None,
+     ) -> torch.Tensor:
+         action_pre = self.action_expert.pre_dit(
+             action_tokens=latents_action,
+             timestep=timestep_action,
+             context=context,
+             context_mask=context_mask,
++            precomputed_context_emb=precomputed_context_emb,
+         )
+         action_tokens = self.mot.forward_action_with_video_cache(
+             action_tokens=action_pre["tokens"],
+@@ -719,6 +741,7 @@ class FastWAM(torch.nn.Module):
+             video_kv_cache=video_kv_cache,
+             attention_mask=attention_mask,
+             video_seq_len=video_seq_len,
++            action_cross_kv=action_cross_kv,
+         )
+         return self.action_expert.post_dit(action_tokens, action_pre)
+ 
+@@ -1021,6 +1044,15 @@ class FastWAM(torch.nn.Module):
+             video_attention_mask=attention_mask[:video_seq_len, :video_seq_len],
+         )
+ 
++        # Precompute the (per-plan constant) action text-embedding + per-layer cross-attn K/V
++        # once, then reuse across all diffusion steps. Numerically exact; disable via
++        # FASTWAM_TEXT_KV_CACHE=0.
++        precomputed_context_emb = None
++        action_cross_kv = None
++        if self._text_kv_cache_enabled:
++            precomputed_context_emb = self.action_expert.text_embedding(context)
++            action_cross_kv = self.mot.prefill_action_cross_kv(precomputed_context_emb)
++
+         infer_timesteps_action, infer_deltas_action = self.infer_action_scheduler.build_inference_schedule(
+             num_inference_steps=num_inference_steps,
+             device=self.device,
+@@ -1038,6 +1070,8 @@ class FastWAM(torch.nn.Module):
+                 video_kv_cache=video_kv_cache,
+                 attention_mask=attention_mask,
+                 video_seq_len=video_seq_len,
++                precomputed_context_emb=precomputed_context_emb,
++                action_cross_kv=action_cross_kv,
+             )
+             pred_action = pred_action_posi
+ 
+diff --git a/src/fastwam/models/wan22/mot.py b/src/fastwam/models/wan22/mot.py
+index 81bc6f8..3628ff5 100644
+--- a/src/fastwam/models/wan22/mot.py
++++ b/src/fastwam/models/wan22/mot.py
+@@ -106,6 +106,7 @@ class MoT(nn.Module):
+         scale_mlp: torch.Tensor,
+         gate_mlp: torch.Tensor,
+         context_payload: Optional[dict],
++        cross_kv: Optional[tuple] = None,
+     ) -> torch.Tensor:
+         x = block.gate(residual_x, gate_msa, block.self_attn.o(mixed_attn_out))
+ 
+@@ -115,7 +116,7 @@ class MoT(nn.Module):
+                 context_mask = context_payload.get("mask")
+                 if context_mask is not None and context_mask.dim() == 3:
+                     context_mask = context_mask.unsqueeze(1)
+-                x = x + block.cross_attn(block.norm3(x), context, ctx_mask=context_mask)
++                x = x + block.cross_attn(block.norm3(x), context, ctx_mask=context_mask, kv=cross_kv)
+ 
+         mlp_input = modulate(block.norm2(x), shift_mlp, scale_mlp)
+         x = block.gate(x, gate_mlp, block.ffn(mlp_input))
+@@ -194,6 +195,7 @@ class MoT(nn.Module):
+         use_gradient_checkpointing: bool,
+         mixed_slice: torch.Tensor,
+         context_payload: Optional[dict],
++        cross_kv: Optional[tuple] = None,
+     ) -> torch.Tensor:
+         """Apply post-attention computations, with optional checkpointing.
+ 
+@@ -232,6 +234,7 @@ class MoT(nn.Module):
+                 scale_mlp=_scale_mlp,
+                 gate_mlp=_gate_mlp,
+                 context_payload=_context_payload,
++                cross_kv=cross_kv,
+             )
+ 
+         if use_gradient_checkpointing and self.training:
+@@ -340,6 +343,12 @@ class MoT(nn.Module):
+             kv_cache.append({"k": k, "v": v})
+         return kv_cache
+ 
++    def prefill_action_cross_kv(self, context_emb: torch.Tensor) -> list[tuple]:
++        """Precompute per-layer action cross-attention K/V from the (per-plan constant)
++        text-embedded context. Reused across all diffusion steps of one plan (exact)."""
++        expert = self.mixtures["action"]
++        return [expert.blocks[i].cross_attn.compute_kv(context_emb) for i in range(self.num_layers)]
++
+     def forward_action_with_video_cache(
+         self,
+         action_tokens: torch.Tensor,
+@@ -349,6 +358,7 @@ class MoT(nn.Module):
+         video_kv_cache: list[dict[str, torch.Tensor]],
+         attention_mask: torch.Tensor,
+         video_seq_len: int,
++        action_cross_kv: Optional[list] = None,
+     ) -> torch.Tensor:
+         """Run action branch with cached video K/V instead of recomputing video tokens.
+ 
+@@ -441,6 +451,7 @@ class MoT(nn.Module):
+                 use_gradient_checkpointing=use_gradient_checkpointing,
+                 mixed_slice=mixed,
+                 context_payload=action_context_payload,
++                cross_kv=None if action_cross_kv is None else action_cross_kv[layer_idx],
+             )
+         return x
+ 
+diff --git a/src/fastwam/models/wan22/wan_video_dit.py b/src/fastwam/models/wan22/wan_video_dit.py
+index 01dc2a0..1930e25 100644
+--- a/src/fastwam/models/wan22/wan_video_dit.py
++++ b/src/fastwam/models/wan22/wan_video_dit.py
+@@ -212,10 +212,18 @@ class CrossAttention(nn.Module):
+             
+         # self.attn = AttentionModule(self.num_heads)
+ 
+-    def forward(self, x: torch.Tensor, ctx: torch.Tensor, ctx_mask: Optional[torch.Tensor] = None):
++    def compute_kv(self, ctx: torch.Tensor):
++        # Cross-attn K/V depend only on the (per-plan constant) context; caching them across
++        # diffusion steps is numerically exact. See MoT.forward_action_with_video_cache.
++        return self.norm_k(self.k(ctx)), self.v(ctx)
++
++    def forward(self, x: torch.Tensor, ctx: torch.Tensor, ctx_mask: Optional[torch.Tensor] = None, kv=None):
+         q = self.norm_q(self.q(x))
+-        k = self.norm_k(self.k(ctx))
+-        v = self.v(ctx)
++        if kv is None:
++            k = self.norm_k(self.k(ctx))
++            v = self.v(ctx)
++        else:
++            k, v = kv
+         x = flash_attention(q=q, k=k, v=v, num_heads=self.num_heads, ctx_mask=ctx_mask)
+         return self.o(x)
+ 

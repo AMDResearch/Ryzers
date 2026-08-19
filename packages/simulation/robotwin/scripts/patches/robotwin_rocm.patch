@@ -1,0 +1,419 @@
+diff --git a/envs/_base_task.py b/envs/_base_task.py
+index 982e6ec..49897c0 100644
+--- a/envs/_base_task.py
++++ b/envs/_base_task.py
+@@ -38,6 +38,54 @@ class Base_Task(gym.Env):
+     def __init__(self):
+         pass
+ 
++    def _get_eval_video_frame(self):
++        # Render the current scene live for every eval frame so all panels are
++        # continuous during policy execution. The policy only refreshes
++        # self.now_obs at replan boundaries, so reading it here made the head and
++        # wrist panels jump from keyframe to keyframe (only the live-rendered
++        # observer stayed smooth).
++        self._update_render()
++        self.cameras.update_picture()
++        rgb = self.cameras.get_rgb()
++        head_rgb = rgb["head_camera"]["rgb"]
++
++        if "left_camera" not in rgb or "right_camera" not in rgb:
++            return head_rgb
++
++        left_rgb = rgb["left_camera"]["rgb"]
++        right_rgb = rgb["right_camera"]["rgb"]
++        bottom_rgb = np.concatenate([left_rgb, right_rgb], axis=1)
++
++        # Top row = [head | third-person observer]. The observer is a sim-only
++        # camera (absent from the dataset / policy input); rendering it here fills
++        # the quadrant that is otherwise zero-padded, since the head cam is
++        # narrower than the two wrist cams placed side by side.
++        top_rgb = head_rgb
++        try:
++            h, w = head_rgb.shape[:2]
++            observer_rgb = np.asarray(self.cameras.get_observer_rgb())[:, :, :3]
++            if observer_rgb.shape[:2] != (h, w):
++                ys = np.linspace(0, observer_rgb.shape[0] - 1, h).astype(np.int64)
++                xs = np.linspace(0, observer_rgb.shape[1] - 1, w).astype(np.int64)
++                observer_rgb = observer_rgb[ys][:, xs]
++            top_rgb = np.concatenate([head_rgb, observer_rgb], axis=1)
++        except Exception:
++            top_rgb = head_rgb
++
++        target_w = max(top_rgb.shape[1], bottom_rgb.shape[1])
++
++        def _pad_width(rgb, width):
++            if rgb.shape[1] == width:
++                return rgb
++            if rgb.shape[1] > width:
++                return rgb[:, :width, :]
++            pad_w = width - rgb.shape[1]
++            return np.pad(rgb, ((0, 0), (0, pad_w), (0, 0)), mode="constant")
++
++        top_rgb = _pad_width(top_rgb, target_w)
++        bottom_rgb = _pad_width(bottom_rgb, target_w)
++        return np.concatenate([top_rgb, bottom_rgb], axis=0)
++
+     # =========================================================== Init Task Env ===========================================================
+     def _init_task_env_(self, table_xy_bias=[0, 0], table_height_bias=0, **kwags):
+         """
+@@ -68,7 +116,6 @@ class Base_Task(gym.Env):
+         self.save_data = kwags.get("save_data", False)
+         self.dual_arm = kwags.get("dual_arm", True)
+         self.eval_mode = kwags.get("eval_mode", False)
+-
+         self.need_topp = True  # TODO
+ 
+         # Random
+@@ -214,7 +261,7 @@ class Base_Task(gym.Env):
+         sapien.render.set_camera_shader_dir("rt")
+         sapien.render.set_ray_tracing_samples_per_pixel(32)
+         sapien.render.set_ray_tracing_path_depth(8)
+-        sapien.render.set_ray_tracing_denoiser("oidn")
++        sapien.render.set_ray_tracing_denoiser("none")  # OIDN requires CUDA; disabled on ROCm
+ 
+         # declare sapien scene
+         scene_config = sapien.SceneConfig()
+@@ -483,7 +530,6 @@ class Base_Task(gym.Env):
+             pkl_dic["endpose"]["right_gripper"] = norm_gripper_val[1]
+         # qpos
+         if self.data_type.get("qpos", False):
+-
+             left_jointstate = self.robot.get_left_arm_jointState()
+             right_jointstate = self.robot.get_right_arm_jointState()
+ 
+@@ -1482,10 +1528,11 @@ class Base_Task(gym.Env):
+ 
+         eval_video_freq = 1  # fixed
+         if (self.eval_video_path is not None and self.take_action_cnt % eval_video_freq == 0):
+-            self.eval_video_ffmpeg.stdin.write(self.now_obs["observation"]["head_camera"]["rgb"].tobytes())
++            eval_frame = self._get_eval_video_frame()
++            self.eval_video_ffmpeg.stdin.write(eval_frame.tobytes())
+ 
+         self.take_action_cnt += 1
+-        print(f"step: \033[92m{self.take_action_cnt} / {self.step_lim}\033[0m", end="\r")
++        # print(f"step: \033[92m{self.take_action_cnt} / {self.step_lim}\033[0m", end="\r")
+ 
+         self._update_render()
+         if self.render_freq:
+@@ -1658,7 +1705,8 @@ class Base_Task(gym.Env):
+                 self.eval_success = True
+                 self.get_obs() # update obs
+                 if (self.eval_video_path is not None):
+-                    self.eval_video_ffmpeg.stdin.write(self.now_obs["observation"]["head_camera"]["rgb"].tobytes())
++                    eval_frame = self._get_eval_video_frame()
++                    self.eval_video_ffmpeg.stdin.write(eval_frame.tobytes())
+                 return
+ 
+         self._update_render()
+diff --git a/envs/camera/camera.py b/envs/camera/camera.py
+index 46d960d..e41bc57 100644
+--- a/envs/camera/camera.py
++++ b/envs/camera/camera.py
+@@ -2,7 +2,10 @@ import sapien.core as sapien
+ import numpy as np
+ import pdb
+ from PIL import Image, ImageColor
+-import open3d as o3d
++try:
++    import open3d as o3d  # optional: only needed for point-cloud export
++except Exception:
++    o3d = None
+ import json
+ import transforms3d as t3d
+ import cv2
+diff --git a/envs/robot/planner.py b/envs/robot/planner.py
+index 21ae432..a8acab1 100644
+--- a/envs/robot/planner.py
++++ b/envs/robot/planner.py
+@@ -274,6 +274,7 @@ except Exception as e:
+     print('[planner.py]: Something wrong happened when importing CuroboPlanner! Please check if Curobo is installed correctly. If the problem still exists, you can install Curobo from https://github.com/NVlabs/curobo manually.')
+     print('Exception traceback:')
+     traceback.print_exc()
++    CuroboPlanner = None  # curobo unavailable (AMD/ROCm): stub so import succeeds
+ 
+ 
+ # ********************** MplibPlanner **********************
+diff --git a/envs/robot/robot.py b/envs/robot/robot.py
+index 9dfc08f..d7e0b17 100644
+--- a/envs/robot/robot.py
++++ b/envs/robot/robot.py
+@@ -132,7 +132,7 @@ class Robot:
+                 self.right_conn.send({"cmd": "reset"})
+                 _ = self.right_conn.recv()
+         else:
+-            if not isinstance(self.left_planner, CuroboPlanner) or not isinstance(self.right_planner, CuroboPlanner):
++            if CuroboPlanner is None or not isinstance(self.left_planner, CuroboPlanner) or not isinstance(self.right_planner, CuroboPlanner):
+                 self.set_planner(scene=scene)
+ 
+         self.init_joints()
+@@ -255,6 +255,20 @@ class Robot:
+         print("right ee: ", self.right_ee.get_name())
+ 
+     def set_planner(self, scene=None):
++        # curobo unavailable (AMD/ROCm): route primary planner to mplib
++        if CuroboPlanner is None:
++            self.communication_flag = False
++            self.left_planner = MplibPlanner(
++                self.left_urdf_path, self.left_srdf_path, self.left_move_group,
++                self.left_entity_origion_pose, self.left_entity, self.left_planner_type, scene,
++            )
++            self.right_planner = MplibPlanner(
++                self.right_urdf_path, self.right_srdf_path, self.right_move_group,
++                self.right_entity_origion_pose, self.right_entity, self.right_planner_type, scene,
++            )
++            self.left_mplib_planner = self.left_planner
++            self.right_mplib_planner = self.right_planner
++            return
+         abs_left_curobo_yml_path = os.path.join(CONFIGS.ROOT_PATH, self.left_curobo_yml_path)
+         abs_right_curobo_yml_path = os.path.join(CONFIGS.ROOT_PATH, self.right_curobo_yml_path)
+ 
+diff --git a/envs/utils/save_file.py b/envs/utils/save_file.py
+index 53b3cda..6f55ae7 100644
+--- a/envs/utils/save_file.py
++++ b/envs/utils/save_file.py
+@@ -5,7 +5,10 @@ import json
+ 
+ import os
+ import pickle
+-import open3d as o3d
++try:
++    import open3d as o3d  # optional: only needed for point-cloud export
++except Exception:
++    o3d = None
+ 
+ 
+ def ensure_dir(file_path):
+diff --git a/script/eval_policy.py b/script/eval_policy.py
+index eded198..968f9fe 100644
+--- a/script/eval_policy.py
++++ b/script/eval_policy.py
+@@ -61,14 +61,57 @@ def get_embodiment_config(robot_file):
+     return embodiment_args
+ 
+ 
++def get_eval_video_size(args):
++    head_camera_cfg = get_camera_config(args["camera"]["head_camera_type"])
++    video_w = int(head_camera_cfg["w"])
++    video_h = int(head_camera_cfg["h"])
++
++    if args["camera"].get("collect_wrist_camera", False):
++        wrist_camera_cfg = get_camera_config(args["camera"]["wrist_camera_type"])
++        wrist_w = int(wrist_camera_cfg["w"])
++        wrist_h = int(wrist_camera_cfg["h"])
++        video_w = max(video_w, wrist_w * 2)
++        video_h = video_h + wrist_h
++
++    return f"{video_w}x{video_h}"
++
++
++def parse_bool(value):
++    if isinstance(value, bool):
++        return value
++    if isinstance(value, str):
++        lowered = value.strip().lower()
++        if lowered in {"1", "true", "yes", "y"}:
++            return True
++        if lowered in {"0", "false", "no", "n"}:
++            return False
++    return bool(value)
++
++
++def _result_suffix_from_task_config(task_config):
++    if task_config == "demo_clean":
++        return "clean"
++    if task_config == "demo_randomized":
++        return "random"
++    raise ValueError(
++        f"Unsupported `task_config` for fixed result naming: {task_config}. "
++        "Expected one of: ['demo_clean', 'demo_randomized']."
++    )
++
++
+ def main(usr_args):
+-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
++    eval_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+     task_name = usr_args["task_name"]
+     task_config = usr_args["task_config"]
+     ckpt_setting = usr_args["ckpt_setting"]
+     # checkpoint_num = usr_args['checkpoint_num']
+     policy_name = usr_args["policy_name"]
+     instruction_type = usr_args["instruction_type"]
++    skip_get_obs_within_replan = parse_bool(usr_args.get("skip_get_obs_within_replan", False))
++    eval_num_episodes = int(usr_args.get("eval_num_episodes", 100))
++    if eval_num_episodes <= 0:
++        raise ValueError(f"`eval_num_episodes` must be > 0, got: {eval_num_episodes}")
++    eval_output_dir = usr_args.get("eval_output_dir")
+     save_dir = None
+     video_save_dir = None
+     video_size = None
+@@ -121,13 +164,15 @@ def main(usr_args):
+     else:
+         embodiment_name = str(embodiment_type[0]) + "+" + str(embodiment_type[1])
+ 
+-    save_dir = Path(f"eval_result/{task_name}/{policy_name}/{task_config}/{ckpt_setting}/{current_time}")
++    if eval_output_dir is not None and str(eval_output_dir).strip() != "":
++        save_dir = Path(str(eval_output_dir))
++    else:
++        save_dir = Path(f"eval_result/{task_name}/{policy_name}/{task_config}/{ckpt_setting}/{eval_ts}")
+     save_dir.mkdir(parents=True, exist_ok=True)
+ 
+     if args["eval_video_log"]:
+         video_save_dir = save_dir
+-        camera_config = get_camera_config(args["camera"]["head_camera_type"])
+-        video_size = str(camera_config["w"]) + "x" + str(camera_config["h"])
++        video_size = get_eval_video_size(args)
+         video_save_dir.mkdir(parents=True, exist_ok=True)
+         args["eval_video_save_dir"] = video_save_dir
+ 
+@@ -159,7 +204,7 @@ def main(usr_args):
+ 
+     st_seed = 100000 * (1 + seed)
+     suc_nums = []
+-    test_num = 100
++    test_num = eval_num_episodes
+     topk = 1
+ 
+     model = get_model(usr_args)
+@@ -170,14 +215,16 @@ def main(usr_args):
+                                    st_seed,
+                                    test_num=test_num,
+                                    video_size=video_size,
+-                                   instruction_type=instruction_type)
++                                   instruction_type=instruction_type,
++                                   skip_get_obs_within_replan=skip_get_obs_within_replan)
+     suc_nums.append(suc_num)
+ 
+     topk_success_rate = sorted(suc_nums, reverse=True)[:topk]
+ 
+-    file_path = os.path.join(save_dir, f"_result.txt")
++    result_suffix = _result_suffix_from_task_config(task_config)
++    file_path = os.path.join(save_dir, f"_result_{result_suffix}.txt")
+     with open(file_path, "w") as file:
+-        file.write(f"Timestamp: {current_time}\n\n")
++        file.write(f"Timestamp: {eval_ts}\n\n")
+         file.write(f"Instruction Type: {instruction_type}\n\n")
+         # file.write(str(task_reward) + '\n')
+         file.write("\n".join(map(str, np.array(suc_nums) / test_num)))
+@@ -193,11 +240,12 @@ def eval_policy(task_name,
+                 st_seed,
+                 test_num=100,
+                 video_size=None,
+-                instruction_type=None):
++                instruction_type=None,
++                skip_get_obs_within_replan=False):
+     print(f"\033[34mTask Name: {args['task_name']}\033[0m")
+     print(f"\033[34mPolicy Name: {args['policy_name']}\033[0m")
+ 
+-    expert_check = True
++    expert_check = False  # curobo unavailable on ROCm: skip expert seed pre-validation
+     TASK_ENV.suc = 0
+     TASK_ENV.test_num = 0
+ 
+@@ -233,10 +281,10 @@ def eval_policy(task_name,
+                 args["render_freq"] = render_freq
+                 continue
+             except Exception as e:
+-                # stack_trace = traceback.format_exc()
+-                # print(" -------------")
+-                # print("Error: ", e)
+-                # print(" -------------")
++                print(" -------------")
++                print("Error: ", e)
++                print("Stack Trace: ", traceback.format_exc())
++                print(" -------------")
+                 TASK_ENV.close_env()
+                 now_seed += 1
+                 args["render_freq"] = render_freq
+@@ -253,13 +301,48 @@ def eval_policy(task_name,
+ 
+         args["render_freq"] = render_freq
+ 
+-        TASK_ENV.setup_demo(now_ep_num=now_id, seed=now_seed, is_test=True, **args)
+-        episode_info_list = [episode_info["info"]]
+-        results = generate_episode_descriptions(args["task_name"], episode_info_list, test_num)
+-        instruction = np.random.choice(results[0][instruction_type])
++        try:
++            TASK_ENV.setup_demo(now_ep_num=now_id, seed=now_seed, is_test=True, **args)
++        except UnStableError as e:
++            # This seed passed expert_check but failed during rollout env init.
++            # Roll back the accepted-seed counter and skip to next seed.
++            succ_seed -= 1
++            if len(suc_test_seed_list) > 0 and suc_test_seed_list[-1] == now_seed:
++                suc_test_seed_list.pop()
++            TASK_ENV.close_env()
++            now_seed += 1
++            continue
++        except Exception as e:
++            succ_seed -= 1
++            if len(suc_test_seed_list) > 0 and suc_test_seed_list[-1] == now_seed:
++                suc_test_seed_list.pop()
++            print(" -------------")
++            print("Error: ", e)
++            print("Stack Trace: ", traceback.format_exc())
++            print(" -------------")
++            TASK_ENV.close_env()
++            now_seed += 1
++            print("error occurs !")
++            continue
++        # expert_check disabled on ROCm: episode_info may be absent. Fall back to task
++        # full_description (RoboTwin fastwam checkpoint is unconditional -> text unused).
++        try:
++            episode_info_list = [episode_info["info"]]
++            results = generate_episode_descriptions(args["task_name"], episode_info_list, test_num)
++            instruction = np.random.choice(results[0][instruction_type])
++        except Exception:
++            import json as _json, os as _os
++            _p = _os.path.join("description", "task_instruction", args["task_name"] + ".json")
++            try:
++                instruction = _json.load(open(_p)).get("full_description", args["task_name"].replace("_", " "))
++            except Exception:
++                instruction = args["task_name"].replace("_", " ")
+         TASK_ENV.set_instruction(instruction=instruction)  # set language instruction
+ 
++        current_video_path = None
+         if TASK_ENV.eval_video_path is not None:
++            episode_idx = TASK_ENV.test_num
++            current_video_path = Path(TASK_ENV.eval_video_path) / f"episode{episode_idx}.mp4"
+             ffmpeg = subprocess.Popen(
+                 [
+                     "ffmpeg",
+@@ -282,7 +365,7 @@ def eval_policy(task_name,
+                     "libx264",
+                     "-crf",
+                     "23",
+-                    f"{TASK_ENV.eval_video_path}/episode{TASK_ENV.test_num}.mp4",
++                    str(current_video_path),
+                 ],
+                 stdin=subprocess.PIPE,
+             )
+@@ -291,7 +374,13 @@ def eval_policy(task_name,
+         succ = False
+         reset_func(model)
+         while TASK_ENV.take_action_cnt < TASK_ENV.step_lim:
+-            observation = TASK_ENV.get_obs()
++            need_obs = True
++            if skip_get_obs_within_replan and hasattr(model, "should_request_observation"):
++                need_obs = bool(model.should_request_observation())
++
++            observation = None
++            if need_obs:
++                observation = TASK_ENV.get_obs()
+             eval_func(TASK_ENV, model, observation)
+             if TASK_ENV.eval_success:
+                 succ = True
+@@ -299,6 +388,14 @@ def eval_policy(task_name,
+         # task_total_reward += TASK_ENV.episode_score
+         if TASK_ENV.eval_video_path is not None:
+             TASK_ENV._del_eval_video_ffmpeg()
++            if current_video_path is None or not current_video_path.exists():
++                raise FileNotFoundError(f"Expected eval video file not found: {current_video_path}")
++            is_randomized = "randomized" in str(args["task_config"]).lower()
++            renamed_video_path = (
++                Path(TASK_ENV.eval_video_path)
++                / f"episode{episode_idx}_randomized-{str(is_randomized).lower()}_success-{str(succ).lower()}.mp4"
++            )
++            current_video_path.rename(renamed_video_path)
+ 
+         if succ:
+             TASK_ENV.suc += 1
