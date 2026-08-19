@@ -14,21 +14,21 @@ ryzers build simulation/robotwin
 ryzers run     # test.py: ROCm torch + SAPIEN/mplib import sign-of-life
 ```
 
-### Example: RoboTwin 2.0 with AHA-WAM
+### Example: RoboTwin 2.0 with FastWAM
 
 ```sh
-ryzers build simulation/robotwin ahawam
-ryzers run --name ahawam-robotwin /ryzers/demos/demo_closedloop_robotwin.sh
+ryzers build simulation/robotwin fastwam
+ryzers run --name fastwam-robotwin /ryzers/demos/demo_closedloop_robotwin.sh
 ```
 
 <p align="center">
-  <img src="assets/robotwin_ahawam.gif" width="260">
-  <br><em>AHA-WAM closed-loop rollout in RoboTwin 2.0 (beat_block_hammer task).</em>
+  <img src="assets/robotwin_fastwam.gif" width="320">
+  <br><em>FastWAM closed-loop rollout in RoboTwin 2.0 (beat_block_hammer task).</em>
 </p>
 
 ### References
 
-- Upstream: https://github.com/RoboTwin-Platform/RoboTwin (pinned in `docs/UPSTREAM_PIN.commit.txt`)
+- Upstream: https://github.com/RoboTwin-Platform/RoboTwin (pinned via `RT_COMMIT` in the Dockerfile)
 
 Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 SPDX-License-Identifier: MIT

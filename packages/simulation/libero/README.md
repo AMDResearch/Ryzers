@@ -25,7 +25,7 @@ ryzers run --name fastwam-libero /ryzers/demos/demo_closedloop_libero.sh
 
 ### References
 
-- Upstream: https://github.com/Lifelong-Robot-Learning/LIBERO (pinned in `docs/UPSTREAM_PIN.commit.txt`)
+- Upstream: https://github.com/Lifelong-Robot-Learning/LIBERO (the Dockerfile shallow-clones the default branch)
 
 Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 SPDX-License-Identifier: MIT

@@ -34,7 +34,7 @@ RUN git clone https://github.com/yuantianyuan01/FastWAM /repos/fastwam && \
 # gfx1151): (1) memoize the UMT5-XXL text encode across a replan episode, (2) cache the action
 # cross-attention K/V + text-embedding across a plan's diffusion steps. Shipped as a reviewable
 # diff against the pinned upstream commit (upstream caches only video self-attn K/V). Default-on
-# at runtime; disable with FASTWAM_TEXT_KV_CACHE=0. See docs/RESEARCH_FINDINGS.md.
+# at runtime; disable with FASTWAM_TEXT_KV_CACHE=0.
 COPY patches/fastwam_kv_cache.patch /tmp/fastwam_kv_cache.patch
 RUN git -C /repos/fastwam apply --verbose /tmp/fastwam_kv_cache.patch
 

@@ -135,12 +135,11 @@ DATASET=libero ryzers run --name fastwam /ryzers/demos/demo_openloop.sh
 
 Caching step-invariant and episode-invariant compute (context and cross-attention K/V across
 denoise steps, text encoder across replans) ships default-on for a 1.43x to 1.45x bit-exact
-speedup. See `RUNTIME_OPTIMIZATION.md` for the full study, including the general levers that
-transfer to other diffusion world models and the ones that did not help on this hardware.
+speedup. Set `FASTWAM_TEXT_KV_CACHE=0` to restore upstream behavior for parity checks.
 
 ### References
 
-- Upstream: https://github.com/yuantianyuan01/FastWAM (pinned in `docs/UPSTREAM_PIN.commit.txt`)
+- Upstream: https://github.com/yuantianyuan01/FastWAM (pinned via `FASTWAM_COMMIT` in the Dockerfile)
 - Model: https://huggingface.co/yuanty/fastwam
 - Datasets: https://huggingface.co/datasets/yuanty/LIBERO-fastwam, https://huggingface.co/datasets/yuanty/robotwin2.0-fastwam
 
