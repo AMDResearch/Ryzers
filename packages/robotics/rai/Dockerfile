@@ -82,11 +82,20 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
 
 # RAI dependencies can pull CUDA torch. Restore the ROCm 7.14 gfx1151 wheels
 # from the same repository used by the base image.
+# NOTE: --force-reinstall rebuilds the whole dependency tree, not just the three
+# wheels named here, so it also drags numpy to 2.x and pillow to 12.x, past the
+# base image's numpy<2 pin (which ROS jazzy and rai_core both need). scikit-learn
+# 1.3.2, pinned by rai_perception, is a numpy-1-ABI wheel and then dies on import
+# with "numpy.dtype size changed" -- which takes the manipulation demo with it.
+# The re-pin has to be a separate install: repo.amd.com serves no numpy 1.x, and
+# --index-url replaces PyPI rather than adding to it, so constraining the resolve
+# above just makes it fail.
 RUN pip install --force-reinstall \
     --index-url https://repo.amd.com/rocm/whl-multi-arch/ \
     "torch[device-gfx1151]==2.12.0+rocm7.14.0" \
     "torchvision[device-gfx1151]==0.27.0+rocm7.14.0" \
-    "torchaudio==2.11.0+rocm7.14.0"
+    "torchaudio==2.11.0+rocm7.14.0" && \
+    pip install "numpy<2" "pillow<12"
 
 WORKDIR /ryzers
 
