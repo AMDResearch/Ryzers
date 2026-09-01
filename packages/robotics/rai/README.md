@@ -118,6 +118,26 @@ python src/rai_bench/rai_bench/examples/vlm_benchmark.py --model-name Gemma-4-E2
 
 Available models and serving config live in `lemonade_env.sh`.
 
+## Troubleshooting: "ROS2 stack is not ready in time."
+
+Run the preflight check before starting a benchmark or the demo:
+
+```bash
+bash /ryzers/ros_preflight.sh            # clean up, then verify
+bash /ryzers/ros_preflight.sh --dry-run  # report only, kill nothing
+```
+
+`rai_sim` raises this error from two different places with the same text, so the
+message alone doesn't tell you which half of the stack failed. The useful detail
+is the `Still waiting for ROS2 components to initialize. Missing ...` warning
+logged just above it in `experiments/o3de_manipulation/<run>/benchmark.log`:
+
+| Missing | Meaning |
+| --- | --- |
+| `/spawn_entity`, `/delete_entity`, `/color_image*` | the O3DE simulator started but never brought up its ROS2 interfaces |
+| `/grounding_dino_classify`, `/grounded_sam_segment`, `/manipulator_move_to` | MoveIt and the perception services never came up |
+
+
 ## Documentation
 
 - Official docs: https://robotecai.github.io/rai/

@@ -103,6 +103,8 @@ COPY test.sh /ryzers/test_rai.sh
 RUN chmod +x /ryzers/test_rai.sh
 COPY manipulation_demo.sh /ryzers/manipulation_demo.sh
 RUN chmod +x /ryzers/manipulation_demo.sh
+COPY ros_preflight.sh /ryzers/ros_preflight.sh
+RUN chmod +x /ryzers/ros_preflight.sh
 COPY lemonade_env.sh /ryzers/
 
 EXPOSE 8501
