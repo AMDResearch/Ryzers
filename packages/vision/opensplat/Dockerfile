@@ -17,7 +17,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /opt/opensplat-test-data && \
-    curl -L \
+    curl -Lk \
         'https://drive.usercontent.google.com/download?id=1mUUZFDo2swd6CE5vwPPkjN63Hyf4XyEv&export=download&confirm=t' \
         -o /tmp/banana.zip && \
     unzip -q /tmp/banana.zip -d /opt/opensplat-test-data && \
