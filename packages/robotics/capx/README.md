@@ -169,7 +169,7 @@ For planning-only evaluation, use a task's `*_privileged.yaml` config under `env
 
 Nut assembly resolves every object by asking **Molmo** to point at it, so its `get_object_pose()` and `sample_grasp_pose()` return `(None, None)` unless a Molmo endpoint is up. Upstream ships no launcher for it (the `molmo` extra pins vLLM, which conflicts with `robosuite`), so this image adds [`launch_molmo_server.py`](launch_molmo_server.py).
 
-It is **not** in the config's `api_servers:`, so it does not start with `launch.py` — `allenai/Molmo2-8B` is a ~33 GB download and shouldn't be pulled by surprise. Start it yourself in a second shell:
+Start the service with:
 
 ```bash
 ryzers run bash
@@ -178,9 +178,9 @@ python3 capx/serving/launch_molmo_server.py --port 8122 >/tmp/molmo.log 2>&1 &
 tail -f /tmp/molmo.log   # wait for "Starting server", Ctrl-C to stop tailing
 ```
 
-The client looks for `http://127.0.0.1:8122/v1`, so the port matters but nothing else needs configuring. Weights land in the mounted HuggingFace cache and are reused after the first run. Molmo takes ~18 GB of VRAM in bf16 on top of SAM3 and Contact-GraspNet; pass `--model-name allenai/Molmo2-4B` if that is tight.
+The client expects port 8122. `allenai/Molmo2-8B` is ~33 GB and needs ~18 GB VRAM; pass `--model-name allenai/Molmo2-4B` if that is tight.
 
-Then run the task as usual:
+Then run the task:
 
 ```bash
 python3 capx/envs/launch.py \
@@ -189,7 +189,7 @@ python3 capx/envs/launch.py \
   --total-trials 10 --num-workers 1
 ```
 
-Nut assembly is the only task that *requires* Molmo, but the `*_reduced_api*` configs for every task also offer `point_prompt_molmo` as one grounding tool among several — a model can solve those with OWLv2/SAM instead, and a Molmo call with no server just returns `(None, None)` after a few seconds of retries rather than erroring, so start the server for those runs too if you want the model to have the option.
+Nut assembly is the only task that requires Molmo. Every task's `*_reduced_api*` configs also offer `point_prompt_molmo` as one grounding tool among several, and fall back to OWLv2/SAM when no server is up.
 
 ---
 
