@@ -165,6 +165,32 @@ The ready ungated visual configs are cube stack above and `env_configs/two_arm_l
 
 For planning-only evaluation, use a task's `*_privileged.yaml` config under `env_configs/`. These use ground-truth poses and do not start a segmentation server.
 
+### Molmo pointing service
+
+Nut assembly resolves every object by asking **Molmo** to point at it, so its `get_object_pose()` and `sample_grasp_pose()` return `(None, None)` unless a Molmo endpoint is up. Upstream ships no launcher for it (the `molmo` extra pins vLLM, which conflicts with `robosuite`), so this image adds [`launch_molmo_server.py`](launch_molmo_server.py).
+
+Start the service with:
+
+```bash
+ryzers run bash
+cd /ryzers/cap-x
+python3 capx/serving/launch_molmo_server.py --port 8122 >/tmp/molmo.log 2>&1 &
+tail -f /tmp/molmo.log   # wait for "Starting server", Ctrl-C to stop tailing
+```
+
+The client expects port 8122. `allenai/Molmo2-8B` is ~33 GB and needs ~18 GB VRAM; pass `--model-name allenai/Molmo2-4B` if that is tight.
+
+Then run the task:
+
+```bash
+python3 capx/envs/launch.py \
+  --config-path env_configs/nut_assembly/franka_robosuite_nut_assembly.yaml \
+  --model "openrouter/google/gemini-3.1-pro-preview" \
+  --total-trials 10 --num-workers 1
+```
+
+Nut assembly is the only task that requires Molmo. Every task's `*_reduced_api*` configs also offer `point_prompt_molmo` as one grounding tool among several, and fall back to OWLv2/SAM when no server is up.
+
 ---
 
 ## Run with different configurations
