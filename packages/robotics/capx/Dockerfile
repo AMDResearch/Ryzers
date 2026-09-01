@@ -168,6 +168,13 @@ if old not in source:
 path.write_text(source.replace(old, new, 1))
 PY
 
+# Molmo pointing service. Nut assembly resolves every object by asking Molmo to
+# point at it, so without this its perception calls return (None, None) and the
+# task is unsolvable. Upstream expects a separate vLLM process and ships no
+# launcher: its `molmo` extra pins vllm, which uv marks as conflicting with the
+# `robosuite` extra. This serves the same endpoint from plain transformers.
+COPY launch_molmo_server.py /ryzers/cap-x/capx/serving/launch_molmo_server.py
+
 COPY franka_robosuite_cube_stack_sam2.yaml \
      /ryzers/cap-x/env_configs/cube_stack/franka_robosuite_cube_stack_sam2.yaml
 
