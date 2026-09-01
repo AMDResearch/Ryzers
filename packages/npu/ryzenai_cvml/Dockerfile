@@ -8,6 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
 	libboost-filesystem1.74.0 \
+	libopencv-dev \
 	vulkan-tools \
 	mesa-vulkan-drivers \
 	git-lfs \

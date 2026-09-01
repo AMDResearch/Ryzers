@@ -31,7 +31,7 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 
 # Compatible build: NumPy 2.x with corresponding scikit-image version
 RUN pip3 install --no-cache-dir --break-system-packages "numpy==2.1.2" && \
-    pip3 install --no-cache-dir --break-system-packages "scikit-image==0.24.0" && \
+    pip3 install --no-cache-dir --break-system-packages "scikit-image>=0.25" && \
     pip3 install --no-cache-dir --break-system-packages "matplotlib==3.10.8"
 
 # Genesis and gstaichi (compatible with Genesis 0.3.3; beta release fixes kernel interface mismatch)

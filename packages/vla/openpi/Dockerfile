@@ -40,8 +40,12 @@ RUN mkdir -p /root/.mujoco \
 # Install mujoco
 RUN pip install --no-cache-dir --break-system-packages mujoco==${MUJOCO_VERSION}
 
-# Install uv
-RUN pip install uv
+# Install uv as a standalone binary OUTSIDE /opt/venv. Installing uv via
+# `pip install uv` lands it in /opt/venv, which `uv sync`
+# (UV_PROJECT_ENVIRONMENT=/opt/venv) then rebuilds/wipes — leaving no uv on
+# disk for the following steps (exit 127: /opt/venv/bin/uv: No such file).
+RUN wget -qO- https://astral.sh/uv/install.sh | sh
+ENV PATH=/root/.local/bin:${PATH}
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV UV_INDEX_STRATEGY=unsafe-best-match
 

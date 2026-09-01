@@ -20,8 +20,8 @@ RUN pip install --no-cache-dir \
     pillow \
     matplotlib \
     "numpy<2" \
-    grpcio==1.64.0 \
-    grpcio-tools==1.64.0 \
+    "grpcio>=1.68" \
+    "grpcio-tools>=1.68" \
     wheel \
     pandas \
     scipy \

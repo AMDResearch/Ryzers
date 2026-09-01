@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
 	git \
 	curl \
 	bash \
-	wget
+	wget \
+	libboost-all-dev \
+	libssl-dev
 
 RUN git clone https://github.com/amd/xdna-driver && \
     cd xdna-driver && \
