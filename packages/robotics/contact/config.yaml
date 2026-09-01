@@ -1,0 +1,24 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+init_image: "rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0"
+
+build_arguments:
+  - "CONTACT_REPO=https://github.com/Vict0rHu/CONTACT.git"
+  - "CONTACT_BRANCH=feat/amd-rocm"
+  - "CONTACT_REF=4b3496a41e1e0a839ab44b7c934374367128a736"
+  - "DIFFUSION_POLICY_REF=5ba07ac6661db573af695b419a7947ecb704690f"
+
+x11_display: false
+
+environment_variables:
+  - "USE_SIM=0"
+  - "WANDB_MODE=disabled"
+  - "CONTACT_DATASET=/datasets/contact/barbed_flat"
+  - "CONTACT_OUTPUT_DIR=/outputs/contact"
+
+volume_mappings:
+  - "$PWD/workspace/contact/data:/datasets/contact:ro"
+  - "$PWD/workspace/contact/outputs:/outputs/contact"
+
+docker_extra_run_flags: "--shm-size=16g"
