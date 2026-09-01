@@ -65,7 +65,7 @@ RUN cd openpi && \
 
 # Apply PyTorch support patch
 RUN cd openpi && \
-    cp -r ./src/openpi/models_pytorch/transformers_replace/* /opt/venv/lib/python3.12/site-packages/transformers/
+    cp -r ./src/openpi/models_pytorch/transformers_replace/* /opt/venv/lib/python3.13/site-packages/transformers/
 
 # Convert JAX models to PyTorch
 RUN cd openpi && \

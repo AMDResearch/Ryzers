@@ -91,8 +91,8 @@ RUN rm -rf /opt/lerobot-allenai && git clone --branch ${LEROBOT_REF} --depth 1 \
       /opt/lerobot-allenai/pyproject.toml
 
 RUN rm -rf /opt/libero-venv && python -m venv /opt/libero-venv && \
-    echo "/opt/venv/lib/python3.12/site-packages" \
-      > "/opt/libero-venv/lib/python3.12/site-packages/zz_base_site.pth" && \
+    echo "/opt/venv/lib/python3.13/site-packages" \
+      > "/opt/libero-venv/lib/python3.13/site-packages/zz_base_site.pth" && \
     /opt/venv/bin/pip freeze | grep -iE '^(torch|torchvision)==' > /opt/torch-constraints.txt && \
     echo "torch constraints:" && cat /opt/torch-constraints.txt && \
     PIP_CONSTRAINT=/opt/torch-constraints.txt /opt/libero-venv/bin/pip install --no-cache-dir \

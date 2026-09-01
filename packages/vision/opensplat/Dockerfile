@@ -33,7 +33,7 @@ WORKDIR /ryzers/OpenSplat
 
 SHELL ["/bin/bash", "-c"]
 
-ENV LD_LIBRARY_PATH=/opt/venv/lib/python3.12/site-packages/_rocm_sdk_devel/lib/host-math/lib:/opt/venv/lib/python3.12/site-packages/_rocm_sdk_core/lib/host-math/lib:/opt/venv/lib/python3.12/site-packages/_rocm_sdk_devel/lib/rocm_sysdeps/lib:/opt/venv/lib/python3.12/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/opt/venv/lib/python3.13/site-packages/_rocm_sdk_devel/lib/host-math/lib:/opt/venv/lib/python3.13/site-packages/_rocm_sdk_core/lib/host-math/lib:/opt/venv/lib/python3.13/site-packages/_rocm_sdk_devel/lib/rocm_sysdeps/lib:/opt/venv/lib/python3.13/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib:${LD_LIBRARY_PATH}
 
 RUN mkdir build && cd build && \
     export PYTORCH_ROCM_ARCH=gfx1151 && \
@@ -44,8 +44,8 @@ RUN mkdir build && cd build && \
         -DHIP_ROOT_DIR=/opt/rocm \
         -DHIP_PATH=/opt/rocm \
         -DOPENSPLAT_BUILD_SIMPLE_TRAINER=ON \
-        -DCMAKE_PREFIX_PATH="/opt/rocm/lib/cmake;/opt/venv/lib/python3.12/site-packages/torch" \
-        -DTorch_DIR=/opt/venv/lib/python3.12/site-packages/torch/share/cmake/Torch \
+        -DCMAKE_PREFIX_PATH="/opt/rocm/lib/cmake;/opt/venv/lib/python3.13/site-packages/torch" \
+        -DTorch_DIR=/opt/venv/lib/python3.13/site-packages/torch/share/cmake/Torch \
         -DCMAKE_INSTALL_PREFIX=/ryzers/install && \
     make && make install
 

@@ -8,7 +8,7 @@
 # AMD AI & HPC cluster: https://www.amd.com/en/corporate/university-program/ai-hpc-cluster.html
 
 cd $WORK
-python3.12 -m venv robot_env
+python3.13 -m venv robot_env
 source robot_env/bin/activate
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.3
 

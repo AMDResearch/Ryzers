@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y git \
 	vim \
 	wget \
 	libegl1-mesa-dev \
-	libgles2-mesa-dev
+	libgles2-mesa-dev \
+	bazel-bootstrap
 
 RUN git clone https://github.com/tonyzhaozh/act
 
