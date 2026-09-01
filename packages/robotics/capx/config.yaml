@@ -2,7 +2,12 @@
 # SPDX-License-Identifier: MIT
 #
 
-init_image: "rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0"
+# ROCm 10 base kept on Python 3.12 (not the py3.13 repo default): CaP-X's
+# dependency set is tuned for 3.12 (open3d, PyOpenGL==3.1.6, mujoco==3.5.0,
+# jax==0.4.29, editable robosuite) and open3d has no cp313 wheel. The old
+# rocm7.14 pin was dropped because the AMD wheel index only serves
+# rocm-sdk-devel==10.0.0; this ROCm 10 base resolves it while keeping py3.12.
+init_image: "rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0"
 
 build_arguments:
 - "CAPX_SIM=robosuite"     # robosuite | libero  (mutually exclusive families)

@@ -8,8 +8,18 @@ ARG LEROBOT_VERSION=v0.6.0
 
 WORKDIR /ryzers
 
-RUN apt-get update && apt-get install -y git cmake build-essential python3-dev pkg-config libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev ffmpeg speech-dispatcher && \
+RUN apt-get update && apt-get install -y git cmake build-essential python3-dev pkg-config libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev ffmpeg speech-dispatcher bazel-bootstrap && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# labmaze (pulled in transitively via the aloha/pusht extras -> dm_control) has no
+# cp313 wheel and builds from source with Bazel. Its bundled abseil references
+# @platforms//cpu:wasm32, which the platforms repo it pins is too old to declare.
+# Override platforms with a modern checkout and install labmaze up front so the
+# lerobot install below reuses it instead of failing the Bazel build.
+RUN git clone https://github.com/google-deepmind/labmaze /tmp/labmaze && \
+    git clone --depth 1 https://github.com/bazelbuild/platforms /tmp/platforms && \
+    echo 'build --override_repository=platforms=/tmp/platforms' >> /tmp/labmaze/.bazelrc && \
+    pip install /tmp/labmaze
 
 RUN git clone --branch "${LEROBOT_VERSION}" --depth 1 https://github.com/huggingface/lerobot.git && \
     cd lerobot && \
