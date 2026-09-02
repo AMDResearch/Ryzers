@@ -46,6 +46,9 @@ ALL_PACKAGES=($(find_packages))
 build_dependency_map() {
     # Define special build chains (packages that need to be built with specific chains)
     BUILD_CHAINS["roscon25-gpu"]="llamacpp ros smolvla amdgpu_top roscon25-gpu"
+    # rai's Dockerfile is FROM ros (installs ros-jazzy-* + rai_interfaces); it must be
+    # layered on the ros image, not the default ryzer_env (which has no ROS apt repo).
+    BUILD_CHAINS["rai"]="ros rai"
 
     for pkg in "${ALL_PACKAGES[@]}"; do
         # Find the Dockerfile for this package

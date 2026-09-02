@@ -1,6 +1,13 @@
 # Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+# ROCm 10 base pinned to Python 3.12 (not the py3.13 repo default): rai_core hard-
+# requires numpy<2, but numpy 1.x ships no cp313 wheels and every opencv-python
+# with a cp313 wheel needs numpy>=2, so the rai stack is unresolvable on py3.13.
+# The py3.12 ROCm 10 base carries the same torch 2.13.0+rocm10 as the default base.
+# This applies only to the `ros rai` chain; the py3.13 roscon25 chains are untouched.
+init_image: "rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0"
+
 port_mappings:
   - "8501:8501"   # Streamlit frontend
 

@@ -35,9 +35,25 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN echo "source $VIRTUAL_ENV/bin/activate" >> /root/.bashrc
 
-# Pin empy<4 (required by rosidl_generator_rs)
+# Protect the base image's ROCm 10 torch stack. rai's Python deps (rai_core,
+# rai_bench, rai_sim, rai-perception, openai-whisper) resolve a generic `torch`
+# and would otherwise pull CUDA wheels over the baked-in ROCm build. The rocm10
+# torch lives only in the base image (no AMD pip index serves it -- whl-multi-arch
+# tops out at rocm7.14), so we can't reinstall it; instead we pin it, plus numpy<2
+# (ROS jazzy, rai_core, and rai_perception's scikit-learn 1.3.2 numpy-1-ABI wheel
+# all need numpy 1.x), via PIP_CONSTRAINT so no later resolve can swap it out.
+RUN pip freeze | grep -iE '^(torch|torchvision|torchaudio)==' > /opt/rai-constraints.txt && \
+    echo "numpy<2" >> /opt/rai-constraints.txt && \
+    echo "rai torch constraints:" && cat /opt/rai-constraints.txt
+ENV PIP_CONSTRAINT=/opt/rai-constraints.txt
+
+# Pin empy<4 (required by rosidl_generator_rs). Bump openai-whisper 20231117 ->
+# 20250625: the old release pins triton<3, which is unsatisfiable against the
+# ROCm 10 torch (2.13.0+rocm10 requires triton==3.8.0+...rocm10). The PIP_CONSTRAINT
+# above holds torch on ROCm, so the old whisper's triton<3 now hard-conflicts;
+# 20250625 accepts the torch-provided triton 3.8.
 RUN pip install --upgrade pip "setuptools<82" "empy<4" lark && \
-    pip install --no-build-isolation openai-whisper==20231117
+    pip install --no-build-isolation openai-whisper==20250625
 
 # RAI framework (pinned commit)
 WORKDIR /ryzers
@@ -66,11 +82,19 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     colcon build --symlink-install
 
 # rai_bench / rai_sim live in the repo but aren't declared as poetry/colcon
-# deps, so install from source; rai_perception comes from PyPI. It must go
-# before the torch re-pin below (it would otherwise pull CUDA torch back in)
+# deps, so install from source; rai_perception comes from PyPI.
+# rai-perception hard-pins torchvision<0.19.0, unsatisfiable against the ROCm 10
+# torchvision 0.28.0 the PIP_CONSTRAINT holds (and rocm10 torchvision isn't on any
+# pip index to reinstall, unlike the old rocm7.14 flow). The pin is over-tight --
+# only rai-perception itself caps torchvision; its deps (rai-gsam2, rf-groundingdino,
+# scikit-learn, transformers) leave torch/torchvision open -- so we install
+# rai-perception with --no-deps and pull its real deps explicitly, letting them
+# resolve against the base's torchvision 0.28.
 RUN pip install src/rai_bench && \
     pip install src/rai_sim && \
-    pip install rai-perception
+    pip install --no-deps rai-perception && \
+    pip install "rai-gsam2<2.0.0,>=1.1.2" "rf-groundingdino<0.3.0,>=0.2.0" \
+        "scikit-learn<1.4.0,>=1.0.0" "transformers<5.0.0"
 
 # Pre-download detection/segmentation weights (~1.5 GB) via rai-perception's own
 # downloader, so model/URL bumps flow through automatically. Lands in the default
@@ -80,22 +104,9 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
     . install/setup.sh && \
     download-perception-models
 
-# RAI dependencies can pull CUDA torch. Restore the ROCm 7.14 gfx1151 wheels
-# from the same repository used by the base image.
-# NOTE: --force-reinstall rebuilds the whole dependency tree, not just the three
-# wheels named here, so it also drags numpy to 2.x and pillow to 12.x, past the
-# base image's numpy<2 pin (which ROS jazzy and rai_core both need). scikit-learn
-# 1.3.2, pinned by rai_perception, is a numpy-1-ABI wheel and then dies on import
-# with "numpy.dtype size changed" -- which takes the manipulation demo with it.
-# The re-pin has to be a separate install: repo.amd.com serves no numpy 1.x, and
-# --index-url replaces PyPI rather than adding to it, so constraining the resolve
-# above just makes it fail.
-RUN pip install --force-reinstall \
-    --index-url https://repo.amd.com/rocm/whl-multi-arch/ \
-    "torch[device-gfx1151]==2.12.0+rocm7.14.0" \
-    "torchvision[device-gfx1151]==0.27.0+rocm7.14.0" \
-    "torchaudio==2.11.0+rocm7.14.0" && \
-    pip install "numpy<2" "pillow<12"
+# Guard: the ROCm 10 torch stack must have survived every rai dep install above
+# (the PIP_CONSTRAINT set right after venv activation is what keeps it ROCm).
+RUN python -c "import torch; assert torch.version.hip, 'torch is not a ROCm build: '+torch.__version__; print('rai OK torch', torch.__version__, 'hip', torch.version.hip)"
 
 WORKDIR /ryzers
 

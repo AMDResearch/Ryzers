@@ -1,6 +1,13 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+# ROCm 10 base kept on Python 3.12 (not the py3.13 repo default): Isaac-GR00T
+# pins ray==2.40.0 and numpy==1.26, neither of which ships a cp313 wheel (ray
+# only serves py3.13 from 2.45.0+). The py3.12 ROCm 10 base carries the same
+# torch 2.13.0 as the default base, so the from-source pytorch3d/flash-attention/
+# torchcodec builds are unaffected, while ray/numpy now resolve.
+init_image: "rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0"
+
 # Map huggingface cache so we don't need to re-download models
 volume_mappings:
 - "~/.cache/huggingface/:/root/.cache/huggingface/"

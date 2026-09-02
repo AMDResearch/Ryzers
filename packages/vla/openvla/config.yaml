@@ -1,5 +1,14 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+# ROCm 10 base kept on Python 3.12 (not the py3.13 repo default): openvla pins
+# tokenizers==0.19.1 (via transformers==4.40.1, which the openvla-7b remote code
+# targets), and that tokenizers builds through pyo3 0.21.2, which caps at py3.12
+# ("configured Python interpreter version (3.13) is newer than PyO3's maximum
+# supported version (3.12)") and ships no cp313 wheel. The py3.12 ROCm 10 base
+# carries the same torch 2.13.0+rocm10, so it installs tokenizers 0.19.1 from a
+# prebuilt wheel with the ROCm torch untouched.
+init_image: "rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0"
+
 volume_mappings:
 - "~/.cache/huggingface/:/root/.cache/huggingface/"
