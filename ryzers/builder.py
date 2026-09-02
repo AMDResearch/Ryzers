@@ -3,6 +3,7 @@
 
 import os
 import yaml
+import hashlib
 import subprocess
 from typing import List
 
@@ -29,12 +30,22 @@ class DockerBuilder:
         :param dockerfiles: List of paths to Dockerfiles.
         :param buildflags: List of build flags to use during the Docker build.
         """
+        # Intermediate/base-env stages (ryzer_env, ros, ...) are tagged by bare
+        # package name, which is global and mutable in the Docker daemon. Parallel
+        # `ryzers build` invocations that use different initial images (e.g. a py3.12
+        # base for openvla vs the py3.13 default) would otherwise clobber each other's
+        # shared `ryzer_env`/`ros` tags mid-build, so a chain reads a FROM image that a
+        # concurrent chain re-tagged onto the wrong base. Suffix non-final tags with a
+        # short hash of the initial image: chains on the same base still share tags (and
+        # the Docker layer cache), chains on different bases get distinct tags.
+        base_suffix = hashlib.sha1(initial_image.encode()).hexdigest()[:12]
+
         current_base_image = initial_image
         for index, dockerfile_path in enumerate(dockerfiles):
             if not os.path.exists(dockerfile_path):
                 raise FileNotFoundError(f"Dockerfile not found: {dockerfile_path}")
 
-            image_tag = f"{self.packages[index]}"
+            image_tag = f"{self.packages[index]}-{base_suffix}"
             if index == len(dockerfiles) - 1:
                 image_tag = self.container_name
 

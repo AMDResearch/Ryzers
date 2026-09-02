@@ -405,11 +405,18 @@ clean_all() {
         fi
     done
 
-    # Also remove the ryzer_env base image
-    if docker image inspect "ryzer_env" > /dev/null 2>&1; then
-        echo "    Removing image: ryzer_env"
-        docker rmi "ryzer_env" 2>/dev/null || true
-    fi
+    # Also remove the per-base intermediate images. The builder now suffixes
+    # base-env / middle-stage tags with a hash of the initial image (e.g.
+    # ryzer_env-<hash>, ros-<hash>) so parallel chains on different bases don't
+    # clobber each other, so match every non-final package tag, not just "ryzer_env".
+    local intermediate_pkgs=("ryzer_env" "${ALL_PACKAGES[@]}")
+    for pkg in "${intermediate_pkgs[@]}"; do
+        while IFS= read -r image_name; do
+            [[ -z "$image_name" ]] && continue
+            echo "    Removing intermediate image: $image_name"
+            docker rmi "$image_name" 2>/dev/null || true
+        done < <(docker images --format '{{.Repository}}:{{.Tag}}' --filter "reference=${pkg}-*")
+    done
 
     echo -e "${GREEN}Clean complete.${NC}"
 }
