@@ -58,14 +58,39 @@ class DockerRunner:
         Returns:
             str: The path to the generated bash script.
         """
+        # Remove --rm flag to allow Dev Containers to attach
+        runflags_clean = ' '.join(flag for flag in runflags.split() if flag != '--rm')
+        
+        # Add Dev Containers compatible labels and named container
+        devcontainer_flags = (
+            f"--name ryzer-{self.container_name} "
+            f"--label devcontainer.local_folder={os.getcwd()} "
+            f"--label devcontainer.config_file=.devcontainer/devcontainer.json"
+        )
+        
         # Generate the bash script
         script_content = f"""#!/bin/bash
 # Auto-generated script to run Docker with combined flags
+# Supports Dev Containers attachment
 
 # Enable X11 forwarding
 xhost +local:docker
 
-docker run {runflags} {self.container_name} $1
+# Remove existing container if it exists
+if docker ps -a --format '{{{{.Names}}}}' | grep -q "^ryzer-{self.container_name}$"; then
+    echo "Removing existing container: ryzer-{self.container_name}"
+    docker rm -f ryzer-{self.container_name}
+fi
+
+# Start container with Dev Containers support
+echo "Starting container: ryzer-{self.container_name}..."
+if [ ! -z "$1" ]; then
+    # Interactive mode with command
+    docker run -it {devcontainer_flags} {runflags_clean} {self.container_name} bash -c "mkdir -p /workspace && exec $1"
+else
+    # Daemon mode for Dev Containers attachment
+    docker run -d {devcontainer_flags} {runflags_clean} {self.container_name} bash -c "mkdir -p /workspace && tail -f /dev/null"
+fi
 """
 
         # Write the script to the specified file
@@ -80,6 +105,9 @@ docker run {runflags} {self.container_name} $1
         print(f"ryzers run [CMD_OVERRIDE] # will run last ryzer docker built.\n")
         print(f"# Run this ryzer docker by name:")
         print(f"ryzers run --name {self.container_name} [CMD_OVERRIDE]\n")
+        print(f"\n** Dev Containers Support Enabled **")
+        print(f"Container name: ryzer-{self.container_name}")
+        print(f"To attach with VS Code Docker extension: Right-click container → 'Attach Visual Studio Code'")
 
         print("\nTo inspect the docker run call, see contents of the script file: ")
         print(f"cat {self.script_name}")
