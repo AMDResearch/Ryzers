@@ -1,0 +1,36 @@
+# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+#
+# Explicit setuptools metadata so editable installs work deterministically
+# regardless of setuptools version and previous install state in the venv.
+#
+# Without this, modern setuptools (>=68) auto-discovery sees the top-level
+# `packages/` directory (Dockerfiles, no __init__.py) as a namespace
+# candidate and falls through to "strict" PEP 660 editable mode, which
+# creates a custom finder. If the venv previously had ryzers installed
+# non-editable (`pip install .`) and is then switched to editable
+# (`pip uninstall ryzers && pip install -e .`), the strict finder shadows
+# the source-tree __init__.py and `from . import RYZERS_DEFAULT_RUN_FLAGS`
+# fails with `ImportError: cannot import name 'RYZERS_DEFAULT_RUN_FLAGS'
+# from 'ryzers' (unknown location)`.
+#
+# Pinning `[tool.setuptools] packages = ["ryzers"]` keeps setuptools out of
+# auto-discovery so the editable wheel is built in compat mode and the
+# regular source-tree __init__.py loads in both fresh and reused venvs.
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ryzers"
+version = "1.0"
+description = "A tool to Manage and Build Dockerfiles for Ryzen AI Applications."
+requires-python = ">=3.8"
+dependencies = ["pyyaml"]
+
+[project.scripts]
+ryzers = "ryzers.entrypoint:main"
+
+[tool.setuptools]
+packages = ["ryzers"]
