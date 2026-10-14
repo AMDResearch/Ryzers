@@ -1,5 +1,6 @@
 import warnings
 import os
+os.environ.pop("PYOPENGL_PLATFORM", None)  # the viewer needs the window-system OpenGL platform
 
 # os.environ["TI_LOG_LEVEL"] = "error"
 # warnings.filterwarnings("ignore")
@@ -8,7 +9,7 @@ import numpy as np
 import genesis as gs
 
 ########################## init ##########################
-gs.init(backend=gs.vulkan)
+gs.init(backend=gs.gpu)
 
 ########################## create a scene ##########################
 scene = gs.Scene(
@@ -16,7 +17,6 @@ scene = gs.Scene(
         camera_pos=(0.0, -2, 1.5),
         camera_lookat=(0.0, 0.0, 0.5),
         camera_fov=40,
-        max_FPS=200,
     ),
     rigid_options=gs.options.RigidOptions(
         enable_joint_limit=False,

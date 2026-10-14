@@ -15,9 +15,10 @@ print("Testing Genesis installation...")
 import genesis as gs
 print(f"Genesis version: {gs.__version__}")
 
-# Initialize with Vulkan backend (headless)
-print("Initializing Genesis with Vulkan backend...")
-gs.init(backend=gs.vulkan)
+# Initialize with the GPU (ROCm amdgpu) backend (headless)
+print("Initializing Genesis with GPU backend...")
+gs.init(backend=gs.gpu)
+assert gs.backend == gs.amdgpu, f"expected gs.amdgpu, got {gs.backend}"
 
 # Headless mode by default (set show_viewer=True if X11 display available)
 scene = gs.Scene(show_viewer=False)

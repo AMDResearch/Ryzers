@@ -10,6 +10,30 @@ ryzers run /ryzers/demo_genesis.sh
 ```
 Found in https://github.com/Genesis-Embodied-AI/Genesis/tree/main/examples/drone
 
+## Tactile Sandbox (Interactive Mode)
+
+A torus, sphere, duck, and dragon over a 20×20 taxel pad, with a live sensor plot.
+
+```bash
+ryzers run /ryzers/demo_tactile_sandbox.py
+```
+
+**Controls**
+
+| Key | Action |
+|---|---|
+| Arrow keys | Move object |
+| `j` / `k` | Lower / raise |
+| `n` / `m` | Rotate |
+| `\` | Reset |
+| `ESC` | Quit |
+
+**Sensor types:** `kinematic` (default), `depth`, `elastomer`, `proximity`. Select one with `SENSOR`:
+
+```bash
+SENSOR=elastomer ryzers run /ryzers/demo_tactile_sandbox.py
+```
+
 ### Build the Docker Image
 
 ```sh
