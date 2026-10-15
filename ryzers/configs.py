@@ -50,6 +50,19 @@ class ConfigManager:
         "docker_extra_run_flags"
     ]
 
+    # Keys whose value is a pair, mapped to the separator that splits it.
+    # Every other key in CONFIG_KEYS carries a plain scalar. Deriving the
+    # scalar case from CONFIG_KEYS rather than repeating it keeps the two from
+    # drifting apart: camera_support was listed in CONFIG_KEYS and honoured by
+    # configs_to_runflags(), but missing from the literal list that used to be
+    # here, so setting it raised ValueError and failed the build.
+    PAIR_KEY_SEPARATORS = {
+        "build_arguments": "=",
+        "environment_variables": "=",
+        "port_mappings": ":",
+        "volume_mappings": ":",
+    }
+
     def __init__(self, configfiles: List[str]):
         self.configfiles = configfiles
         self.configentries = self.get_configentries()
@@ -152,13 +165,11 @@ class ConfigManager:
         return configs
     
     def get_configentry_obj(self, key: str, value: str, config_path: str) -> Tuple[str, str]:
-        if key in ["build_arguments", "environment_variables"]:
-            key0, val0 = value.split('=', 1)
-            return ConfigKeyKeyValueEntry(key, key0, val0, config_path)
-        if key in ["port_mappings", "volume_mappings"]:
-            key0, val0 = value.split(':', 1)
-            return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=':')
-        if key in ["gpu_support", "x11_display", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
+        if key in self.PAIR_KEY_SEPARATORS:
+            sep = self.PAIR_KEY_SEPARATORS[key]
+            key0, val0 = value.split(sep, 1)
+            return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=sep)
+        if key in self.CONFIG_KEYS:
             return ConfigKeyValueEntry(key, value, config_path)
         else:
             raise ValueError(f"Invalid key: {key}. Must be one of {', '.join(self.CONFIG_KEYS)}")

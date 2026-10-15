@@ -46,6 +46,7 @@ ALL_PACKAGES=($(find_packages))
 build_dependency_map() {
     # Define special build chains (packages that need to be built with specific chains)
     BUILD_CHAINS["roscon25-gpu"]="llamacpp ros smolvla amdgpu_top roscon25-gpu"
+    BUILD_CHAINS["roscon26-rllearning"]="jupyterlab roscon26-rllearning"
 
     for pkg in "${ALL_PACKAGES[@]}"; do
         # Find the Dockerfile for this package
