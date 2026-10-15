@@ -99,14 +99,33 @@ class ConfigManager:
         cameras = True
         extra_run_flags = ""
 
+        # Docker refuses to start a container given two -v flags with the same
+        # destination ("Duplicate mount point") or two -p flags on the same host
+        # port ("port is already allocated"). A long build chain hits both
+        # easily: several packages independently mount a HuggingFace cache at
+        # /root/.cache/huggingface, or each declare 8888. Collapse them here,
+        # keyed on the part Docker treats as unique and last-wins, so the
+        # package closest to the end of the chain decides -- matching how
+        # configs_to_buildflags() already resolves repeated build arguments.
+        #
+        # Environment variables are deliberately NOT collapsed: repeated -e is
+        # legal and Docker already applies last-wins to it.
+        ports = {}
+        volumes = {}
+        for c in self.configentries:
+            if c.key == "port_mappings":
+                ports[c.key1] = c
+            if c.key == "volume_mappings":
+                volumes[c.value] = c
+
         for c in self.configentries:
             print(str(c))
-            if c.key == "port_mappings":
-                runflags += f" -p {c}" 
-            if c.key == "volume_mappings":
-                runflags += f" -v {c}"                 
+            if c.key == "port_mappings" and ports.get(c.key1) is c:
+                runflags += f" -p {c}"
+            if c.key == "volume_mappings" and volumes.get(c.value) is c:
+                runflags += f" -v {c}"
             if c.key == "environment_variables":
-                runflags += f" -e {c}"  
+                runflags += f" -e {c}"
             if c.key == "gpu_support":
                 gpu = c.value
             if c.key == "x11_display":

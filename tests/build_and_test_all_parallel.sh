@@ -46,7 +46,10 @@ ALL_PACKAGES=($(find_packages))
 build_dependency_map() {
     # Define special build chains (packages that need to be built with specific chains)
     BUILD_CHAINS["roscon25-gpu"]="llamacpp ros smolvla amdgpu_top roscon25-gpu"
+    BUILD_CHAINS["roscon26-finetuning"]="jupyterlab roscon26-finetuning"
+    BUILD_CHAINS["roscon26-localinference"]="jupyterlab ros o3de rai lemonade-sdk capx roscon26-localinference"
     BUILD_CHAINS["roscon26-rllearning"]="jupyterlab roscon26-rllearning"
+    BUILD_CHAINS["roscon26-simulation"]="jupyterlab roscon26-simulation"
 
     for pkg in "${ALL_PACKAGES[@]}"; do
         # Find the Dockerfile for this package
