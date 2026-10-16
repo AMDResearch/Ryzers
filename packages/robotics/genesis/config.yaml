@@ -18,8 +18,6 @@
 # Headless rendering support (fixes issue #66)
 environment_variables:
   - "PYOPENGL_PLATFORM=egl"
-# Sandbox sensor (override from the host: SENSOR=... ryzers run /ryzers/demo_tactile_sandbox.py)
-  - 'SENSOR=${SENSOR:-}'
 
 # port_mappings:  
 # - "host_portnum:container_portnum"  # List of port mappings to expose from the docker 

@@ -48,8 +48,8 @@ COPY test.py /ryzers/test_genesis.py
 COPY demo.sh /ryzers/demo_genesis.sh
 COPY demo.py /ryzers/demo_genesis.py
 RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh /ryzers/demo_genesis.py
-COPY demo_tactile_sandbox.py /ryzers/demo_tactile_sandbox.py
-RUN chmod +x /ryzers/demo_tactile_sandbox.py
+COPY demo_interactive_drone.sh demo_franka.sh demo_tactile.sh /ryzers/
+RUN chmod +x /ryzers/demo_interactive_drone.sh /ryzers/demo_franka.sh /ryzers/demo_tactile.sh
 
 RUN git clone --depth 1 --branch v1.4.3 https://github.com/Genesis-Embodied-AI/Genesis
 
