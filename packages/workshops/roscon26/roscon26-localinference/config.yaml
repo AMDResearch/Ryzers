@@ -1,0 +1,79 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# GPU support stays at the default (true). Lemonade, the OWLv2/SAM2 perception
+# services, Contact-GraspNet and RAI's GroundingDINO all run on the iGPU, and
+# the run flags already add --group-add render/video.
+
+# X11 is off. Everything this workshop renders goes through a headless Weston
+# compositor started *inside* the container: O3DE needs a presentable Vulkan
+# surface, which Xwayland-on-Weston provides from the real /dev/dri render
+# node, and the result reaches you as MJPEG in the browser rather than as an X
+# window. Mounting the host's /tmp/.X11-unix would also collide with the socket
+# Xwayland falls back to creating there, because --network=host means the
+# abstract @X0 name is already taken.
+#
+# Re-enable it if you want to open the O3DE editor itself:
+#   x11_display: true
+x11_display: false
+
+# The only camera in this course is the simulated one O3DE publishes, so there
+# is nothing to gain from passing the host's /dev/video* through. This is the
+# last config.yaml in the chain, and configs_to_runflags() lets the last value
+# win, so it also switches off the passthrough `ros` would otherwise get.
+camera_support: false
+
+# init_image is deliberately not set. The composed `capx` ryzer already pins
+# rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0, which is the
+# Ryzers default anyway, and configs_to_initial_image() takes the first match
+# in chain order - so declaring it again here would only create a second place
+# to keep in sync.
+
+# Baked weights, both opt-out. configs_to_buildflags() lets an environment
+# variable of the same name win, so you can slim the image down without
+# editing this file:
+#
+#   BAKE_LEMONADE_MODELS=0 ryzers build ... roscon26-localinference
+#
+#   BAKE_LEMONADE_MODELS     ~10.1 GB  Gemma-4 E2B + E4B Q4_K_M + mmproj-F16
+#   BAKE_PERCEPTION_WEIGHTS   ~3.5 GB  SAM2.1 large/small, OWLv2 large/base
+#
+# Leave them on for a conference room: with both baked nothing in notebooks
+# 1-4 reaches the network, and neither model needs a Hugging Face token.
+build_arguments:
+- "BAKE_LEMONADE_MODELS=1"
+- "BAKE_PERCEPTION_WEIGHTS=1"
+
+### ryzers run options
+
+# No port_mappings here on purpose - every port this workshop uses is either
+# already declared by a composed ryzer or bound to loopback in the container:
+#
+#   8888   JupyterLab               from `jupyterlab`
+#   13305  Lemonade                 from `lemonade-sdk`
+#   8501   RAI Streamlit UI         from `ros`/`rai`
+#   11311  ROS 1 bridge port        from `ros`
+#   8080   web_video_server         loopback, notebook 2 reads it directly
+#   8113   SAM2 segmentation        loopback, CaP-X service
+#   8115   Contact-GraspNet         loopback, CaP-X service
+#   8116   PyRoKi IK                loopback, CaP-X service
+#   8117   OWLv2 text grounding     loopback, CaP-X service
+#
+# configs_to_runflags() appends one `-p` per entry with no de-duplication, so
+# repeating any of the first four here would emit a duplicate flag. Ryzers runs
+# with --network=host regardless, which is why the loopback services need no
+# mapping at all.
+
+# No environment_variables either. LEMONADE_CACHE, LEMONADE_HF_HOME, CAPX_CACHE,
+# MUJOCO_GL and PYOPENGL_PLATFORM are baked as Dockerfile ENV so that they also
+# apply to `docker exec`, to the Jupyter kernels and to anything the notebooks
+# spawn - a `-e` flag only covers the top-level process tree.
+
+# Uncomment to keep generated policies, rollout videos and the agent recording
+# on the host. Note the composed `capx` ryzer already maps
+# $PWD/packages/robotics/capx/outputs to /ryzers/cap-x/outputs; this is the
+# separate tree the notebooks write to (CAPX_WORK).
+# volume_mappings:
+# - "$PWD/packages/workshops/roscon26/roscon26-localinference/outputs:/ryzers/notebooks/outputs"

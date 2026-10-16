@@ -1,0 +1,46 @@
+{
+  "schema_version": "rho-multitask-fixtures/v2",
+  "seed_model": "Gemma-4-E4B-it-GGUF",
+  "policies": {
+    "cube_stack": {
+      "file": "cube_stack.py",
+      "source": "historical CaP-X Gemma E4B cube_stack trial 1 generated policy",
+      "source_policy_sha256": "1e832d66a724443636ef68cdc1d70c4357169317a44b2c65b80b42faa52dd17c",
+      "source_prompt": "Pick up the red cube and gently stack it on top of the green cube, then release it.",
+      "source_prompt_file": null,
+      "source_prompt_sha256": "fb532e91e6977c096e373861b1eb3b6c1e45e01e2a60a33c1d0f565d8d48bfed",
+      "source_git_commit": "53e9966",
+      "source_trial": 1,
+      "source_task_completed": false,
+      "relationship": "whitespace-normalized authentic generated policy"
+    },
+    "spill_wipe": {
+      "file": "spill_wipe.py",
+      "source": "/results/live-20260821/full/capx/spill_wipe/attempt_03/artifacts/scenarios/Gemma-4-E4B-it-GGUF/spill_wipe/trial_01_sandboxrc_0_reward_0.980_taskcompleted_0/code.py",
+      "source_policy_sha256": "e31ccc884d4872ced181d6614d46b5dafc425548471206ceac32eff6a9dbac59",
+      "source_prompt": "Wipe the complete detected brown spill region with the Franka end effector.",
+      "source_prompt_file": null,
+      "source_prompt_sha256": null,
+      "prompt_note": "The source run retained the generated policy and task goal but not the fully expanded runtime API suffix.",
+      "source_git_commit": "7f55f31",
+      "source_trial": 1,
+      "source_task_completed": false,
+      "relationship": "normalized authentic generated raster policy retaining its overrun failure mode"
+    },
+    "cube_lift": {
+      "failure_mode": "NameError: name 'numpy' is not defined -- the policy calls numpy.array without importing it. 9 of 40 trials in the source sweep failed this way.",
+      "file": "cube_lift.py",
+      "relationship": "authentic generated policy retaining its missing-import failure mode, trailing newline added",
+      "source": "outputs/overnight/sweep_cube_lift/artifacts/scenarios/Gemma-4-E4B-it-GGUF/cube_lift/trial_02_sandboxrc_1_reward_0.502_taskcompleted_0/code.py",
+      "source_git_commit": null,
+      "source_git_commit_note": "the source sweep recorded source_revision=None, so no commit is available",
+      "source_policy_sha256": "28a96855e0fe957a73b4005043118c8b64ed4dd6216a9d457aa43471e9013bfa",
+      "source_prompt": "Pick up the red cube and lift it.",
+      "source_prompt_file": null,
+      "source_prompt_sha256": null,
+      "source_sweep": "40-trial Gemma-4-E4B cube_lift sweep, 2026-08-29",
+      "source_task_completed": false,
+      "source_trial": 2
+    }
+  }
+}

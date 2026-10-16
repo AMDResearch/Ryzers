@@ -1,0 +1,68 @@
+{
+  "hidden_rollouts_exposed_to_evolution": false,
+  "scenarios": {
+    "lift_train": {
+      "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+      "policy_path": "solver/tasks/cube_lift.py",
+      "task": "cube_lift",
+      "trial": 1
+    },
+    "lift_val1": {
+      "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+      "policy_path": "solver/tasks/cube_lift.py",
+      "task": "cube_lift",
+      "trial": 2
+    },
+    "lift_val2": {
+      "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+      "policy_path": "solver/tasks/cube_lift.py",
+      "task": "cube_lift",
+      "trial": 3
+    },
+    "lift_val3": {
+      "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+      "policy_path": "solver/tasks/cube_lift.py",
+      "task": "cube_lift",
+      "trial": 4
+    },
+    "stack_train": {
+      "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+      "policy_path": "solver/tasks/cube_stack.py",
+      "task": "cube_stack",
+      "trial": 1
+    },
+    "stack_val1": {
+      "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+      "policy_path": "solver/tasks/cube_stack.py",
+      "task": "cube_stack",
+      "trial": 2
+    },
+    "stack_val2": {
+      "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+      "policy_path": "solver/tasks/cube_stack.py",
+      "task": "cube_stack",
+      "trial": 3
+    },
+    "stack_val3": {
+      "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+      "policy_path": "solver/tasks/cube_stack.py",
+      "task": "cube_stack",
+      "trial": 4
+    }
+  },
+  "schema_version": "rho-multitask-scenarios/v2",
+  "splits": {
+    "train": [
+      "stack_train",
+      "lift_train"
+    ],
+    "val": [
+      "stack_val1",
+      "stack_val2",
+      "stack_val3",
+      "lift_val1",
+      "lift_val2",
+      "lift_val3"
+    ]
+  }
+}

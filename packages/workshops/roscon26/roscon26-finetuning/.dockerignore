@@ -1,0 +1,8 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# `ryzers build` sends this package directory to the daemon as the build
+# context, and config.yaml bind-mounts workspace/ into the running container for
+# fine-tune checkpoints (~11 GB each) and rendered videos. Without this, every
+# rebuild after a workshop run would upload all of that.
+workspace/

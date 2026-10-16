@@ -1,0 +1,45 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# GPU support is left at the default (true): ROCm JAX needs /dev/kfd and
+# /dev/dri, and the run flags already add --group-add render/video.
+
+# Rendering is entirely offscreen through Mesa/OSMesa, so no X11 socket needed.
+x11_display: false
+
+# This workshop replays saved checkpoints and never opens a camera, so there is
+# no reason to pass /dev/video* into the container.
+camera_support: false
+
+# The AMD wheel index is per-architecture. This must name a *bucket* directory
+# under https://repo.amd.com/rocm/whl/ -- not a raw gfx target, so e.g. an
+# RX 7900 XTX (gfx1100) uses "gfx110X-all" and "gfx1100" does not exist.
+#
+#   gfx1151      Strix Halo / Ryzen AI MAX+ (the workshop target, default)
+#   gfx110X-all  RDNA 3, incl. RX 7900 XTX -- carries the jax-rocm7 wheels
+#   gfx120X-all  RDNA 4
+#
+# Note gfx110X-dgpu ships the ROCm SDK but NOT jax-rocm7-*, so use -all.
+# configs_to_buildflags() lets an environment variable of the same name win,
+# so you can override per-build without editing this file:
+#
+#   GPU_TARGET=gfx110X-all ryzers build jupyterlab roscon26-rllearning
+build_arguments:
+- "GPU_TARGET=gfx1151"
+
+### ryzers run options
+
+# JAX otherwise claims ~75% of device memory on first use, which is unfriendly
+# on an APU where the GPU shares system RAM.
+environment_variables:
+- "XLA_PYTHON_CLIENT_PREALLOCATE=false"
+
+# No port_mappings here on purpose. JupyterLab's 8888 comes from the composed
+# `jupyterlab` package; declaring it again would emit a duplicate `-p` and
+# docker run would fail with "port is already allocated".
+
+# Uncomment to keep rendered videos and trajectories on the host.
+# volume_mappings:
+# - "$PWD/packages/workshops/roscon26/roscon26-rllearning/outputs:/ryzers/notebooks/outputs"

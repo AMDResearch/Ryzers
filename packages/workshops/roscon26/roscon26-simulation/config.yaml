@@ -1,0 +1,43 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# GPU support is left at the default (true): Genesis compiles and runs its
+# physics kernels on the GPU, so /dev/kfd and /dev/dri are required.
+
+# Rendering is offscreen through EGL (PYGLET_HEADLESS), so no X11 socket.
+x11_display: false
+
+# Training and evaluation replay baked checkpoints; no camera is ever opened.
+camera_support: false
+
+# Selects both the torch wheel and the rocm-sdk-libraries package, so it must
+# name a *bucket* directory under https://repo.amd.com/rocm/whl/ -- not a raw
+# gfx target. An RX 7900 XTX is gfx1100 but builds against "gfx110X-all"; there
+# is no "gfx1100" directory.
+#
+#   gfx1151      Strix Halo / Ryzen AI MAX+ (the workshop target, default)
+#   gfx110X-all  RDNA 3, incl. RX 7900 XTX
+#   gfx120X-all  RDNA 4
+#
+# configs_to_buildflags() lets an environment variable of the same name win, so
+# you can retarget without editing this file:
+#
+#   GPU_TARGET=gfx110X-all ryzers build jupyterlab roscon26-simulation
+build_arguments:
+- "GPU_TARGET=gfx1151"
+
+### ryzers run options
+
+# Genesis' runtime kernel compiler writes a large on-disk cache; the kernelspec
+# raises its size limit so kernels survive between sessions.
+
+# No port_mappings here on purpose. JupyterLab's 8888 comes from the composed
+# `jupyterlab` package; declaring it again would emit a duplicate `-p` and
+# docker run would fail with "port is already allocated".
+
+# Uncomment to keep training runs, checkpoints and videos on the host. The
+# notebooks write under <workshop root>/logs.
+# volume_mappings:
+# - "$PWD/packages/workshops/roscon26/roscon26-simulation/logs:/ryzers/notebooks/logs"

@@ -1,0 +1,55 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# GPU support is left at the default (true). Everything here needs it: the LoRA
+# fine-tune, the closed-loop LIBERO eval, the FastWAM video diffusion, and the
+# headless EGL rendering all go through /dev/kfd + /dev/dri, and the default run
+# flags already add --group-add render/video.
+
+# MuJoCo renders offscreen through EGL on the GPU, so no X socket is needed.
+x11_display: false
+
+# The course drives a simulator, never a real camera, so there is no reason to
+# pass /dev/video* into the container.
+camera_support: false
+
+# No build_arguments. The four upstream pins (MOLMOACT2_COMMIT, LEROBOT_COMMIT,
+# FASTWAM_COMMIT, LIBERO_COMMIT) are ARGs in the Dockerfile with validated
+# defaults; they are deliberately not exposed here because changing any of them
+# invalidates the patches this package vendors.
+
+### ryzers run options
+
+# Uncomment to lift the anonymous Hugging Face rate limits on the first run.
+# The notebooks work without it, just more slowly.
+# environment_variables:
+# - "HF_TOKEN=hf_..."
+
+# These mounts are NOT optional. `ryzers run` is --rm, and the notebooks pull
+# roughly 60 GB of public weights and data on first use (see README.md). Without
+# them every run starts the downloads again from scratch.
+#
+#   ~/.cache/huggingface  MolmoAct2 DROID base, LIBERO dataset, DROID episodes
+#                         and (via HF_LEROBOT_HOME) the LeRobot dataset tree
+#   ~/.cache/fastwam      FastWAM release checkpoint, Wan2.2 T5/VAE/tokenizer,
+#                         LIBERO replay archive
+#   workspace/checkpoints fine-tune output ($CHECKPOINTS_DIR)
+#   workspace/outputs     plots, videos, eval artefacts and server logs ($OUT_DIR)
+#
+# The container runs as root, so files written into the two ~/.cache paths are
+# root-owned on the host. Point them somewhere else if that is a problem.
+volume_mappings:
+- "~/.cache/huggingface:/root/.cache/huggingface"
+- "~/.cache/fastwam:/root/.cache/fastwam"
+- "$PWD/packages/workshops/roscon26/roscon26-finetuning/workspace/checkpoints:/ryzers/checkpoints"
+- "$PWD/packages/workshops/roscon26/roscon26-finetuning/workspace/outputs:/ryzers/outputs"
+
+# No port_mappings here on purpose.
+#  - JupyterLab's 8888 comes from the composed `jupyterlab` package.
+#    configs_to_runflags() appends one -p per entry with no dedup, so declaring
+#    it again makes `docker run` fail with "port is already allocated".
+#  - The interactive sim's 8080 needs no mapping either: RYZERS_DEFAULT_RUN_FLAGS
+#    already contains --network=host, so the container shares the host's network
+#    namespace and http://localhost:8080/ reaches it directly.
