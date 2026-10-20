@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 import os
@@ -11,13 +11,20 @@ if 'PYOPENGL_PLATFORM' not in os.environ:
 import genesis as gs
 
 print("Testing Genesis installation...")
-
-import genesis as gs
 print(f"Genesis version: {gs.__version__}")
 
-# Initialize with Vulkan backend (headless)
-print("Initializing Genesis with Vulkan backend...")
-gs.init(backend=gs.vulkan)
+# Smoke test: one HIP device is visible, Genesis initializes on the AMD GPU backend,
+# builds a small scene and steps it. GENESIS_BACKEND=cpu runs the same scene on the CPU
+# (the amdgpu backend is the default; gs.vulkan no longer exists in Genesis 1.x).
+backend_name = os.environ.get('GENESIS_BACKEND', 'amdgpu')
+if backend_name != 'cpu':
+    import torch
+    assert torch.version.hip, "PyTorch was not built for ROCm"
+    n_dev = torch.cuda.device_count()
+    assert n_dev >= 1, "No HIP device visible"
+    print(f"HIP devices: {n_dev} ({torch.cuda.get_device_name(0)})")
+print(f"Initializing Genesis with {backend_name} backend...")
+gs.init(backend=getattr(gs, backend_name))
 
 # Headless mode by default (set show_viewer=True if X11 display available)
 scene = gs.Scene(show_viewer=False)

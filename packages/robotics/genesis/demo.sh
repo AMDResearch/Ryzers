@@ -1,15 +1,14 @@
 #!/bin/bash
 
-# Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# needed new numpy for the drone demos
-# pip install --upgrade numpy || echo "compatibility error is okay, can be ignored or the demo"...
-# pip install pynput
-# clear
-
-sed -i 's/gs\.init()/gs.init(backend=gs.vulkan)/' /ryzers/Genesis/examples/tutorials/sph_liquid.py
-sed -i 's/horizon = 1000/horizon = 10000/' /ryzers/Genesis/examples/tutorials/sph_liquid.py
-cd Genesis/examples/tutorials
-python sph_liquid.py
+# Tactile sensors on a Franka gripper (Genesis 1.4). Backend: GENESIS_BACKEND=amdgpu (default) or cpu.
+# Pass --vis (e.g. `ryzers run "/ryzers/demo_genesis.sh --vis"`) to open the viewer on X11.
+cd /ryzers/Genesis/examples/sensors
+if [ "${GENESIS_BACKEND:-amdgpu}" = "cpu" ]; then
+  python tactile_franka.py "$@"
+else
+  python tactile_franka.py -g "$@"
+fi
 exit 0

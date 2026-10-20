@@ -1,3 +1,6 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 import warnings
 import os
 
@@ -8,7 +11,7 @@ import numpy as np
 import genesis as gs
 
 ########################## init ##########################
-gs.init(backend=gs.vulkan)
+gs.init(backend=getattr(gs, os.environ.get("GENESIS_BACKEND", "amdgpu")))
 
 ########################## create a scene ##########################
 scene = gs.Scene(
