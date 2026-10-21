@@ -379,6 +379,16 @@ GPU against dense CPU PyTorch using CUDA spconv's 1x1 storage convention.
 Explicit reconstruction checks retain the 3x3x3 sparse/dense comparison; the
 full numerical suite retains its 39 frozen CUDA cases.
 
+Final export regression passed all 27 kidsroom masks on **both** devices in the
+rebuilt image, with both decoders and finite/nonempty PLY/GLB reload checks.
+Scene assembly passed with 13,611,264 Gaussians on R9700 and 13,620,000 on
+8060S. Total regression times, including loading and export, were 480.5 s and
+1,650.9 s respectively; these are not warm inference benchmark times.
+Maximum per-mask PyTorch allocation across the 27 objects was 21.40 GB on each
+GPU, compared with the mask-14 benchmark's 20.3 GB. Scene assembly memory is not
+included in that per-mask peak. These functional checks do not add full-model
+CUDA numerical agreement or numerical A/B coverage for every mask.
+
 ### Further candidates and the performance floor
 
 These measurements establish additional validated gains, not a hardware floor.
