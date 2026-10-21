@@ -42,6 +42,7 @@ RUN git clone https://github.com/facebookresearch/sam-3d-objects.git /ryzers/sam
  && pip3 install --no-cache-dir --break-system-packages --no-deps -e /ryzers/sam-3d-objects
 RUN pip3 install --no-cache-dir --break-system-packages 'iopath==0.1.10'
 COPY patch_rocm.py /ryzers/patch_sam3d_rocm.py
+COPY conditioning_cache.py /ryzers/sam-3d-objects/sam3d_objects/conditioning_cache.py
 COPY sdpa_rocm.py /ryzers/sam-3d-objects/sam3d_objects/model/backbone/tdfy_dit/modules/sparse/attention/sdpa_rocm.py
 RUN python /ryzers/patch_sam3d_rocm.py \
  && /ryzers/sam-3d-objects/patching/hydra
@@ -49,5 +50,6 @@ RUN python /ryzers/patch_sam3d_rocm.py \
 ENV TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1
 COPY test.py /ryzers/test_sam3d.py
 COPY check_numerics.py /ryzers/check_sam3d_numerics.py
+COPY test_conditioning_cache.py /ryzers/test_sam3d_conditioning_cache.py
 RUN chmod +x /ryzers/test_sam3d.py
 CMD /ryzers/test_sam3d.py

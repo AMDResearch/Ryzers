@@ -25,6 +25,27 @@ replace(sparse + 'attention/masked_sdpa.py', 'import torch.nn.functional as F',
 replace(sparse + 'attention/masked_sdpa.py',
         'def masked_sdpa(q, k, v, q_seqlen, kv_seqlen):',
         'def reference_masked_sdpa(q, k, v, q_seqlen, kv_seqlen):')
+# Conditioning is fixed during each denoising stage. Keep conditional and CFG
+# zero inputs separate, and release all cached tensors when the stage returns.
+cache_import = ('from sam3d_objects.conditioning_cache import '
+                'cache_sampling, conditioning_cast, conditioning_zero, conditioning_projection\n')
+models = 'sam3d_objects/model/backbone/tdfy_dit/models/'
+for name in ('mot_sparse_structure_flow.py', 'structured_latent_flow.py'):
+    replace(models + name, 'import torch\n', cache_import + 'import torch\n')
+    replace(models + name, 'cond = cond.type(self.dtype)',
+            'cond = conditioning_cast(cond, self.dtype)')
+    replace(models + name, 'cond = cond * 0', 'cond = conditioning_zero(cond)')
+attention = 'sam3d_objects/model/backbone/tdfy_dit/modules/attention/modules.py'
+replace(attention, 'import torch\n', cache_import + 'import torch\n')
+replace(attention, 'kv = self.to_kv(context)',
+        'kv = conditioning_projection(self.to_kv, context)')
+replace(sparse + 'attention/modules.py', 'import torch\n', cache_import + 'import torch\n')
+replace(sparse + 'attention/modules.py', 'kv = self._linear(self.to_kv, context)',
+        'kv = conditioning_projection(self.to_kv, context, lambda: self._linear(self.to_kv, context))')
+pipeline = 'sam3d_objects/pipeline/inference_pipeline.py'
+replace(pipeline, 'import torch\n', cache_import + 'import torch\n')
+for method in ('sample_sparse_structure', 'sample_slat'):
+    replace(pipeline, f'    def {method}(', f'    @cache_sampling\n    def {method}(')
 # These Kaolin notebook imports are unused; reconstruction does not need them.
 replace('notebook/inference.py', 'from kaolin.visualize import IpyTurntableVisualizer\n', '')
 replace('notebook/inference.py', 'from kaolin.render.camera import Camera, CameraExtrinsics, PinholeIntrinsics\n', '')

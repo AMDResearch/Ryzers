@@ -64,6 +64,18 @@ This preserves the original block-diagonal attention semantics while avoiding
 the large additive mask and allowing fused kernels. The original implementation
 remains available as `reference_masked_sdpa` in the upstream attention module.
 
+Both GPUs also reuse the image-conditioning K/V projections during each
+denoising stage. Conditional and unconditional inputs have separate entries;
+the cache checks tensor/weight mutation counters, stores at most 3 GiB of outputs per stage,
+and clears on return or exception. Training and gradient-enabled calls retain
+upstream behavior. Tensors without mutation counters use the uncached path.
+Set `SAM3D_CACHE_CROSS_ATTN=0` inside the container to compare with the uncached
+implementation. Cache lifecycle checks require no GPU or model download:
+
+```sh
+ryzers run "python /ryzers/test_sam3d_conditioning_cache.py"
+```
+
 The default upstream example disables mesh cleanup, texture baking and layout
 optimization. Those optional paths and Gaussian video rendering require
 additional GPU rasterizers and are not supported by this package. PyTorch3D is
@@ -79,12 +91,12 @@ slightly in occupancy and mesh topology:
 
 | GPU | Mask 14 Gaussians | GLB vertices | GLB faces |
 |-----|------------------|--------------|-----------|
-| Ryzen AI Radeon 8060S (`gfx1151`) | 843,040 | 488,470 | 977,020 |
-| Radeon AI PRO R9700 (`gfx1201`) | 843,072 | 490,050 | 980,152 |
+| Ryzen AI Radeon 8060S (`gfx1151`) | 842,880 | 489,102 | 978,208 |
+| Radeon AI PRO R9700 (`gfx1201`) | 843,072 | 490,110 | 980,272 |
 
 The R9700 also passed all 27 upstream masks and `make_scene` assembly,
 producing a posed scene with 13,611,264 Gaussians. The 8060S passed masks 14
-and 3 and assembled a 1,401,472-Gaussian scene. PLY and GLB files are
+and 3 and assembled a 1,401,408-Gaussian scene. PLY and GLB files are
 reloaded and checked for nonempty, finite geometry; all PLY attributes are
 validated (opacity logits are decoded before checking). The smoke test
 compares sparse convolution against a dense PyTorch reference on each GPU.
@@ -121,6 +133,14 @@ loading and export. Pose and sparse-structure occupancy were unchanged on each
 device; latent-feature RMS differences were about 0.024%, comparable to repeating
 the baseline. See [the numerical and performance report](VALIDATION.md) for
 methodology, error bounds and remaining optimization targets.
+
+The default conditioning cache provides a further **1.105x speedup on 8060S**
+(88.14 -> 79.75 s) and **1.050x on R9700** (21.31 -> 20.30 s), measured in a
+separate alternating comparison with three warm runs per mode. Both optimizations
+are enabled by default on both GPUs. Cache comparisons preserved occupancy and
+pose exactly; maximum latent differences and sampled geometry distances are
+recorded in the validation report. Peak allocated tensor memory stayed at 20.3 GB
+for mask 14.
 
 ## References
 

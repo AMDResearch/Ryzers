@@ -46,7 +46,7 @@ diagnostic fails for both implementations around cancellation near zero; neither
 implementation is correctly rounded element by element against float64. The
 raw diagnostic failures are retained in the local reports.
 
-## Full-pipeline agreement
+## Full-pipeline agreement: attention change
 
 Kidsroom mask 14, seed 42, upstream default inference steps, both decoders,
 `compile=False`. The reference is the previous ROCm package, before replacing
@@ -72,7 +72,7 @@ median / p99 distance is 0.068% / 0.425% of the diagonal; the sampled maximum is
 2.176%. These outputs agree closely but are not bitwise identical. This does not
 establish full-model parity with CUDA or validate arbitrary images.
 
-## Export regression checks
+## Export regression checks: attention change
 
 The rebuilt image passed all 27 upstream kidsroom masks on R9700 and assembled
 a 13,611,264-Gaussian scene. On 8060S, masks 14 and 3 passed and assembled a
@@ -82,7 +82,7 @@ These checks cover both inference stages and both decoders. Fresh-process
 output counts are representative and can vary slightly even with seed 42.
 The canonical `ryzers build --name sam3d sam3d` also passed.
 
-## Performance
+## Performance: attention change
 
 | GPU | Baseline | Optimized | Speedup | Decoder baseline -> optimized |
 |---|---:|---:|---:|---:|
@@ -116,3 +116,93 @@ Remaining candidates require measurement and numerical regression checks:
   0.4 s / 0.8 s per object, so its benefit is smaller than the attention change.
 
 No claim is made that this implementation is bug-free or maximally performant.
+
+## Cross-attention conditioning cache
+
+The next optimization reuses image-conditioning casts, CFG zero tensors and
+cross-attention K/V linear projections within each sampling stage. It leaves
+latent self-attention, model precision and inference steps unchanged. Conditional
+and unconditional inputs are distinct cache keys. Context-local storage holds
+input references to prevent identity reuse; tensor and parameter mutation
+counters and autocast settings invalidate entries. Projection caching bypasses
+training modules; every cache bypasses gradient-enabled calls and tensors without
+mutation counters. Each stage
+retains at most 256 entries / 3 GiB of cached outputs and clears them on return
+or exception, including between masks. Input references also remain alive until
+the stage ends. `SAM3D_CACHE_CROSS_ATTN=0` disables reuse.
+
+Six CPU tests cover CFG/request separation, input/output/weight mutation,
+parameter replacement, autocast/dtype changes, gradient/training fallback,
+inference-mode fallback and exception cleanup. Run them with
+`python /ryzers/test_sam3d_conditioning_cache.py` in the image.
+
+The cache experiment compares cached and uncached paths in the same build
+(`SAM3D_CACHE_CROSS_ATTN=1` / `0`). The uncached path retains commit `85289e7`'s
+independent unmasked SDPA behavior, with the added Python cache guards. Baseline
+and cached runs alternate in one process after a discarded warmup, with identical checkpoint, mask 14,
+seed 42, default steps and both decoders. GPU synchronization brackets stages.
+Wall times include small CPU captures of intermediate sparse tensors; final
+geometry capture and comparison happen after timing. Background CPU workloads
+remain present, so these are workstation latency measurements.
+
+| Additional cache optimization | Uncached median | Cached median | Speedup | Sparse structure | Sparse latent |
+|---|---:|---:|---:|---:|---:|
+| R9700 | 21.31 s | 20.30 s | 1.050x | 9.34 -> 8.61 s | 9.25 -> 9.03 s |
+| 8060S | 88.14 s | 79.75 s | 1.105x | 50.27 -> 43.86 s | 34.66 -> 32.69 s |
+
+Three warm runs per mode. R9700 controls ranged 21.27–22.94 s and cached runs
+20.29–20.33 s; 8060S controls ranged 85.55–88.77 s and cached runs 79.34–80.00 s.
+Every cached run beat every control on its device. The cache avoided 2,880 K/V
+projections plus 108 casts/zeroing operations per inference. Maximum cached
+output storage was 3.04 GB (2.83 GiB) in one stage. Mask-14 peak PyTorch allocation
+remained 20.3 GB on both devices; this is allocated tensor memory, not total
+driver/allocator-reserved memory. A 1 or 2 GiB output limit caused repeat misses;
+3 GiB fits this conditioning workload. Larger workloads fall back to recomputing
+entries that do not fit the bound.
+
+All three cached runs were compared with the first warm uncached run on each
+device using the previously fixed acceptance limits above. Occupancy and pose
+were exact. The following are the worst observed differences across those runs:
+
+| Cached vs uncached | R9700 | 8060S |
+|---|---:|---:|
+| SLAT normalized RMS difference | 0.0257% | 0.0330% |
+| SLAT maximum absolute difference | 0.01776 | 0.04175 |
+| Uncached repeat: normalized RMS difference | 0.0266% | 0.0437% |
+| Uncached repeat: maximum absolute difference | 0.01679 | 0.07269 |
+| Mesh NN p99 / diagonal | 0.00810% | 0.00570% |
+| Mesh sampled maximum / diagonal | 0.1867% | 0.2655% |
+| Gaussian-center NN p99 / diagonal | 0.04757% | 0.04622% |
+| Gaussian-center sampled maximum / diagonal | 0.2718% | 0.2709% |
+
+Geometry uses the same 10,000-point symmetric sampling as above; sampled maxima
+are not global error bounds. Full-model outputs are not bitwise identical, and
+these tests characterize one mask's numerical agreement. Between devices, the
+final cached runs had occupancy IoU 99.678%, mesh NN median / p99 0.0654% /
+0.4790% of the diagonal, and sampled maximum 2.065%.
+
+The rebuilt final image also passed the independent CPU float64 attention checks
+and all 39 frozen CUDA sparse forward cases on each GPU, with the same maximum
+errors in the first table. This remains operator-level CUDA validation; there
+was no full-model NVIDIA CUDA reference run.
+
+Final cache-enabled export regression passed all 27 kidsroom masks on R9700,
+including both decoders, PLY/GLB reload/finite checks, and assembly of a
+13,611,264-Gaussian scene. The 8060S passed masks 14 and 3 with the same checks,
+assembling 1,401,408 Gaussians. These are functional export checks; the numerical
+A/B comparison above covers mask 14. Both regression processes exited cleanly.
+
+### Other lessons evaluated from vllm-radiance
+
+Source inspected at `1d2e24849c9d8441b9614acade5252c9937a2bbf`:
+[offline TunableOp workflow](https://github.com/magiccodingman/vllm-radiance/blob/1d2e24849c9d8441b9614acade5252c9937a2bbf/docs/FP8_KV_TUNABLEOP.md),
+[vision attention](https://github.com/magiccodingman/vllm-radiance/blob/1d2e24849c9d8441b9614acade5252c9937a2bbf/radiance_vit_attn.py).
+
+Native packed variable-length attention passed sampled float64 checks on both
+GPUs and sped up a decoder-shaped operator probe, but full-pipeline timings did
+not establish a reliable additional gain. Offline per-architecture GEMM tuning
+also passed sampled numerical checks, but selected replay failed to improve
+the R9700 whole pipeline and iGPU baseline drift exceeded the apparent gain.
+Neither experiment changes the defaults. Their LLM-specific paged/causal
+attention and low-precision formats are not direct replacements for SAM3D's
+noncausal FP16 attention; no quantization is introduced here.
