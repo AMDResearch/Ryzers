@@ -12,9 +12,10 @@ ryzers run
 ```
 
 The default runs a headless smoke test: imports SAM 3D, checks the ROCm GPU and
-compares sparse convolution with a dense PyTorch reference. It exits on completion
-and requires no model download or Hugging Face token. First use compiles Triton
-kernels; the kernel cache persists in `workspace/.cache/triton`.
+compares 1x1 sparse convolution with a dense CPU PyTorch reference. It exits on
+completion and requires no model download or Hugging Face token. First
+reconstruction compiles Triton kernels; the kernel cache persists in
+`workspace/.cache/triton`.
 
 ## Reconstruct the example
 
@@ -53,15 +54,18 @@ ryzers run "python /ryzers/test_sam3d.py --all-masks"
 
 The image pins upstream sources and retains the base ROCm PyTorch installation.
 It uses Triton sparse convolutions, independent unmasked SDPA and per-stage
-image-conditioning caches on both GPUs. Set `SAM3D_CACHE_CROSS_ATTN=0` inside the
-container to disable conditioning reuse. The image enables experimental AOTriton
-attention so the iGPU uses fused SDPA.
+image-conditioning caches on both GPUs. Large FP16 sparse-latent attention blocks
+use an architecture-tuned Triton kernel and fused normalization. Structure
+sampling keeps PyTorch SDPA and reuses frozen linear-parameter casts. Inside the
+container, `SAM3D_CACHE_CROSS_ATTN=0`, `SAM3D_TRITON_ATTN=0`,
+`SAM3D_TRITON_NORM=0` and `SAM3D_CACHE_LINEAR=0` disable the respective
+optimizations. The image enables experimental AOTriton so the iGPU uses fused SDPA.
 
 Validated on Radeon 8060S (`gfx1151`) and Radeon AI PRO R9700 (`gfx1201`),
-ROCm 7.14 / PyTorch 2.12. Conditioning reuse improved warm mask-14 medians from
-88.14 to 79.75 s on 8060S and 21.31 to 20.30 s on R9700, after the independent
-SDPA optimization. See [VALIDATION.md](VALIDATION.md) for numerical reference
-provenance, maximum errors, benchmark methods and regression coverage.
+ROCm 7.14 / PyTorch 2.12. Final warm mask-14 medians were 65.01 s on 8060S
+and 16.23 s on R9700, using default steps and both geometry decoders. See [VALIDATION.md](VALIDATION.md)
+for numerical reference provenance, maximum errors, benchmark methods and
+regression coverage.
 
 Optional mesh cleanup, texture baking, layout optimization and Gaussian video
 rendering need additional GPU rasterizers and are not supported here. The

@@ -3,6 +3,7 @@
 """Compute independent attention blocks without a quadratic block-diagonal mask."""
 import torch
 import torch.nn.functional as F
+from .attention_rocm import attention, can_use_attention
 
 
 def masked_sdpa(q, k, v, q_seqlen, kv_seqlen):
@@ -12,6 +13,8 @@ def masked_sdpa(q, k, v, q_seqlen, kv_seqlen):
     if (len(q_seqlen) != len(kv_seqlen) or sum(q_seqlen) != q.shape[1]
             or sum(kv_seqlen) != k.shape[1] or k.shape[1] != v.shape[1]):
         raise ValueError('Attention block lengths do not match input tensors')
+    if len(q_seqlen) == 1 and can_use_attention(q[0], k[0], v[0]):
+        return attention(q[0], k[0], v[0])
     outputs = []
     q_start = kv_start = 0
     for q_len, kv_len in zip(q_seqlen, kv_seqlen):

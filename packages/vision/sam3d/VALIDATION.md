@@ -238,3 +238,161 @@ the R9700 whole pipeline and iGPU baseline drift exceeded the apparent gain.
 Neither experiment changes the defaults. Their LLM-specific paged/causal
 attention and low-precision formats are not direct replacements for SAM3D's
 noncausal FP16 attention; no quantization is introduced here.
+
+
+## Architecture-tuned sparse-latent attention
+
+Validated 2026-10-21. A streaming-softmax Triton kernel handles single-block
+FP16 attention with 16 heads, 64 channels per head and at least 2,048 queries
+and keys, only during `sample_slat` on gfx1151/gfx1201. It accumulates scores,
+softmax statistics and output in float32, rounding softmax probabilities to
+float16 before the value product. It writes contiguous token/head/channel
+output directly. Runtime token counts let different masks share compiled code.
+Structure sampling, other geometries/dtypes/devices and gradient-enabled calls
+retain PyTorch SDPA. `SAM3D_TRITON_ATTN=0` selects that reference path.
+
+The checker adds two packed-stride/tail cases (2,049/2,071 and 4,096/4,096
+queries/keys), sampling 32 queries against every key/value in CPU float64.
+Both GPUs selected Triton and passed the predetermined absolute tolerance
+2e-3, relative tolerance zero. Maximum absolute errors were 6.24e-5 on R9700
+and 1.07e-4 on 8060S. The previous nine attention checks and all 39 frozen CUDA
+sparse forward cases also passed with unchanged maximum errors. Six cache
+lifecycle tests passed, including stage cleanup when conditioning reuse is off.
+
+An additional real-checkpoint capture uses 5,252 queries with 5,252/5,496
+keys for self/cross attention. The same R9700-captured FP16 operands were
+replayed on both architectures, sampling 32 query rows against complete keys.
+Maximum absolute errors against CPU float64 were 0.001043 / 0.001054 on
+R9700 / 8060S, passing 2e-3 with relative tolerance zero. Maximum normalized
+RMS error was 0.0211%. These are sampled operator checks; they do not establish
+universal error bounds or full-model CUDA agreement.
+
+The packaged A/B experiment keeps conditioning reuse enabled throughout and
+alternates `SAM3D_TRITON_ATTN=0` / `1` in one process: mask 14, seed 42,
+default steps, both decoders and `compile=False`. Discard the first run of each
+path; report medians of three subsequent warm runs per path. Model loading,
+export and final geometry capture are excluded; small intermediate CPU tensor
+captures are included, with synchronization around each stage.
+
+| GPU | PyTorch SDPA | Triton SLAT attention | Speedup | SLAT stage |
+|---|---:|---:|---:|---:|
+| R9700 | 20.92 s | 17.53 s | 1.194x | 9.03 -> 6.27 s |
+| 8060S | 79.42 s | 67.89 s | 1.170x | 32.59 -> 21.31 s |
+
+Every candidate beat every control on its device. Peak PyTorch allocation
+remained 20.3 GB. Each of the three candidate runs passed the existing gates
+against the first warm control: exact occupancy and pose, feature NRMSE <=1%
+and sampled symmetric geometry NN p99 <=0.5% of the bounding-box diagonal.
+Worst observed differences across the three runs:
+
+| Triton vs PyTorch | R9700 | 8060S |
+|---|---:|---:|
+| SLAT normalized RMS difference | 0.02593% | 0.02579% |
+| SLAT maximum absolute difference | 0.02629 | 0.03242 |
+| Unchanged control repeat NRMSE | 0.02634% | 0.03554% |
+| Unchanged control repeat maximum absolute difference | 0.02242 | 0.05169 |
+| Mesh NN p99 / diagonal | 0.00625% | 0.00793% |
+| Mesh sampled maximum / diagonal | 0.20385% | 0.16230% |
+| Gaussian-center NN p99 / diagonal | 0.04871% | 0.04713% |
+| Gaussian-center sampled maximum / diagonal | 0.25351% | 0.22252% |
+
+Geometry uses the same fixed 10,000-point symmetric sampling described above.
+These timings are workstation measurements. They demonstrate a further gain,
+not a hardware latency floor; baseline repeat variation and sampled error
+limits still apply. Broader export checks for preceding optimizations are
+reported separately above.
+
+## Sparse-latent normalization and linear-parameter reuse
+
+The subsequent optimization fuses FP32 sparse RMS normalization and LayerNorm32
+into Triton kernels during `sample_slat` only. Structure normalization and all
+decoder normalization retain upstream PyTorch. Guards restrict RMS inputs to
+FP16 with 16 heads / 64 channels, and layer normalization to contiguous FP16
+matrices with 1,024/2,048 channels. Training, gradients, other devices, shapes
+and dtypes use the original computation. `SAM3D_TRITON_NORM=0` disables fusion.
+
+A normal `nn.Linear` subclass additionally reuses FP32-to-FP16 parameter casts
+inside sparse-structure sampling, under FP16 CUDA autocast. It preserves
+parameter/state-dict names and applies to the SAM transformer's dense attention
+and MLP modules. A separate context-local cache holds at most 2,048 entries /
+2 GiB of cast outputs, independently of the 3 GiB conditioning-output cache.
+Input/output mutation counters invalidate entries, strong references prevent
+identity reuse, and return/exception clears the stage. Training, gradients,
+inference tensors without mutation counters and other precisions/devices fall
+back to PyTorch. `SAM3D_CACHE_LINEAR=0` disables this parameter reuse.
+
+Eight CPU cache tests passed, including parameter-cache nesting, mutation,
+output mutation, disable flags, capacity fallback and exception cleanup. GPU
+parameter checks compare four calls, including weight mutation and bias
+replacement, against uncached FP16 autocast on frozen parameters. Both devices
+matched exactly: maximum absolute difference zero, four cache hits/four misses.
+
+The numerical checker adds six normalization cases: packed/strided sparse RMS
+with autocast on/off, and 1,024/2,048-channel layer normalization on zero-centered
+and offset inputs. Against independent CPU float64 formulas, maximum absolute
+error was 0.001953 on R9700 and 0.001950 on 8060S. All passed preselected mixed
+absolute/relative tolerances of 2e-3 each. The remaining attention and 39 CUDA
+sparse fixture checks also passed on both GPUs.
+
+Real checkpoint inputs were independently checked at 32 rows per shape. Sparse
+RMS maximum absolute error was 0.003441 / 0.003852 on R9700 / 8060S; SLAT layer
+normalization was 0.003829 / 0.003614. A separate 2,048-channel decoder-shaped
+operator replay reached 0.02963 / 0.02992 on larger-magnitude outputs. That
+replay checks the kernel; decoder execution still retains PyTorch. Every sampled
+value passed the same mixed 2e-3 / 2e-3 bound; maximum normalized RMS error
+across the three shapes was 0.0242% / 0.0261%. These are mixed tolerances,
+not a universal 2e-3 absolute bound.
+
+A/B uses the same packaged image, with Triton SLAT attention and conditioning
+reuse enabled in both paths. Alternate normalization/parameter caching off and
+on, discard one warmup per path, then compare three warm runs each: mask 14,
+seed 42, default steps, both decoders, `compile=False`, the same synchronized
+stage timing and capture method as the preceding experiment.
+
+| GPU | Additional optimizations off | On | Speedup | Structure stage | SLAT stage |
+|---|---:|---:|---:|---:|---:|
+| R9700 | 18.09 s | 16.23 s | 1.114x | 8.64 -> 8.18 s | 6.26 -> 5.50 s |
+| 8060S | 68.39 s | 65.01 s | 1.052x | 43.71 -> 43.04 s | 21.45 -> 18.78 s |
+
+R9700 controls ranged 17.36–18.26 s and candidates 16.08–16.78 s; 8060S controls
+67.87–68.51 s and candidates 64.93–65.31 s. Every candidate beat every control
+on its device. Peak PyTorch allocation remained 20.3 GB. This is a separate
+experiment from the attention table; speedup ratios are not multiplied.
+
+All three candidates per GPU passed the existing acceptance gates against the
+first warm control, including exact occupancy and pose. Worst observed values:
+
+| Final additional optimizations vs control | R9700 | 8060S |
+|---|---:|---:|
+| SLAT normalized RMS difference | 0.02432% | 0.02550% |
+| SLAT maximum absolute difference | 0.02034 | 0.02980 |
+| Control repeat NRMSE | 0.02410% | 0.02480% |
+| Control repeat maximum absolute difference | 0.01953 | 0.01894 |
+| Mesh NN p99 / diagonal | 0.00625% | 0.00544% |
+| Mesh sampled maximum / diagonal | 0.18442% | 0.17573% |
+| Gaussian-center NN p99 / diagonal | 0.04507% | 0.05236% |
+| Gaussian-center sampled maximum / diagonal | 0.23667% | 0.31727% |
+
+The fixed limits and 10,000-point symmetric geometry sampling remain unchanged.
+The rebuilt package retains a quick default smoke: a 1x1 sparse operation on
+GPU against dense CPU PyTorch using CUDA spconv's 1x1 storage convention.
+Explicit reconstruction checks retain the 3x3x3 sparse/dense comparison; the
+full numerical suite retains its 39 frozen CUDA cases.
+
+### Further candidates and the performance floor
+
+These measurements establish additional validated gains, not a hardware floor.
+A wider normalization rewrite and faster structure-attention variants were
+rejected because they changed occupancy/pose on 8060S. A repeated structure
+HIP-graph experiment was slower including request-local warmup/capture: R9700
+structure sampling grew from 8.61 s to 9.88–10.04 s. Basic sparse-metadata reuse
+changed the SLAT stage by less than 0.2%, without establishing a reliable gain.
+MLP compilation and alternative weight layouts also failed to establish a
+consistent gain on both devices. None of those variants is enabled.
+
+Attention tuning evaluated tile sizes, warps, pipeline stages and occupancy
+settings on both architectures. Additional reciprocal/reduction configurations
+still differed from PyTorch on real structure-attention inputs; no faster
+structure kernel is promoted. Reduced precision, fewer denoising steps and
+relaxed occupancy/pose gates are not part of these results. Further speedups
+need new measured evidence and numerical qualification.

@@ -1,6 +1,6 @@
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Bounded reuse of immutable image conditioning within one sampling stage."""
+"""Bounded reuse of image conditioning and frozen parameters per sampling stage."""
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
@@ -10,6 +10,12 @@ import torch
 
 
 _current = ContextVar('sam3d_conditioning_cache', default=None)
+_stage = ContextVar('sam3d_sampling_stage', default=None)
+_weights = ContextVar('sam3d_weight_cache', default=None)
+
+
+def sampling_stage():
+    return _stage.get()
 
 
 def _version(tensor):
@@ -26,6 +32,8 @@ class _Cache:
         self.bytes = 0
         self.hits = 0
         self.misses = 0
+        self.max_entries = 256
+        self.max_bytes = 3 * 1024**3
 
     def get(self, key, tensor, compute):
         version = _version(tensor)
@@ -40,21 +48,37 @@ class _Cache:
         output = compute()
         size = output.numel() * output.element_size()
         output_version = _version(output)
-        if output_version is not None and len(self.entries) < 256 and self.bytes + size <= 3 * 1024**3:
+        if (output_version is not None and len(self.entries) < self.max_entries
+                and self.bytes + size <= self.max_bytes):
             # Hold the input as well: Python must not recycle its identity.
             self.entries[key] = (tensor, output, output_version)
             self.bytes += size
         return output
 
 
+class _WeightCache(_Cache):
+    def __init__(self):
+        super().__init__()
+        self.max_entries = 2048
+        self.max_bytes = 2 * 1024**3
+
+
 @contextmanager
-def sampling_cache():
+def sampling_cache(stage=None):
     state = _Cache() if os.environ.get('SAM3D_CACHE_CROSS_ATTN', '1') != '0' else None
+    weights = (_WeightCache() if stage == 'sample_sparse_structure'
+               and os.environ.get('SAM3D_CACHE_LINEAR', '1') != '0' else None)
+    weight_token = _weights.set(weights)
     token = _current.set(state)
+    stage_token = _stage.set(stage)
     try:
         yield state
     finally:
         _current.reset(token)
+        _stage.reset(stage_token)
+        _weights.reset(weight_token)
+        if weights is not None:
+            weights.entries.clear()
         if state is not None:
             state.entries.clear()
 
@@ -62,7 +86,7 @@ def sampling_cache():
 def cache_sampling(function):
     @wraps(function)
     def wrapped(*args, **kwargs):
-        with sampling_cache():
+        with sampling_cache(function.__name__):
             return function(*args, **kwargs)
     return wrapped
 

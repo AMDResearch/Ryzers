@@ -9,6 +9,7 @@ import torch
 from sam3d_objects.conditioning_cache import (
     conditioning_cast, conditioning_projection as project,
     conditioning_zero, sampling_cache,
+    sampling_stage, _weights,
 )
 
 
@@ -66,9 +67,12 @@ class ConditioningCacheTests(unittest.TestCase):
                 project(self.module, self.context)
                 raise RuntimeError('sample failed')
         self.assertFalse(state.entries)
+        self.assertIsNone(sampling_stage())
         with patch.dict(os.environ, SAM3D_CACHE_CROSS_ATTN='0'):
-            with sampling_cache() as disabled:
+            with sampling_cache('sample_slat') as disabled:
                 self.assertIsNone(disabled)
+                self.assertEqual(sampling_stage(), 'sample_slat')
+        self.assertIsNone(sampling_stage())
 
     @torch.no_grad()
     def test_dtype_and_inference_tensor_fallback(self):
@@ -94,6 +98,43 @@ class ConditioningCacheTests(unittest.TestCase):
             self.assertIs(project(self.module, self.context), fp32)
             self.module.weight = torch.nn.Parameter(self.module.weight + 1)
             torch.testing.assert_close(project(self.module, self.context), self.module(self.context), rtol=0, atol=0)
+
+    @torch.no_grad()
+    def test_parameter_cache_isolation_and_mutation(self):
+        weight = self.module.weight
+        compute = lambda: weight.to(torch.float16)
+        with sampling_cache('sample_sparse_structure'):
+            state = _weights.get()
+            first = state.get(('linear',), weight, compute)
+            self.assertIs(state.get(('linear',), weight, compute), first)
+            weight.add_(1)
+            second = state.get(('linear',), weight, compute)
+            torch.testing.assert_close(second, compute(), rtol=0, atol=0)
+            self.assertIsNot(first, second)
+            second.zero_()
+            torch.testing.assert_close(state.get(('linear',), weight, compute), compute(), rtol=0, atol=0)
+            with sampling_cache('sample_slat'):
+                self.assertIsNone(_weights.get())
+            self.assertIs(_weights.get(), state)
+        self.assertFalse(state.entries)
+        self.assertIsNone(_weights.get())
+        with patch.dict(os.environ, SAM3D_CACHE_LINEAR='0'), sampling_cache('sample_sparse_structure'):
+            self.assertIsNone(_weights.get())
+
+    @torch.no_grad()
+    def test_cache_bounds_and_parameter_exception_cleanup(self):
+        with self.assertRaisesRegex(RuntimeError, 'failed'):
+            with sampling_cache('sample_sparse_structure'):
+                state = _weights.get()
+                state.max_bytes = 0
+                state.get(('linear',), self.module.weight, lambda: self.module.weight.half())
+                self.assertFalse(state.entries)
+                state.max_bytes = 1024
+                state.get(('linear',), self.module.weight, lambda: self.module.weight.half())
+                self.assertTrue(state.entries)
+                raise RuntimeError('failed')
+        self.assertFalse(state.entries)
+        self.assertIsNone(_weights.get())
 
 
 if __name__ == '__main__':

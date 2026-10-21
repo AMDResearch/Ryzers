@@ -42,6 +42,30 @@ replace(attention, 'kv = self.to_kv(context)',
 replace(sparse + 'attention/modules.py', 'import torch\n', cache_import + 'import torch\n')
 replace(sparse + 'attention/modules.py', 'kv = self._linear(self.to_kv, context)',
         'kv = conditioning_projection(self.to_kv, context, lambda: self._linear(self.to_kv, context))')
+# Restrict fused normalization to sparse-latent inference.
+norm_import = 'from sam3d_objects.model.backbone.tdfy_dit.modules import norm_rocm\n'
+replace(sparse + 'attention/modules.py', 'import torch\n', norm_import + 'import torch\n')
+replace(sparse + 'attention/modules.py', '        x_type = x.dtype',
+        '        feats = x.feats if isinstance(x, SparseTensor) else x\n'
+        '        if norm_rocm.can_use_rms(self, feats):\n'
+        '            out = norm_rocm.sparse_rms(feats, self.gamma, self.scale)\n'
+        '            return x.replace(out) if isinstance(x, SparseTensor) else out\n'
+        '        x_type = x.dtype')
+norm = 'sam3d_objects/model/backbone/tdfy_dit/modules/norm.py'
+replace(norm, 'import torch\n', norm_import + 'import torch\n')
+replace(norm, 'class LayerNorm32(nn.LayerNorm):\n'
+        '    def forward(self, x: torch.Tensor) -> torch.Tensor:\n',
+        'class LayerNorm32(nn.LayerNorm):\n'
+        '    def forward(self, x: torch.Tensor) -> torch.Tensor:\n'
+        '        if type(self) is LayerNorm32 and norm_rocm.can_use_layer(self, x):\n'
+        '            return norm_rocm.layer_norm(x, self.weight, self.bias, self.eps)\n')
+# Construct normal Linear subclasses, preserving parameter/state-dict names.
+# Their cast cache is active only during sparse-structure inference.
+for path in (attention, 'sam3d_objects/model/backbone/tdfy_dit/modules/transformer/blocks.py',
+             'sam3d_objects/model/backbone/tdfy_dit/modules/transformer/modulated.py'):
+    replace(path, 'import torch\n',
+            'from sam3d_objects.linear_rocm import InferenceLinear\nimport torch\n')
+    replace(path, 'nn.Linear(', 'InferenceLinear(')
 pipeline = 'sam3d_objects/pipeline/inference_pipeline.py'
 replace(pipeline, 'import torch\n', cache_import + 'import torch\n')
 for method in ('sample_sparse_structure', 'sample_slat'):

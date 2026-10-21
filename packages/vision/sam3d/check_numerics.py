@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Check attention against float64 math and sparse convolution against CUDA fixtures."""
+"""Check ROCm attention, normalization, parameter reuse and CUDA sparse fixtures."""
 import argparse
 import hashlib
 import importlib
@@ -40,6 +40,103 @@ def check_attention():
                             'max_abs': error.abs().max().item(),
                             'rms': error.square().mean().sqrt().item(), 'atol': atol})
     return results
+
+
+def check_triton_attention():
+    import torch
+    from sam3d_objects.conditioning_cache import sampling_cache
+    from sam3d_objects.model.backbone.tdfy_dit.modules.sparse.attention.attention_rocm import can_use_attention
+    from sam3d_objects.model.backbone.tdfy_dit.modules.sparse.attention.masked_sdpa import masked_sdpa
+    torch.manual_seed(123)
+    results = []
+    # Include tails and packed Q/K/V strides. Sample queries against the entire
+    # key/value context in CPU float64, without materializing a full CPU mask.
+    for nq, nk in [(2049, 2071), (4096, 4096)]:
+        q = torch.randn(1, nq, 3, 16, 64, device='cuda', dtype=torch.float16)[:, :, 0]
+        kv = torch.randn(1, nk, 2, 16, 64, device='cuda', dtype=torch.float16)
+        k, v = kv.unbind(2)
+        indices = torch.linspace(0, nq-1, 32).long()
+        with torch.no_grad(), sampling_cache('sample_slat'):
+            backend = 'triton' if can_use_attention(q[0], k[0], v[0]) else 'torch'
+            actual = masked_sdpa(q, k, v, [nq], [nk]).cpu()[indices].double()
+        qc = q[0].cpu()[indices].double().transpose(0, 1)
+        kc = k[0].cpu().double().permute(1, 2, 0)
+        vc = v[0].cpu().double().transpose(0, 1)
+        expected = (((qc @ kc) / 8).softmax(-1) @ vc).transpose(0, 1)
+        torch.testing.assert_close(actual, expected, atol=2e-3, rtol=0)
+        with torch.no_grad(), sampling_cache('sample_sparse_structure'):
+            assert not can_use_attention(q[0], k[0], v[0]), 'Structure sampling must retain upstream SDPA'
+        results.append({'q_length': nq, 'kv_length': nk, 'backend': backend,
+                        'sampled_queries': len(indices),
+                        'max_abs': (actual-expected).abs().max().item(), 'atol': 2e-3})
+    return results
+
+
+def check_normalization():
+    import torch
+    from sam3d_objects.conditioning_cache import sampling_cache
+    from sam3d_objects.model.backbone.tdfy_dit.modules import norm_rocm
+    from sam3d_objects.model.backbone.tdfy_dit.modules.sparse.attention.modules import SparseMultiHeadRMSNorm
+    from sam3d_objects.model.backbone.tdfy_dit.modules.norm import LayerNorm32
+    torch.manual_seed(123)
+    results = []
+    module = SparseMultiHeadRMSNorm(64, 16).cuda().eval()
+    with torch.no_grad():
+        module.gamma.copy_(torch.randn_like(module.gamma) * 0.1 + 1)
+    x = torch.randn(2, 513, 3, 16, 64, device='cuda', dtype=torch.float16)[:, :, 0]
+    for autocast in (False, True):
+        with torch.no_grad(), sampling_cache('sample_slat'), torch.autocast('cuda', enabled=autocast):
+            actual = module(x).cpu().double()
+            backend = 'triton' if norm_rocm.can_use_rms(module, x) else 'torch'
+        xc = x.cpu().double()
+        expected = xc / xc.square().sum(-1, keepdim=True).sqrt().clamp_min(1e-12)
+        expected = expected * module.gamma.detach().cpu().double() * module.scale
+        torch.testing.assert_close(actual, expected, atol=2e-3, rtol=2e-3)
+        results.append({'kind': 'sparse_rms', 'autocast': autocast, 'backend': backend,
+                        'max_abs': (actual-expected).abs().max().item(), 'atol': 2e-3, 'rtol': 2e-3})
+    with torch.no_grad(), sampling_cache('sample_sparse_structure'):
+        assert not norm_rocm.can_use_rms(module, x)
+    with sampling_cache('sample_slat'):
+        assert not norm_rocm.can_use_rms(module, x), 'Gradients require PyTorch'
+    for channels in (1024, 2048):
+        module = LayerNorm32(channels, eps=1e-6).cuda().eval()
+        for offset in (0., 16.):
+            x = (torch.randn(513, channels, device='cuda') * 0.03125 + offset).half()
+            with torch.no_grad(), sampling_cache('sample_slat'):
+                actual = module(x).cpu().double()
+                backend = 'triton' if norm_rocm.can_use_layer(module, x) else 'torch'
+            xc = x.cpu().double()
+            centered = xc - xc.mean(-1, keepdim=True)
+            expected = centered / (centered.square().mean(-1, keepdim=True) + module.eps).sqrt()
+            expected = expected * module.weight.detach().cpu().double() + module.bias.detach().cpu().double()
+            torch.testing.assert_close(actual, expected, atol=2e-3, rtol=2e-3)
+            results.append({'kind': 'layer_norm', 'channels': channels, 'offset': offset,
+                            'backend': backend, 'max_abs': (actual-expected).abs().max().item(),
+                            'atol': 2e-3, 'rtol': 2e-3})
+    return results
+
+
+def check_linear_cache():
+    import torch
+    import torch.nn.functional as F
+    from sam3d_objects.conditioning_cache import sampling_cache, _weights
+    from sam3d_objects.linear_rocm import InferenceLinear
+    torch.manual_seed(123)
+    module = InferenceLinear(1024, 2048).cuda().eval().requires_grad_(False)
+    x = torch.randn(33, 1024, device='cuda')
+    maximum = 0.
+    with torch.no_grad(), sampling_cache('sample_sparse_structure'), torch.autocast('cuda'):
+        for index in range(4):
+            if index == 2:
+                module.weight.add_(0.125)
+            if index == 3:
+                module.bias = torch.nn.Parameter(module.bias + 0.25)
+            actual = module(x)
+            expected = F.linear(x, module.weight, module.bias)
+            torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+            maximum = max(maximum, (actual-expected).abs().max().item())
+        state = _weights.get()
+        return {'max_abs': maximum, 'cache_hits': state.hits, 'cache_misses': state.misses}
 
 
 def check_golden(root):
@@ -95,7 +192,9 @@ def main():
     import torch
     assert torch.version.hip and torch.cuda.is_available(), 'Requires ROCm GPU'
     report = {'gpu': torch.cuda.get_device_name(), 'torch': torch.__version__,
-              'rocm': torch.version.hip, 'attention': check_attention()}
+              'rocm': torch.version.hip, 'attention': check_attention(),
+              'triton_attention': check_triton_attention(),
+              'normalization': check_normalization(), 'linear_cache': check_linear_cache()}
     if args.golden_root:
         report['cuda_sparse_references'] = check_golden(args.golden_root)
     args.output.parent.mkdir(parents=True, exist_ok=True)

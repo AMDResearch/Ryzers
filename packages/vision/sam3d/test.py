@@ -9,7 +9,7 @@ import sys
 import time
 
 
-def check_sparse_convolution():
+def check_sparse_convolution(kernel_size=3):
     """Compare the ROCm sparse backend against a dense torch reference."""
     import torch
     from sam3d_objects.model.backbone.tdfy_dit.modules.sparse import SparseTensor, SparseConv3d
@@ -18,15 +18,21 @@ def check_sparse_convolution():
     coords = coords[torch.rand(len(coords)) > 0.35].to(device='cuda', dtype=torch.int32)
     features = torch.randn(len(coords), 8, device='cuda')
     x = SparseTensor(feats=features, coords=coords)
-    conv = SparseConv3d(8, 8, 3, bias=True).cuda().eval()
+    conv = SparseConv3d(8, 8, kernel_size, bias=True).cuda().eval()
     with torch.no_grad():
         actual = conv(x)
-        dense = x.dense()
-        weights = conv.conv.weight.permute(0, 4, 1, 2, 3).contiguous()
-        reference = torch.nn.functional.conv3d(dense, weights, conv.conv.bias, padding=1)
-        b, z, y, xcoord = actual.coords.long().unbind(1)
+        # A tiny CPU reference avoids cold MIOpen convolution autotuning.
+        dense = x.dense().cpu()
+        if kernel_size == 1:
+            # CUDA spconv reinterprets 1x1 KRSC storage as [in, out].
+            weights = conv.conv.weight.reshape(8, 8).t().reshape(8, 8, 1, 1, 1).cpu()
+        else:
+            weights = conv.conv.weight.permute(0, 4, 1, 2, 3).contiguous().cpu()
+        bias = conv.conv.bias.cpu() if conv.conv.bias is not None else None
+        reference = torch.nn.functional.conv3d(dense, weights, bias, padding=kernel_size // 2)
+        b, z, y, xcoord = actual.coords.cpu().long().unbind(1)
         expected = reference[b, :, z, y, xcoord]
-        torch.testing.assert_close(actual.feats, expected, rtol=2e-4, atol=2e-4)
+        torch.testing.assert_close(actual.feats.cpu(), expected, rtol=2e-4, atol=2e-4)
     print('Sparse convolution matches dense PyTorch reference')
 
 
@@ -45,7 +51,7 @@ def main():
     root = Path('/ryzers/sam-3d-objects')
     sys.path.insert(0, str(root / 'notebook'))
     from inference import Inference, load_image, load_single_mask
-    check_sparse_convolution()
+    check_sparse_convolution(kernel_size=1 if args.smoke else 3)
     if args.smoke:
         print('SAM 3D inference imports passed')
         return
