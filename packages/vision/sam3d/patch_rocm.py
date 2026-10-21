@@ -18,6 +18,13 @@ def replace(path, old, new):
 sparse = 'sam3d_objects/model/backbone/tdfy_dit/modules/sparse/'
 replace(sparse + 'basic.py', 'from spconv.pytorch import', 'from spconv_triton.pytorch import')
 replace(sparse + 'conv/conv_spconv.py', 'import spconv.pytorch as spconv', 'import spconv_triton.pytorch as spconv')
+# Keep upstream's masked implementation as a numerical reference, and route its
+# callers through independent unmasked blocks to avoid quadratic mask storage.
+replace(sparse + 'attention/masked_sdpa.py', 'import torch.nn.functional as F',
+        'import torch.nn.functional as F\nfrom .sdpa_rocm import masked_sdpa')
+replace(sparse + 'attention/masked_sdpa.py',
+        'def masked_sdpa(q, k, v, q_seqlen, kv_seqlen):',
+        'def reference_masked_sdpa(q, k, v, q_seqlen, kv_seqlen):')
 # These Kaolin notebook imports are unused; reconstruction does not need them.
 replace('notebook/inference.py', 'from kaolin.visualize import IpyTurntableVisualizer\n', '')
 replace('notebook/inference.py', 'from kaolin.render.camera import Camera, CameraExtrinsics, PinholeIntrinsics\n', '')
