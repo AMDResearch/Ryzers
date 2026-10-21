@@ -5,6 +5,38 @@ Validated 2026-10-20 on Radeon 8060S (`gfx1151`) and Radeon AI PRO R9700
 weights are `facebook/sam-3d-objects` revision
 `2e73555018d2741ccd486e56c24fac41155a1dc6`.
 
+## Reproduce the checks
+
+`ryzers run` runs only the installation smoke test, without weights or credentials.
+Full-model validation is explicit and requires model access as described in the
+README. These commands run the numerical checks and cache lifecycle tests:
+
+```sh
+ryzers run "python /ryzers/check_sam3d_numerics.py"
+ryzers run "python /ryzers/test_sam3d_conditioning_cache.py"
+```
+
+For the frozen CUDA fixtures, use the same trusted checkout as the Dockerfile:
+
+```sh
+ryzers run bash
+# Inside the container:
+git clone https://github.com/L-Reichardt/spconv-triton.git /tmp/spconv-reference
+git -C /tmp/spconv-reference checkout 63361695e891de7aff32841ebb86f2661a41b059
+python /ryzers/check_sam3d_numerics.py --golden-root /tmp/spconv-reference
+```
+
+The checker verifies fixture hashes. Reports persist at
+`workspace/sam3d/numerics.json`. For exported geometry and scene assembly:
+
+```sh
+ryzers run "python /ryzers/test_sam3d.py --mask-index 14 3"
+ryzers run "python /ryzers/test_sam3d.py --all-masks"
+```
+
+These explicit checks can take minutes and download large model checkpoints;
+they are not part of the default installation test.
+
 ## Independent numerical checks
 
 `check_sam3d_numerics.py --golden-root ...` passed on both devices in the rebuilt

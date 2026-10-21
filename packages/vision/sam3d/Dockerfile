@@ -52,4 +52,4 @@ COPY test.py /ryzers/test_sam3d.py
 COPY check_numerics.py /ryzers/check_sam3d_numerics.py
 COPY test_conditioning_cache.py /ryzers/test_sam3d_conditioning_cache.py
 RUN chmod +x /ryzers/test_sam3d.py
-CMD /ryzers/test_sam3d.py
+CMD /ryzers/test_sam3d.py --smoke
