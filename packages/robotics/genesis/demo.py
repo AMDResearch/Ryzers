@@ -1,3 +1,6 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
 import warnings
 import os
 os.environ.pop("PYOPENGL_PLATFORM", None)  # the viewer needs the window-system OpenGL platform

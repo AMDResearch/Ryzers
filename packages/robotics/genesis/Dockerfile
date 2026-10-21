@@ -1,4 +1,4 @@
-# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 ARG BASE_IMAGE
@@ -42,14 +42,14 @@ RUN pip3 install --no-cache-dir --break-system-packages "genesis-world==1.4.3"
 ENV ROCM_SDK_CORE_LIB=/opt/venv/lib/python3.12/site-packages/_rocm_sdk_core/lib
 RUN ln -sf libamdhip64.so.7 ${ROCM_SDK_CORE_LIB}/libamdhip64.so
 ENV LD_LIBRARY_PATH=${ROCM_SDK_CORE_LIB}:${LD_LIBRARY_PATH}
+# Force the monolithic constraint solver; the decomposed one stalls while compiling on AMD GPUs (Genesis-Embodied-AI/genesis-world#3545)
+ENV QD_PERFDISPATCH_FORCE=func_solve_body:func_solve_body_monolith
 
 # Copy test script
 COPY test.py /ryzers/test_genesis.py
 COPY demo.sh /ryzers/demo_genesis.sh
 COPY demo.py /ryzers/demo_genesis.py
 RUN chmod +x /ryzers/test_genesis.py /ryzers/demo_genesis.sh /ryzers/demo_genesis.py
-COPY demo_interactive_drone.sh demo_franka.sh demo_tactile.sh /ryzers/
-RUN chmod +x /ryzers/demo_interactive_drone.sh /ryzers/demo_franka.sh /ryzers/demo_tactile.sh
 
 RUN git clone --depth 1 --branch v1.4.3 https://github.com/Genesis-Embodied-AI/Genesis
 

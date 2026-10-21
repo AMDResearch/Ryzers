@@ -3,7 +3,13 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+import argparse
 import os
+
+parser = argparse.ArgumentParser(description="Genesis smoke test (amdgpu backend by default)")
+parser.add_argument("--cpu", action="store_true", help="run on the CPU backend instead")
+args = parser.parse_args()
+
 # Use EGL for headless rendering (issue #66)
 if 'PYOPENGL_PLATFORM' not in os.environ:
   os.environ['PYOPENGL_PLATFORM'] = 'egl'
@@ -15,10 +21,11 @@ print("Testing Genesis installation...")
 import genesis as gs
 print(f"Genesis version: {gs.__version__}")
 
-# Initialize with the GPU (ROCm amdgpu) backend (headless)
-print("Initializing Genesis with GPU backend...")
-gs.init(backend=gs.gpu)
-assert gs.backend == gs.amdgpu, f"expected gs.amdgpu, got {gs.backend}"
+# Initialize with the GPU backend (amdgpu on ROCm), or the CPU with --cpu (headless)
+print(f"Initializing Genesis with {'CPU' if args.cpu else 'GPU'} backend...")
+gs.init(backend=gs.cpu if args.cpu else gs.gpu)
+if not args.cpu:
+  assert gs.backend == gs.amdgpu, f"expected gs.amdgpu, got {gs.backend}"
 
 # Headless mode by default (set show_viewer=True if X11 display available)
 scene = gs.Scene(show_viewer=False)

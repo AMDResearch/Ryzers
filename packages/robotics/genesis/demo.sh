@@ -1,16 +1,33 @@
 #!/bin/bash
 
-# Copyright (C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-# needed new numpy for the drone demos
-# pip install --upgrade numpy || echo "compatibility error is okay, can be ignored or the demo"...
-# pip install pynput
-# clear
+# Genesis demo: tactile sensors on a Franka Panda gripper
+# (upstream examples/sensors/tactile_franka.py).
+#
+# Defaults to the amdgpu backend, headless (a scripted grasp that prints sensor readings).
+#   --cpu          run on the CPU backend instead
+#   --vis          open the viewer and live sensor plot (needs an X11 display)
+#   --sensor TYPE  elastomer (default), depth, kinematic or proximity
 
-sed -i 's/backend=gs\.cpu/backend=gs.gpu/' /ryzers/Genesis/examples/tutorials/sph_liquid.py
-sed -i 's/horizon = 1000/horizon = 10000/' /ryzers/Genesis/examples/tutorials/sph_liquid.py
-cd Genesis/examples/tutorials
-unset PYOPENGL_PLATFORM  # the viewer needs the window-system OpenGL platform
-python sph_liquid.py
-exit 0
+backend_args=(--gpu)   # upstream defaults to CPU; this demo defaults to amdgpu
+passthrough_args=()
+
+for arg in "$@"; do
+    case "$arg" in
+        --cpu)
+            backend_args=()
+            ;;
+        --vis)
+            unset PYOPENGL_PLATFORM   # config.yaml sets egl for headless; the viewer needs X11
+            passthrough_args+=("$arg")
+            ;;
+        *)
+            passthrough_args+=("$arg")   # --sensor and other upstream options
+            ;;
+    esac
+done
+
+cd /ryzers/Genesis/examples/sensors
+exec python3 tactile_franka.py "${backend_args[@]}" "${passthrough_args[@]}"
