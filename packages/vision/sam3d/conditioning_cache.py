@@ -3,7 +3,7 @@
 """Bounded reuse of image conditioning and frozen parameters per sampling stage."""
 from contextlib import contextmanager
 from contextvars import ContextVar
-from functools import wraps
+from functools import lru_cache, wraps
 import os
 
 import torch
@@ -107,6 +107,47 @@ def conditioning_cast(tensor, dtype):
 
 def conditioning_zero(tensor):
     return _reuse(('zero',), tensor, lambda: tensor * 0)
+
+
+@lru_cache(maxsize=None)
+def _compact_device(device):
+    arch = getattr(torch.cuda.get_device_properties(device), 'gcnArchName', '').split(':')[0]
+    return arch in ('gfx1151', 'gfx1201')
+
+
+def compact_zero_context(module, tensor, training=False):
+    """A finite linear projection of zero context has identical keys and values."""
+    state = _current.get()
+    if (state is None or training or module.training or torch.is_grad_enabled()
+            or os.environ.get('SAM3D_COMPACT_CFG', '1') == '0'
+            or sampling_stage() not in ('sample_sparse_structure', 'sample_slat')
+            or type(tensor) is not torch.Tensor or tensor.device.type != 'cuda'
+            or tensor.dtype not in (torch.float16, torch.float32)
+            or tensor.ndim != 3 or tensor.shape[0] != 1 or tensor.shape[2] != 1024
+            or not 2 <= tensor.shape[1] <= 8192 or _version(tensor) is None
+            or not torch.is_autocast_enabled('cuda')
+            or torch.get_autocast_dtype('cuda') != torch.float16
+            or not _compact_device(tensor.device)):
+        return tensor
+    from sam3d_objects.linear_rocm import InferenceLinear
+    if type(module) not in (torch.nn.Linear, InferenceLinear):
+        return tensor
+    # Cache CPU booleans so subsequent blocks do not synchronize the GPU.
+    zero = state.get(('compact-zero',), tensor, lambda: torch.tensor(
+        not bool(torch.count_nonzero(tensor)), device='cpu'))
+    if not bool(zero):
+        return tensor
+    for parameter in (module.weight, module.bias):
+        if parameter is None:
+            continue
+        if (parameter.device != tensor.device or _version(parameter) is None
+                or parameter.dtype not in (torch.float16, torch.float32)):
+            return tensor
+        finite = state.get(('compact-finite',), parameter, lambda p=parameter: torch.tensor(
+            bool((torch.isfinite(p) & (p.abs() <= 65504)).all()), device='cpu'))
+        if not bool(finite):
+            return tensor
+    return state.get(('compact-view',), tensor, lambda: tensor[:, :1])
 
 
 def conditioning_projection(module, tensor, compute=None):

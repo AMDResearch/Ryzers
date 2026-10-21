@@ -76,6 +76,7 @@ def check_normalization():
     import torch
     from sam3d_objects.conditioning_cache import sampling_cache
     from sam3d_objects.model.backbone.tdfy_dit.modules import norm_rocm
+    from sam3d_objects.model.backbone.tdfy_dit.modules.attention.modules import MultiHeadRMSNorm
     from sam3d_objects.model.backbone.tdfy_dit.modules.sparse.attention.modules import SparseMultiHeadRMSNorm
     from sam3d_objects.model.backbone.tdfy_dit.modules.norm import LayerNorm32
     torch.manual_seed(123)
@@ -98,6 +99,23 @@ def check_normalization():
         assert not norm_rocm.can_use_rms(module, x)
     with sampling_cache('sample_slat'):
         assert not norm_rocm.can_use_rms(module, x), 'Gradients require PyTorch'
+    module = MultiHeadRMSNorm(64, 16).cuda().eval()
+    with torch.no_grad():
+        module.gamma.copy_(torch.randn_like(module.gamma) * 0.1 + 1)
+    for tokens in (1, 4, 33, 4096):
+        for magnitude in (0., 1., 2**-14, 2**-24):
+            x = torch.randn(1, tokens, 3, 16, 64, device='cuda', dtype=torch.float16)[:, :, 0]
+            x.mul_(magnitude)
+            with torch.no_grad(), sampling_cache('sample_sparse_structure'), torch.autocast('cuda'):
+                actual = module(x)
+                expected = (torch.nn.functional.normalize(x, dim=-1)
+                            * module.gamma * module.scale).to(x.dtype)
+                torch.testing.assert_close(actual, expected, atol=0, rtol=0)
+                backend = 'triton' if norm_rocm.can_use_dense_rms(module, x) else 'torch'
+                results.append({'kind': 'dense_rms', 'tokens': tokens, 'magnitude': magnitude,
+                                'backend': backend, 'max_abs': (actual-expected).abs().max().item()})
+    with torch.no_grad(), sampling_cache('sample_sparse_structure'):
+        assert not norm_rocm.can_use_dense_rms(module, x), 'Dense fusion requires FP16 autocast'
     for channels in (1024, 2048):
         module = LayerNorm32(channels, eps=1e-6).cuda().eval()
         for offset in (0., 16.):
@@ -146,7 +164,7 @@ def check_pointwise():
     torch.manual_seed(123)
     results = []
     with torch.no_grad(), sampling_cache('sample_sparse_structure'):
-        for tokens in (513, 4096):
+        for tokens in (1, 4, 17, 513, 4096):
             x = torch.randn(1, tokens, 1024, device='cuda')
             h = torch.randn_like(x, dtype=torch.float16)
             for magnitude in (1., 2**-14):
@@ -198,6 +216,86 @@ def check_layout():
                             'cache_hits': state.hits if state is not None else 0,
                             'cache_misses': state.misses if state is not None else 0,
                             'atol': 2e-3, 'rtol': 2e-3})
+    return results
+
+
+def check_fused_gelu():
+    import os
+    from unittest.mock import patch
+    import torch
+    import torch.nn.functional as F
+    from sam3d_objects.conditioning_cache import sampling_cache
+    from sam3d_objects.linear_rocm import linear_gelu
+    torch.manual_seed(123)
+    module = torch.nn.Linear(1024, 4096).cuda().half().eval().requires_grad_(False)
+    results = []
+    with patch.dict(os.environ, SAM3D_FUSED_GELU='1', SAM3D_CACHE_LAYOUT='1'):
+        for tokens in (513, 2049):
+            x = torch.randn(tokens, 1024, device='cuda', dtype=torch.float16)
+            indices = torch.linspace(0, tokens-1, 32).long()
+            with torch.no_grad(), sampling_cache('sample_slat'), torch.autocast('cuda'):
+                actual = linear_gelu(module, x)
+                assert actual is not None, 'Expected fused latent MLP'
+                reference = (x.cpu()[indices].double() @ module.weight.cpu().double().t()
+                             + module.bias.cpu().double())
+                reference = F.gelu(reference, approximate='tanh')
+                values = actual.cpu()[indices].double()
+                torch.testing.assert_close(values, reference, atol=2e-3, rtol=2e-3)
+                results.append({'tokens': tokens, 'sampled_rows': len(indices),
+                                'max_abs_vs_float64': (values-reference).abs().max().item(),
+                                'atol': 2e-3, 'rtol': 2e-3})
+                with module.register_forward_hook(lambda *args: None):
+                    assert linear_gelu(module, x) is None, 'Hooks require the original modules'
+        with sampling_cache('sample_slat'), torch.autocast('cuda'):
+            assert linear_gelu(module, x) is None, 'Gradients require the original modules'
+    return results
+
+
+def check_compact_context():
+    import os
+    from unittest.mock import patch
+    import torch
+    from sam3d_objects.conditioning_cache import compact_zero_context, sampling_cache
+    from sam3d_objects.model.backbone.tdfy_dit.modules.attention.modules import MultiHeadAttention
+    torch.manual_seed(123)
+    results = []
+    with patch.dict(os.environ, {'SAM3D_CACHE_CROSS_ATTN': '1'}):
+        for dtype in (torch.float16, torch.float32):
+            for keys in (31, 33, 7528, 8192):
+                model = MultiHeadAttention(1024, 16, type='cross', qk_rms_norm=True).cuda().eval()
+                x = torch.randn(1, 17, 1024, device='cuda')
+                context = torch.zeros(1, keys, 1024, device='cuda', dtype=dtype)
+                with torch.no_grad(), torch.autocast('cuda'), sampling_cache('sample_sparse_structure'):
+                    for mutation in (False, True):
+                        if mutation:
+                            model.to_kv.bias.add_(0.01)
+                        with patch.dict(os.environ, {'SAM3D_COMPACT_CFG': '0'}):
+                            expected = model(x, context)
+                        with patch.dict(os.environ, {'SAM3D_COMPACT_CFG': '1'}):
+                            assert compact_zero_context(model.to_kv, context).shape == (1, 1, 1024)
+                            actual = model(x, context)
+                        torch.testing.assert_close(actual, expected, atol=0, rtol=0)
+                    with patch.dict(os.environ, {'SAM3D_COMPACT_CFG': '1'}):
+                        context[0, -1, -1] = 1
+                        assert compact_zero_context(model.to_kv, context) is context
+                        context.zero_()
+                        model.to_kv.weight[0, 0] = float('inf')
+                        assert compact_zero_context(model.to_kv, context) is context
+                results.append({'dtype': str(dtype), 'keys': keys, 'max_abs': 0.,
+                                'mutation_and_nonfinite_fallback': True})
+        context = torch.zeros(1, 31, 1024, device='cuda')
+        model = MultiHeadAttention(1024, 16, type='cross', qk_rms_norm=True).cuda().eval()
+        x = torch.randn(1, 4, 1024, device='cuda')
+        x[0, 0, 0] = float('inf')
+        with torch.no_grad(), torch.autocast('cuda'), sampling_cache('sample_sparse_structure'):
+            with patch.dict(os.environ, {'SAM3D_COMPACT_CFG': '0'}):
+                expected = model(x, context)
+            with patch.dict(os.environ, {'SAM3D_COMPACT_CFG': '1'}):
+                actual = model(x, context)
+                assert compact_zero_context(model.to_kv, context, training=True) is context
+            torch.testing.assert_close(actual, expected, atol=0, rtol=0, equal_nan=True)
+        with torch.autocast('cuda'), sampling_cache('sample_sparse_structure'):
+            assert compact_zero_context(model.to_kv, context) is context
     return results
 
 
@@ -312,7 +410,9 @@ def main():
               'triton_attention': check_triton_attention(),
               'normalization': check_normalization(), 'linear_cache': check_linear_cache(),
               'pointwise': check_pointwise(), 'layout': check_layout(),
-              'ply_export': check_ply_export(), 'image_conversion': check_image_conversion()}
+              'fused_gelu': check_fused_gelu(),
+              'ply_export': check_ply_export(), 'image_conversion': check_image_conversion(),
+              'compact_context': check_compact_context()}
     if args.golden_root:
         report['cuda_sparse_references'] = check_golden(args.golden_root)
     args.output.parent.mkdir(parents=True, exist_ok=True)

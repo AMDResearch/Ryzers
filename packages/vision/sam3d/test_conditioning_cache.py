@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 """Cache isolation and invalidation checks; runs on CPU without checkpoints."""
 import os
+from copy import deepcopy
 import unittest
 from unittest.mock import patch
 
@@ -136,6 +137,53 @@ class ConditioningCacheTests(unittest.TestCase):
                 raise RuntimeError('failed')
         self.assertFalse(state.entries)
         self.assertIsNone(_weights.get())
+
+
+class FrozenBackboneTests(unittest.TestCase):
+    def setUp(self):
+        from sam3d_objects.backbone_rocm import _identical_frozen
+        self.identical = _identical_frozen
+        self.original = torch.nn.Linear(4, 8).eval().requires_grad_(False)
+        self.original.register_buffer('offset', torch.zeros(1), persistent=False)
+        self.copy = deepcopy(self.original)
+
+    def test_exact_state_and_signed_zero(self):
+        self.assertTrue(self.identical(self.original, self.copy))
+        self.copy.offset.neg_()
+        self.assertFalse(self.identical(self.original, self.copy))
+
+    def test_training_gradients_and_hooks(self):
+        self.copy.train()
+        self.assertFalse(self.identical(self.original, self.copy))
+        self.copy.eval().requires_grad_(True)
+        self.assertFalse(self.identical(self.original, self.copy))
+        self.copy.requires_grad_(False)
+        with self.copy.register_forward_hook(lambda *args: None):
+            self.assertFalse(self.identical(self.original, self.copy))
+        self.assertTrue(self.identical(self.original, self.copy))
+
+    def test_different_parameters_and_dtype(self):
+        self.copy.weight.add_(1)
+        self.assertFalse(self.identical(self.original, self.copy))
+        self.copy.load_state_dict(self.original.state_dict())
+        self.copy.half()
+        self.assertFalse(self.identical(self.original, self.copy))
+
+    def test_feature_cache_exception_cleanup(self):
+        from sam3d_objects.backbone_rocm import cache_image_features, _features
+        states = []
+
+        @cache_image_features
+        def fail():
+            state = _features.get()
+            states.append(state)
+            state['entries'].append(torch.ones(1))
+            raise RuntimeError('failed')
+
+        with self.assertRaisesRegex(RuntimeError, 'failed'):
+            fail()
+        self.assertIsNone(_features.get())
+        self.assertFalse(states[0]['entries'])
 
 
 if __name__ == '__main__':

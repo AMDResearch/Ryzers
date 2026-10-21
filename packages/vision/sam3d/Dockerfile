@@ -43,6 +43,7 @@ RUN git clone https://github.com/facebookresearch/sam-3d-objects.git /ryzers/sam
 RUN pip3 install --no-cache-dir --break-system-packages 'iopath==0.1.10'
 COPY patch_rocm.py /ryzers/patch_sam3d_rocm.py
 COPY conditioning_cache.py /ryzers/sam-3d-objects/sam3d_objects/conditioning_cache.py
+COPY backbone_rocm.py /ryzers/sam-3d-objects/sam3d_objects/backbone_rocm.py
 COPY linear_rocm.py /ryzers/sam-3d-objects/sam3d_objects/linear_rocm.py
 COPY sdpa_rocm.py /ryzers/sam-3d-objects/sam3d_objects/model/backbone/tdfy_dit/modules/sparse/attention/sdpa_rocm.py
 COPY attention_rocm.py /ryzers/sam-3d-objects/sam3d_objects/model/backbone/tdfy_dit/modules/sparse/attention/attention_rocm.py
@@ -51,7 +52,8 @@ COPY pointwise_rocm.py /ryzers/sam-3d-objects/sam3d_objects/model/backbone/tdfy_
 RUN python /ryzers/patch_sam3d_rocm.py \
  && /ryzers/sam-3d-objects/patching/hydra
 # gfx1151 otherwise falls back to quadratic-memory math attention.
-ENV TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1
+ENV TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
+    PYTORCH_ALLOC_CONF=expandable_segments:True
 COPY test.py /ryzers/test_sam3d.py
 COPY check_numerics.py /ryzers/check_sam3d_numerics.py
 COPY test_conditioning_cache.py /ryzers/test_sam3d_conditioning_cache.py

@@ -53,23 +53,29 @@ ryzers run "python /ryzers/test_sam3d.py --all-masks"
 ## ROCm support and validation
 
 The image pins upstream sources and retains the base ROCm PyTorch installation.
-It uses Triton sparse convolutions, independent unmasked SDPA and per-stage
-image-conditioning caches on both GPUs. Large FP16 sparse-latent attention blocks
-use an architecture-tuned Triton kernel and fused normalization. Structure
-sampling keeps PyTorch SDPA, reuses frozen linear-parameter casts and fuses
-elementwise operations with unchanged intermediate rounding. The 8060S also
-reuses a faster SLAT MLP weight layout. PLY export shares its packed NumPy
-buffer to reduce temporary RAM use, including the RAM shared with the iGPU.
-Inside the container, `SAM3D_CACHE_CROSS_ATTN=0`, `SAM3D_TRITON_ATTN=0`,
-`SAM3D_TRITON_NORM=0`, `SAM3D_CACHE_LINEAR=0`, `SAM3D_TRITON_POINTWISE=0`
-and `SAM3D_CACHE_LAYOUT=0` disable the respective
-optimizations. The image enables experimental AOTriton so the iGPU uses fused SDPA.
+Both validated GPUs use Triton sparse convolutions, independent unmasked SDPA,
+bounded conditioning caches and architecture-tuned FP16 sparse-latent attention.
+The default also compacts constant zero-conditioning attention, avoids Q/K/V
+repacking and uses the native GEMM/bias/GELU epilogue for eligible latent MLPs.
+Structure sampling preserves intermediate rounding; its RMS normalization tail
+is fused on R9700 and retains PyTorch on 8060S. The iGPU reuses a faster MLP
+weight layout.
+
+Four DINO preprocessing wrappers share one byte-identical frozen backbone;
+matching backbone features are reused across stages. Frozen structure-sampler
+linear weights use the FP16 storage already used by autocast, while normalization
+parameters remain FP32. Expandable allocator segments and a shared NumPy buffer
+for PLY export reduce temporary allocations, including RAM shared with the iGPU.
+These optimizations are enabled by default, with guards for supported shapes,
+precision and inference mode. See [VALIDATION.md](VALIDATION.md) for overrides.
 
 Validated on Radeon 8060S (`gfx1151`) and Radeon AI PRO R9700 (`gfx1201`),
-ROCm 7.14 / PyTorch 2.12. Final warm mask-14 medians were 64.05 s on 8060S
-and 15.89 s on R9700, using default steps and both geometry decoders. See [VALIDATION.md](VALIDATION.md)
-for numerical reference provenance, maximum errors, benchmark methods and
-regression coverage.
+ROCm 7.14 / PyTorch 2.12. Warm mask-14 medians were **50.59 s on 8060S** and
+**12.99 s on R9700**, at default steps with both geometry decoders. Both devices
+exported all 27 example objects and assembled the complete scene. Peak allocated
+GPU memory during the full scene runs was **14.74 GiB** on either device;
+checkpoint-loading peaks are excluded. See [VALIDATION.md](VALIDATION.md) for
+reference provenance, maximum errors, coverage and measurement methods.
 
 Optional mesh cleanup, texture baking, layout optimization and Gaussian video
 rendering need additional GPU rasterizers and are not supported here. The

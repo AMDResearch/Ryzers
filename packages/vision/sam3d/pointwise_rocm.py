@@ -41,7 +41,7 @@ def _eligible(x, tensors, training):
             and sampling_stage() == 'sample_sparse_structure'
             and os.environ.get('SAM3D_TRITON_POINTWISE', '1') != '0'
             and type(x) is torch.Tensor and x.device.type == 'cuda'
-            and x.ndim == 3 and x.shape[0] == 1 and x.shape[1] >= 512
+            and x.ndim == 3 and x.shape[0] == 1 and x.shape[1] >= 1
             and x.shape[-1] == 1024 and x.dtype == torch.float32
             and x.is_contiguous() and _supported_device(x.device)
             and all(type(t) is torch.Tensor and t.device == x.device
