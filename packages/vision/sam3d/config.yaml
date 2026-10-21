@@ -1,0 +1,10 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+x11_display: false
+# Docker forwards HF_TOKEN without putting its value in the generated run script.
+docker_extra_run_flags: "--env HF_TOKEN --env HIP_VISIBLE_DEVICES"
+volume_mappings:
+- "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
+- "$PWD/workspace/sam3d:/ryzers/output"
+- "$PWD/workspace/.cache/triton:/root/.triton"
+- "$PWD/workspace/.cache/torch:/root/.cache/torch"
