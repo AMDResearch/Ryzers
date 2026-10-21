@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
-"""Check ROCm attention, normalization, parameter reuse and CUDA sparse fixtures."""
+"""Check ROCm kernels, image/PLY conversion and frozen CUDA sparse fixtures."""
 import argparse
 import hashlib
 import importlib
@@ -139,6 +139,122 @@ def check_linear_cache():
         return {'max_abs': maximum, 'cache_hits': state.hits, 'cache_misses': state.misses}
 
 
+def check_pointwise():
+    import torch
+    from sam3d_objects.conditioning_cache import sampling_cache
+    from sam3d_objects.model.backbone.tdfy_dit.modules import pointwise_rocm
+    torch.manual_seed(123)
+    results = []
+    with torch.no_grad(), sampling_cache('sample_sparse_structure'):
+        for tokens in (513, 4096):
+            x = torch.randn(1, tokens, 1024, device='cuda')
+            h = torch.randn_like(x, dtype=torch.float16)
+            for magnitude in (1., 2**-14):
+                scale = torch.randn(1, 1024, device='cuda', dtype=torch.float16) * magnitude
+                shift = torch.randn_like(scale) * magnitude
+                cases = [('modulate', pointwise_rocm.modulate(x, scale, shift),
+                          x * (1 + scale.unsqueeze(1)) + shift.unsqueeze(1)),
+                         ('gated_add', pointwise_rocm.gated_add(x, h, scale),
+                          x + h * scale.unsqueeze(1))]
+                for kind, actual, expected in cases:
+                    torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+                    results.append({'kind': kind, 'tokens': tokens, 'magnitude': magnitude,
+                                    'backend': 'triton' if pointwise_rocm._eligible(x, (scale,), False) else 'torch',
+                                    'max_abs': (actual-expected).abs().max().item()})
+    x.requires_grad_(True)
+    with sampling_cache('sample_sparse_structure'):
+        pointwise_rocm.modulate(x, scale, shift).sum().backward()
+    assert x.grad is not None, 'Gradient-enabled calls must retain PyTorch autograd'
+    return results
+
+
+def check_layout():
+    import torch
+    import torch.nn.functional as F
+    from sam3d_objects.conditioning_cache import sampling_cache, _weights
+    from sam3d_objects.linear_rocm import InferenceLinear
+    torch.manual_seed(123)
+    results = []
+    for cin, cout in ((1024, 4096), (4096, 1024)):
+        module = InferenceLinear(cin, cout).cuda().half().eval().requires_grad_(False)
+        x = torch.randn(513, cin, device='cuda', dtype=torch.float16) * 0.1
+        maximum = reference_maximum = 0.
+        with torch.no_grad(), sampling_cache('sample_slat'), torch.autocast('cuda'):
+            for index in range(3):
+                if index == 2:
+                    module.weight.add_(0.01)
+                actual = module(x)
+                row_major = F.linear(x, module.weight, module.bias)
+                torch.testing.assert_close(actual, row_major, atol=2e-3, rtol=2e-3)
+                reference = (x[:32].cpu().double() @ module.weight.cpu().double().t()
+                             + module.bias.cpu().double())
+                values = actual[:32].cpu().double()
+                torch.testing.assert_close(values, reference, atol=2e-3, rtol=2e-3)
+                maximum = max(maximum, (actual-row_major).abs().max().item())
+                reference_maximum = max(reference_maximum, (values-reference).abs().max().item())
+            state = _weights.get()
+            results.append({'input_channels': cin, 'output_channels': cout,
+                            'max_abs_vs_row_major': maximum, 'max_abs_vs_float64': reference_maximum,
+                            'cache_hits': state.hits if state is not None else 0,
+                            'cache_misses': state.misses if state is not None else 0,
+                            'atol': 2e-3, 'rtol': 2e-3})
+    return results
+
+
+def check_image_conversion():
+    import numpy as np
+    from PIL import Image
+    from sam3d_objects.pipeline.inference_pipeline import InferencePipeline
+    image = np.arange(256, dtype=np.uint8).reshape(8, 8, 4)
+    inputs = [image, image[:, ::2], Image.fromarray(image),
+              image.astype(np.float32), image.astype(np.float64)]
+    results = []
+    for source in inputs:
+        expected = (np.array(source) / 255).astype(np.float32)
+        actual = InferencePipeline.image_to_float(None, source)
+        np.testing.assert_array_equal(actual.view(np.uint32), expected.view(np.uint32))
+        assert not np.shares_memory(np.asarray(source), actual)
+        results.append({'type': type(source).__name__, 'shape': list(actual.shape),
+                        'bit_exact': True})
+    return results
+
+
+def check_ply_export():
+    import tempfile
+    import numpy as np
+    import torch
+    from plyfile import PlyData
+    from sam3d_objects.model.backbone.tdfy_dit.representations.gaussian.gaussian_model import Gaussian
+    results = []
+    torch.manual_seed(123)
+    with tempfile.TemporaryDirectory() as directory:
+        for dtype in (torch.float32, torch.float64):
+            model = Gaussian([-1, -1, -1, 2, 2, 2])
+            for name, shape in (('_xyz', (513, 3)), ('_features_dc', (513, 1, 3)),
+                                ('_scaling', (513, 3)), ('_rotation', (513, 4)),
+                                ('_opacity', (513, 1))):
+                setattr(model, name, torch.randn(shape, device='cuda', dtype=dtype))
+            model._opacity[:2, 0] = torch.tensor([-float('inf'), float('inf')], device='cuda')
+            path = Path(directory) / 'gaussians.ply'
+            model.save_ply(str(path))
+            data = PlyData.read(str(path))['vertex'].data
+            # Check named fields independently, including legal +/-inf opacity
+            # logits and float64 inputs that must be converted to float32.
+            opacity = model.get_opacity
+            expected = {'x': model.get_xyz[:, 0], 'y': model.get_xyz[:, 1],
+                        'z': model.get_xyz[:, 2], 'opacity': (opacity / (1-opacity)).log()[:, 0]}
+            expected.update({f'f_dc_{i}': model._features_dc[:, 0, i] for i in range(3)})
+            expected.update({f'scale_{i}': model.get_scaling[:, i].log() for i in range(3)})
+            expected.update({f'rot_{i}': (model._rotation + model.rots_bias)[:, i] for i in range(4)})
+            for name in ('nx', 'ny', 'nz'):
+                np.testing.assert_array_equal(data[name], np.zeros(513, dtype=np.float32))
+            for name, values in expected.items():
+                np.testing.assert_array_equal(data[name], values.cpu().numpy().astype(np.float32))
+            assert len(data.dtype.names) == 17 and data.dtype.itemsize == 68
+            results.append({'dtype': str(dtype), 'rows': len(data), 'max_abs': 0.})
+    return results
+
+
 def check_golden(root):
     import torch
     tests = root / 'tests'
@@ -194,7 +310,9 @@ def main():
     report = {'gpu': torch.cuda.get_device_name(), 'torch': torch.__version__,
               'rocm': torch.version.hip, 'attention': check_attention(),
               'triton_attention': check_triton_attention(),
-              'normalization': check_normalization(), 'linear_cache': check_linear_cache()}
+              'normalization': check_normalization(), 'linear_cache': check_linear_cache(),
+              'pointwise': check_pointwise(), 'layout': check_layout(),
+              'ply_export': check_ply_export(), 'image_conversion': check_image_conversion()}
     if args.golden_root:
         report['cuda_sparse_references'] = check_golden(args.golden_root)
     args.output.parent.mkdir(parents=True, exist_ok=True)

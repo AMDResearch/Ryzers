@@ -1,6 +1,6 @@
 # Numerical and performance validation
 
-Validated 2026-10-20 on Radeon 8060S (`gfx1151`) and Radeon AI PRO R9700
+Validated 2026-10-20–21 on Radeon 8060S (`gfx1151`) and Radeon AI PRO R9700
 (`gfx1201`), ROCm 7.14 / PyTorch 2.12. SAM 3D source is pinned in the Dockerfile;
 weights are `facebook/sam-3d-objects` revision
 `2e73555018d2741ccd486e56c24fac41155a1dc6`.
@@ -397,8 +397,9 @@ rejected because they changed occupancy/pose on 8060S. A repeated structure
 HIP-graph experiment was slower including request-local warmup/capture: R9700
 structure sampling grew from 8.61 s to 9.88–10.04 s. Basic sparse-metadata reuse
 changed the SLAT stage by less than 0.2%, without establishing a reliable gain.
-MLP compilation and alternative weight layouts also failed to establish a
-consistent gain on both devices. None of those variants is enabled.
+MLP compilation and a common alternative weight layout also failed to establish
+a consistent gain on both devices. The subsequent device-specific layout is
+described below; the other variants are not enabled.
 
 Attention tuning evaluated tile sizes, warps, pipeline stages and occupancy
 settings on both architectures. Additional reciprocal/reduction configurations
@@ -406,3 +407,134 @@ still differed from PyTorch on real structure-attention inputs; no faster
 structure kernel is promoted. Reduced precision, fewer denoising steps and
 relaxed occupancy/pose gates are not part of these results. Further speedups
 need new measured evidence and numerical qualification.
+
+## Further elementwise, layout and attention tuning
+
+The next packaged image keeps the preceding optimizations enabled and adds:
+
+- Fused structure-sampler modulation and gated residual addition. The kernel
+  explicitly preserves PyTorch's FP16 intermediate rounding and disables fused
+  multiply-add. Eight tail/scale cases on each device had **zero absolute
+  difference** from the original expressions. Gradient-enabled calls fall back
+  to PyTorch. `SAM3D_TRITON_POINTWISE=0` disables this path.
+- A stage-local column-major copy of frozen FP16 SLAT MLP weights on gfx1151,
+  restricted to the 1,024/4,096 channel pair and at least 512 input rows. The
+  existing 2 GiB cache limit applies; the measured SLAT cache used 402,653,184
+  bytes, with 48 misses and 1,776 hits. R9700 retains its original layout because
+  this layout slowed its GEMMs. `SAM3D_CACHE_LAYOUT=0` disables layout reuse.
+- Dynamic attention tiles with 64 key rows and occupancy setting
+  `waves_per_eu=2` on gfx1151. Gfx1201 retains 32 key rows and its previous
+  occupancy setting. Query tiles remain 128 rows, with four warps and one stage.
+  Static token-count bucketing was also evaluated and was not selected.
+
+The checker includes both MLP matrices, weight mutation invalidation and
+32 sampled rows against CPU float64. Maximum absolute error versus row-major
+PyTorch was 0 on R9700 and 0.000244140625 on 8060S; versus float64 it was
+0.000122467 and 0.000122829 respectively, passing unchanged mixed tolerances
+`atol=rtol=0.002`. All preceding operator checks, 39 frozen CUDA sparse cases
+and eight CPU cache lifecycle tests passed in the rebuilt image.
+
+The packaged mask-14 comparison covered ten candidate and nine repeated-control
+outputs on R9700, plus three candidate and two repeated-control outputs on
+8060S, each against its first measured control. **All 24 comparisons passed**
+the existing gates, including exact occupancy and pose. Candidate maxima were:
+
+| Difference from control | R9700 | 8060S |
+|---|---:|---:|
+| Feature NRMSE | 0.02542% | 0.02448% |
+| Feature maximum absolute error | 0.03081 | 0.02521 |
+| Gaussian-center symmetric sampled NN p99 / diagonal | 0.05105% | 0.04875% |
+| Mesh-vertex symmetric sampled NN p99 / diagonal | 0.00792% | 0.00631% |
+
+Repeated-control feature NRMSE maxima were 0.02490% / 0.02510%. Geometry uses
+the same 10,000-point samples in each direction against complete clouds and
+the same 0.5% p99 gate; these are not global Hausdorff bounds. No new full-model
+NVIDIA reference was available.
+
+The rebuilt sampler image passed all 27 masks on both GPUs, including
+finite/nonempty PLY/GLB reloads and scene assembly: 13,611,264 Gaussians on
+R9700 and 13,622,208 on 8060S. Maximum per-mask allocations were
+21,404,959,744 / 21,401,713,152 bytes, excluding scene assembly. This regression
+preceded the two exact host-side changes described below; those have separate
+byte-equivalence checks. The iGPU regression was paused for isolated timing
+probes, so its wall time is not used as a performance measurement. Numerical
+A/B coverage remains mask 14; a scene point count is not a numerical error bound.
+
+Warm mask-14 timings use default steps, both decoders, `compile=False`, all
+preceding optimizations enabled, and the same synchronized stage measurements
+and intermediate CPU captures as above. The baseline disables only these three
+additional optimizations. The first run of each path is discarded.
+
+| GPU | Prior optimized baseline | Additional optimizations | Structure stage | SLAT stage |
+|---|---:|---:|---:|---:|
+| R9700 | 16.05 s | 15.89 s | 8.259 -> 8.099 s | 5.532 -> 5.530 s |
+| 8060S | 64.97 s | 64.05 s | 42.984 -> 42.761 s | 18.726 -> 18.114 s |
+
+R9700 uses six balanced AB/BA pairs with the iGPU process paused: every pair
+improved, with mean saving 0.157 s and a paired Student-t 95% confidence
+interval of 0.127–0.186 s. An earlier ten-pair run alongside iGPU inference
+showed 16.82 -> 15.95 s, but shared CPU preprocessing activity biased that
+comparison; it is not used to claim the speedup. The iGPU uses three alternating
+pairs, with every candidate faster than every control. Timings exclude model
+loading and export; mask-14 peak allocation remained 20.3 GB.
+
+An additional R9700 MLP `max-autotune` search took 18.4 s to compile and improved
+the isolated operation from 0.908 to 0.880 ms; native GEMM won the search.
+The small potential inference saving did not justify that startup cost.
+Four CPU threads also lost to the existing 32-thread setting in three paired
+full-pipeline runs (16.99 versus 16.21 s median). Neither change is enabled.
+
+## Strix Halo shared memory and host allocation reductions
+
+The 8060S shares physical RAM with the CPU. On this machine sysfs reports a
+2 GiB reserved VRAM region plus a much larger GTT pool; inference already
+allocates beyond the reserved region. This does not make separate PyTorch CPU
+and CUDA tensors alias automatically. The installed HIP runtime reports mapped
+host-memory and managed-memory support, but not direct pageable-memory access.
+Ordinary device allocations reported no host pointer through
+`hipPointerGetAttributes`.
+
+An isolated probe created explicit CPU/GPU aliases of pinned host buffers,
+verified identical pointers and checked CPU-to-GPU reads and GPU-to-CPU writes
+with synchronization. The repeated 4,096 x 1,024 input / 4,096-output FP16 GEMM
+matched ordinary device memory exactly. Default pinned buffers nevertheless
+slowed this GEMM from 1.62 to 2.54 ms. Explicit non-coherent host allocation
+measured 1.59 ms versus a 1.62 ms device-memory control. These are isolated
+operator measurements, with five warmups and 30 timed repetitions; they do not
+establish a full-pipeline gain. HIP's [coherence documentation](https://rocmdocs.amd.com/projects/HIP/en/develop/how-to/hip_runtime_api/memory_management/coherence_control.html)
+explains that fine-grained memory can have a more restrictive GPU cache policy.
+No custom shared-memory allocator or global coherence override is enabled.
+The hot model tensors remain GPU-owned allocations in the shared physical RAM.
+
+Two exact host-side changes instead reduce traffic and temporary allocations:
+
+- Uint8 image conversion divides directly into float32, avoiding an intermediate
+  float64 image and an initial full input copy. Every one of the 256 possible
+  input values matches the previous float64-then-float32 result bit for bit.
+  Checks also cover strided input, PIL input and unchanged float32/float64
+  fallback behavior. A 1,024 x 1,024 RGBA microbenchmark measured 4.46 -> 1.11 ms
+  median over 20 alternating pairs. This is not an additional measured
+  full-inference speedup; the warm inference table above predates this change.
+- PLY export presents the contiguous float32 attribute buffer as a structured
+  NumPy view, avoiding a second packed array and a Python tuple for every point.
+  Float64 attributes still convert to the original float32 file representation.
+  Direct comparisons against the unchanged upstream writer produced identical
+  complete PLY bytes in nine cases on each GPU: 0/1/513 points, float16/32/64
+  model tensors and infinite opacity logits. The optional checker independently
+  reloads and checks every named field for float32/64 inputs, with zero error.
+
+For the R9700's 13,611,264-point assembled scene, both packing methods produced
+the same SHA-256 for all 925,565,952 attribute bytes. In separate CPU processes,
+packing took 17.98 s with tuples versus 0.062 ms for the view. Peak host RSS was
+11.90 GiB versus 1.75 GiB, a **10.14 GiB reduction**. Those process peaks include
+the mapped input PLY and allocated dense attribute matrix. Packing timings
+exclude their construction, hashing, GPU-to-CPU transfers and file writing;
+they are not complete export or inference timings. Avoiding these allocations
+also leaves more shared physical RAM available to the iGPU.
+
+After both host-side changes, the final image also passed a fresh canonical
+mask-14 reconstruction on each device, including the 3x3x3 sparse reference
+check, both decoders, PLY/GLB export and finite/nonempty reload checks. The
+default installation smoke and focused image/PLY checker cases passed on both
+GPUs. The image retains the preceding sampler's numerical qualification;
+the complete 27-mask runs were not repeated for these bit-exact host changes.

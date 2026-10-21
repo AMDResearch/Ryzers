@@ -114,7 +114,8 @@ class ConditioningCacheTests(unittest.TestCase):
             second.zero_()
             torch.testing.assert_close(state.get(('linear',), weight, compute), compute(), rtol=0, atol=0)
             with sampling_cache('sample_slat'):
-                self.assertIsNone(_weights.get())
+                self.assertIsNot(_weights.get(), state)
+                self.assertFalse(_weights.get().entries)
             self.assertIs(_weights.get(), state)
         self.assertFalse(state.entries)
         self.assertIsNone(_weights.get())

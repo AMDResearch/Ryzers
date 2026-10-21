@@ -65,11 +65,18 @@ def can_use_attention(q, k, v):
             and q.device.type == 'cuda' and _supported_device(q.device))
 
 
+@lru_cache(maxsize=None)
+def _configuration(device):
+    arch = getattr(torch.cuda.get_device_properties(device), 'gcnArchName', '').split(':')[0]
+    return (64, 2) if arch == 'gfx1151' else (32, 0)
+
+
 def attention(q, k, v):
     """Return [queries, 16, 64]; caller checks eligibility and disables gradients."""
     out = torch.empty(q.shape, device=q.device, dtype=q.dtype)
+    keys, waves = _configuration(q.device)
     with torch.cuda.device(q.device):
         _attention_forward[(triton.cdiv(q.shape[0], 128), 16)](
             q, k, v, out, q.shape[0], k.shape[0], q.stride(0), k.stride(0), v.stride(0),
-            num_warps=4, num_stages=1, matrix_instr_nonkdim=16, waves_per_eu=0)
+            KEYS=keys, num_warps=4, num_stages=1, matrix_instr_nonkdim=16, waves_per_eu=waves)
     return out

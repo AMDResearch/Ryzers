@@ -66,8 +66,54 @@ for path in (attention, 'sam3d_objects/model/backbone/tdfy_dit/modules/transform
     replace(path, 'import torch\n',
             'from sam3d_objects.linear_rocm import InferenceLinear\nimport torch\n')
     replace(path, 'nn.Linear(', 'InferenceLinear(')
+# Preserve SparseLinear's feature wrapper and parameter names.
+replace(sparse + 'linear.py', 'import torch\n',
+        'from sam3d_objects.linear_rocm import InferenceLinear\nimport torch\n')
+replace(sparse + 'linear.py', 'class SparseLinear(nn.Linear):',
+        'class SparseLinear(InferenceLinear):')
+# Share the packed float32 attribute buffer with the PLY writer. Upstream's
+# per-row Python tuples duplicate gigabytes of RAM used by the iGPU as well.
+gaussian = 'sam3d_objects/model/backbone/tdfy_dit/representations/gaussian/gaussian_model.py'
+replace(gaussian, '        elements = np.empty(xyz.shape[0], dtype=dtype_full)\n', '')
+replace(gaussian, '        elements[:] = list(map(tuple, attributes))',
+        '        elements = np.ascontiguousarray(attributes, dtype=np.float32).view(\n'
+        '            np.dtype(dtype_full)\n'
+        '        ).reshape(-1)')
+# Fuse only the qualified elementwise operations, preserving FP16 intermediates.
+modulated = 'sam3d_objects/model/backbone/tdfy_dit/modules/transformer/modulated.py'
+replace(modulated, 'import torch\n',
+        'from sam3d_objects.model.backbone.tdfy_dit.modules import pointwise_rocm\nimport torch\n')
+for name in ('msa', 'mlp'):
+    replace(modulated,
+            f'        return h * (1 + scale_{name}.unsqueeze(1)) + shift_{name}.unsqueeze(1)',
+            f'        return pointwise_rocm.modulate(h, scale_{name}, shift_{name}, training=self.training)')
+replace(modulated, '    def _apply_add(self, x, h):',
+        '    def _apply_gated_add(self, x, h, multiplier):\n'
+        '        return pointwise_rocm.gated_add(x, h, multiplier, training=self.training)\n\n'
+        '    def _apply_add(self, x, h):')
+for gate in ('gate_msa', 'gate_mlp'):
+    replace(modulated,
+            '        h = _pytree.tree_map(\n'
+            f'            partial(self._apply_multiplication, multiplier={gate}),\n'
+            '            h\n'
+            '        )\n'
+            '        x = _pytree.tree_map(\n'
+            '            self._apply_add,\n'
+            '            x,\n'
+            '            h\n'
+            '        )',
+            f'        x = _pytree.tree_map(partial(self._apply_gated_add, multiplier={gate}), x, h)')
 pipeline = 'sam3d_objects/pipeline/inference_pipeline.py'
 replace(pipeline, 'import torch\n', cache_import + 'import torch\n')
+# All 256 uint8 quotients round identically without a full float64 image.
+replace(pipeline, '        image = np.array(image)\n'
+        '        image = image / 255\n'
+        '        image = image.astype(np.float32)\n'
+        '        return image',
+        '        image = np.asarray(image)\n'
+        '        if image.dtype == np.uint8:\n'
+        '            return np.divide(image, 255, dtype=np.float32)\n'
+        '        return (image / 255).astype(np.float32)')
 for method in ('sample_sparse_structure', 'sample_slat'):
     replace(pipeline, f'    def {method}(', f'    @cache_sampling\n    def {method}(')
 # These Kaolin notebook imports are unused; reconstruction does not need them.

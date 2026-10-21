@@ -66,8 +66,11 @@ class _WeightCache(_Cache):
 @contextmanager
 def sampling_cache(stage=None):
     state = _Cache() if os.environ.get('SAM3D_CACHE_CROSS_ATTN', '1') != '0' else None
-    weights = (_WeightCache() if stage == 'sample_sparse_structure'
-               and os.environ.get('SAM3D_CACHE_LINEAR', '1') != '0' else None)
+    reuse_weights = ((stage == 'sample_sparse_structure'
+                      and os.environ.get('SAM3D_CACHE_LINEAR', '1') != '0')
+                     or (stage == 'sample_slat'
+                         and os.environ.get('SAM3D_CACHE_LAYOUT', '1') != '0'))
+    weights = _WeightCache() if reuse_weights else None
     weight_token = _weights.set(weights)
     token = _current.set(state)
     stage_token = _stage.set(stage)
