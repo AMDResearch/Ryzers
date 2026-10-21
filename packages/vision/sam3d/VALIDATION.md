@@ -87,6 +87,22 @@ dataset-level quality score is claimed.
 
 ## Full-pipeline agreement
 
+Original-port versus final-default captures from the last timed run of each
+image also passed on both devices. These use separate image processes with
+identical mask 14, seed, weights, default steps and both decoders. Occupancy
+and pose match exactly. Geometry uses the sampling method and preselected
+limits below.
+
+| Original port to final defaults | R9700 | 8060S |
+|---|---:|---:|
+| Sparse occupancy IoU | 1.0 | 1.0 |
+| Pose tensor absolute difference | 0 | 0 |
+| SLAT feature RMS difference / reference RMS | 0.02666% | 0.02633% |
+| SLAT maximum absolute difference | 0.01890 | 0.05177 |
+| Gaussian-center symmetric NN p99 / bounding-box diagonal | 0.04460% | 0.04274% |
+| Mesh symmetric NN p99 / bounding-box diagonal | 0.005706% | 0.006021% |
+
+The following additional paired checks isolate the final group of changes.
 Kidsroom mask 14, seed 42, default steps, both geometry decoders,
 `compile=False`. Each device used one loaded model, alternating the earlier
 optimized reference path and the final changes. The comparison retained shared
@@ -125,30 +141,54 @@ Both devices exported PLY/GLB for all 27 masks and assembled a scene of about
 13.6 million Gaussians. Checks verify finite geometry and PLY attributes,
 read back GLB meshes, and require the assembled count to equal the sum of
 individual objects. Fresh-process output counts can vary, so agreement is
-assessed within the paired runs rather than by equal cross-device counts.
+assessed against each device’s reference path rather than by equal cross-device
+counts.
 
 ## Performance and memory
 
-Devices ran separately with no competing GPU workload. Timings synchronize the
-GPU before and after inference, include preprocessing and both decoders, and
-exclude loading, export and diagnostic serialization. CPU FP32 master weights
-permit alternating storage formats outside the clock without retaining inactive
-GPU copies. These masters are released before three final-default runs.
+The comparison uses the original compatibility-only port from
+`54bde2c` against final defaults from `d3a563b`, including all subsequent
+optimizations. The original image's patch SHA-256 matches the first commit;
+only the sparse-convolution import substitutions and Kaolin compatibility
+changes are present. Both images share their first 27 filesystem layers,
+including the pinned upstream checkout and dependencies, and use the pinned
+model revision above. The original allocator default and final expandable
+allocator default are included in their respective measurements.
+
+Both images use the same harness: one loaded model, one warmup followed by
+three timed mask-14 runs, seed 42, default steps, both geometry decoders and
+`compile=False`. Devices run serially with no competing GPU workload. Timings
+synchronize before/after inference and include preprocessing; loading, export
+and diagnostic transfers/serialization are excluded. Intermediate captures
+retain detached references identically on both paths and are released before
+the next inference. The baseline runs its original source and defaults directly.
 
 | Warm mask-14 inference | R9700 | 8060S |
 |---|---:|---:|
-| Earlier optimized path, median of three controls | 15.66 s | 63.14 s |
-| New changes, median of three matched candidates | 12.97 s | 50.96 s |
-| Final defaults, median of three runs | **12.99 s** | **50.59 s** |
-| Final-default range | 12.99–13.27 s | 50.53–51.54 s |
-| Final-default peak allocated GPU memory | 13.70 GiB | 13.70 GiB |
+| First working AMD port, median of three | 24.97 s | 130.60 s |
+| All optimizations, median of three | **13.22 s** | **51.15 s** |
+| Final range | 13.21–13.27 s | 51.04–51.17 s |
+| Time saved per object | **11.75 s** | **79.45 s** |
+| Latency reduction | **47.1%** | **60.8%** |
+| Speedup | **1.89×** | **2.55×** |
+| Port-only range | 24.94–25.25 s | 130.31–130.75 s |
+| Port-only peak allocated GPU memory | 18.88 GiB | 18.88 GiB |
+| Final peak allocated GPU memory | 13.70 GiB | 13.70 GiB |
+| Port-only peak reserved GPU memory | 22.41 GiB | 22.41 GiB |
+| Final peak reserved GPU memory | 14.89 GiB | 14.89 GiB |
 | Full 27-object run, peak allocated GPU memory | 14.74 GiB | 14.74 GiB |
 | Full 27-object run, peak reserved GPU memory | 15.80 GiB | 16.19 GiB |
 | Full-run CPU process peak RSS, including loading | 11.67 GiB | 11.64 GiB |
 
-The first final-default run follows an allocator cache trim. Full-scene runs
-retain individual Gaussian outputs until assembly. GPU allocation peaks above
-exclude checkpoint loading. On Strix Halo GPU allocations use shared physical
+The earlier same-process comparison measured the final group of changes only:
+15.66 to 12.99 s on R9700 and 63.14 to 50.59 s on 8060S. Those incremental
+results are distinct from the full port-to-final comparison above. CPU FP32
+masters enabled the paired storage-format toggles for that experiment and
+were released before its final-default runs. Savings from separate attribution
+experiments are not added together.
+
+Full-scene runs retain individual Gaussian outputs until assembly. GPU
+allocation peaks above exclude checkpoint loading. On Strix Halo GPU allocations use shared physical
 RAM; do not add CPU RSS and GPU allocator statistics as an exact physical-memory
 total.
 

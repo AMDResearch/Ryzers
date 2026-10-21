@@ -70,8 +70,11 @@ These optimizations are enabled by default, with guards for supported shapes,
 precision and inference mode. See [VALIDATION.md](VALIDATION.md) for overrides.
 
 Validated on Radeon 8060S (`gfx1151`) and Radeon AI PRO R9700 (`gfx1201`),
-ROCm 7.14 / PyTorch 2.12. Warm mask-14 medians were **50.59 s on 8060S** and
-**12.99 s on R9700**, at default steps with both geometry decoders. Both devices
+ROCm 7.14 / PyTorch 2.12. Compared with the first working port, warm mask-14
+medians fell **24.97 → 13.22 s on R9700 (47.1% less latency)** and
+**130.60 → 51.15 s on 8060S (60.8% less latency)**, using default
+steps and both geometry decoders. Peak allocated memory for that object fell
+from about 18.88 to 13.70 GiB on both GPUs. Both devices
 exported all 27 example objects and assembled the complete scene. Peak allocated
 GPU memory during the full scene runs was **14.74 GiB** on either device;
 checkpoint-loading peaks are excluded. See [VALIDATION.md](VALIDATION.md) for
