@@ -42,6 +42,8 @@ RUN pip3 install --no-cache-dir --break-system-packages "genesis-world==1.4.3"
 ENV ROCM_SDK_CORE_LIB=/opt/venv/lib/python3.12/site-packages/_rocm_sdk_core/lib
 RUN ln -sf libamdhip64.so.7 ${ROCM_SDK_CORE_LIB}/libamdhip64.so
 ENV LD_LIBRARY_PATH=${ROCM_SDK_CORE_LIB}:${LD_LIBRARY_PATH}
+# Quadrants links GPU kernels with ld.lld; don't rely on /opt/rocm being present
+ENV PATH=${ROCM_SDK_CORE_LIB}/llvm/bin:${PATH}
 # Force the monolithic constraint solver; the decomposed one stalls while compiling on AMD GPUs (Genesis-Embodied-AI/genesis-world#3545)
 ENV QD_PERFDISPATCH_FORCE=func_solve_body:func_solve_body_monolith
 
