@@ -1,4 +1,4 @@
-# Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
 ### ryzers build options
@@ -23,8 +23,8 @@ environment_variables:
 # - "host_portnum:container_portnum"  # List of port mappings to expose from the docker 
                                       # E.g. "8888:8888" for JupyterLab
 
-# volume_mappings:
-# - "host_path:container_path"        # List of volume mappings to mount from the host 
-                                      # E.g. "/path/to/host:/path/to/container" 
+# Compiled-kernel cache reused across runs
+volume_mappings:
+  - "$PWD/workspace/genesis/cache:/root/.cache"
 
 # docker_extra_run_flags: "run flags" # Additional flags to pass to the `docker run` command
