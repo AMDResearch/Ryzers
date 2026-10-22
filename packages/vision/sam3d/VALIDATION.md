@@ -34,7 +34,7 @@ both devices using `HIP_VISIBLE_DEVICES` as shown in the README.
 
 ## Numerical references and maximum errors
 
-The rebuilt default image passed all checks on both devices. The 39 sparse
+The rebuilt default image passed the operator checks below on both devices. The 39 sparse
 fixtures come from the pinned spconv-triton checkout, whose reference generators
 use unchanged CUDA spconv. Coordinates and spatial shapes match exactly;
 features use the fixtures' original absolute tolerances with relative tolerance
@@ -82,16 +82,16 @@ and cleanup after exceptions. Image conversion and PLY field checks match
 their references exactly.
 
 These CUDA comparisons are at operator level. Full-model comparisons below
-use ROCm reference paths; no full-model NVIDIA CUDA comparison or upstream
-dataset-level quality score is claimed.
+use ROCm reference paths. The SA-3DAO evaluation separately compares with
+artist-created meshes. No full-model NVIDIA CUDA comparison or official
+leaderboard score is claimed.
 
 ## Full-pipeline agreement
 
-Original-port versus final-default captures from the last timed run of each
-image also passed on both devices. These use separate image processes with
-identical mask 14, seed, weights, default steps and both decoders. Occupancy
-and pose match exactly. Geometry uses the sampling method and preselected
-limits below.
+The timed mask-14 captures compare the compatibility-only port with final
+defaults in separate image processes, using identical seed, weights, default
+steps and both geometry decoders. Occupancy and pose match exactly on both
+GPUs. These are the same runs used for the performance comparison.
 
 | Original port to final defaults | R9700 | 8060S |
 |---|---:|---:|
@@ -102,47 +102,54 @@ limits below.
 | Gaussian-center symmetric NN p99 / bounding-box diagonal | 0.04460% | 0.04274% |
 | Mesh symmetric NN p99 / bounding-box diagonal | 0.005706% | 0.006021% |
 
-The following additional paired checks isolate the final group of changes.
-Kidsroom mask 14, seed 42, default steps, both geometry decoders,
-`compile=False`. Each device used one loaded model, alternating the earlier
-optimized reference path and the final changes. The comparison retained shared
-DINO weights and the expandable allocator on both paths. It toggled compact
-CFG context, separate Q/K/V, dense RMS tail, small pose pointwise fusion,
-image-feature reuse, FP16 linear storage and native GELU fusion. Controls retain
-the preceding attention/normalization/layout optimizations.
+Preselected limits are exact occupancy/pose, feature normalized RMS <=1%,
+and geometry p99 <=0.5% of the reference bounding-box diagonal. Geometry uses
+10,000 sampled vertices or Gaussian centers in each direction against each
+complete point set, with a fixed random seed. These sampled nearest-neighbor
+percentiles are not Hausdorff bounds.
 
-After one warmup per path, three matched A/B pairs and three final-default
-runs produced eight comparisons per device, including repeated controls.
+The broader comparison uses all 100 SA-3DAO objects on each GPU, with the
+same original-port and optimized images. Both versions generated valid meshes
+and finite Gaussian centers for every object. Raw RGB-only results are:
 
-| Maximum across the comparisons | R9700 | 8060S |
+| Original port to final defaults, 100 objects | R9700 | 8060S |
 |---|---:|---:|
-| Sparse occupancy IoU | 1.0 throughout | 1.0 throughout |
-| Pose tensor absolute difference | 0 | 0 |
-| SLAT feature RMS difference / reference RMS | 0.02499% | 0.02493% |
-| SLAT maximum absolute difference | 0.02507 | 0.02128 |
-| Gaussian-center symmetric NN p99 / bounding-box diagonal | 0.04921% | 0.05157% |
-| Mesh symmetric NN p99 / bounding-box diagonal | 0.007245% | 0.007700% |
+| Pairs meeting all strict numerical limits | 100/100 | 49/100 |
+| Identical sparse coordinates | 100/100 | 58/100 |
+| Exact occupancy and pose together | 100/100 | 49/100 |
+| Maximum SLAT normalized RMS difference | 0.13564% | 0.09167%* |
+| Maximum SLAT absolute difference | 0.14934 | 0.09552* |
+| Maximum rotation tensor component difference | 0 | 0.008141 |
+| Maximum translation tensor component difference | 0 | 0.02416 |
+| Maximum scale tensor component difference | 0 | 0.003907 |
+| Maximum mesh symmetric NN p99 / bbox diagonal | 0.02644% | 6.67722% |
 
-Preselected limits were exact occupancy/pose, feature normalized RMS <=1%, and
-geometry p99 <=0.5% of the bounding-box diagonal. Geometry samples 10,000 points
-in each direction against each complete point set, using a fixed random seed;
-these are sampled nearest-neighbor distances, not a Hausdorff bound. Repeated
-unchanged controls also exhibit small SLAT/mesh variation.
+*8060S feature comparisons cover the 58 pairs with identical coordinates;
+features cannot be compared row-for-row in the other 42. None of these
+comparable feature tensors exceeds the 1% normalized RMS limit. All 51 raw
+8060S failures include a structure/pose difference; eight also exceed the
+mesh p99 limit. These failures remain part of the reported results.
 
-On R9700, a separate 27-mask paired sweep of the preceding combined changes
-passed exact occupancy/pose, with maximum feature normalized RMS 0.05531%.
-The subsequent 27-mask production GELU-fusion sweep also passed, with maxima
-0.06034% feature normalized RMS, 0.02829 feature absolute difference,
-0.06494% Gaussian-center p99 and 0.01586% mesh p99. The iGPU has the repeated
-mask-14 comparisons above and complete default-path exports, rather than a
-27-mask paired numerical sweep.
+Recorded-depth replays on 8060S isolate the two SAM 3D stages from variations
+in the preceding MoGe estimate. All 52 controls retain exact occupancy and
+pose: 47 use original-batch depth captures, including a passing control; five
+use fresh original-port references for inputs without saved depth. These
+controls cover all 51 raw mismatch cases. For the largest raw outlier, the
+telephone booth, a full
+optimized reconstruction using the original run's recorded depth also passes
+the original limits: exact coordinates and pose, 0.03498% SLAT normalized RMS
+difference, and 0.009728% mesh p99, compared with 6.67722% in the independent
+RGB-only runs. Input RGB tensors match exactly while estimated depth and
+intrinsics differ. An unchanged original-port counter rerun also differs
+from its earlier result: mesh p99 0.53416%, above the same 0.5% limit.
+These controls check the SAM 3D stages under identical depth conditioning.
+The underlying source of MoGe/ROCm variation is not established. They do not
+replace the raw comparisons or relax their limits.
 
-Both devices exported PLY/GLB for all 27 masks and assembled a scene of about
-13.6 million Gaussians. Checks verify finite geometry and PLY attributes,
-read back GLB meshes, and require the assembled count to equal the sum of
-individual objects. Fresh-process output counts can vary, so agreement is
-assessed against each device’s reference path rather than by equal cross-device
-counts.
+Both devices also exported PLY/GLB for all 27 example masks and assembled a
+scene of about 13.6 million Gaussians. Checks verify finite geometry and PLY
+attributes, read back GLB meshes, and require the assembled count to equal
+the sum of individual objects. Cross-device output counts need not be equal.
 
 ## Performance and memory
 
@@ -237,3 +244,91 @@ with `expandable_segments:False` for the allocator reference.
 `TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1` enables fused SDPA on 8060S.
 Optional rasterization, texture baking and layout optimization remain outside
 the validated reconstruction/export paths, as described in the README.
+
+## SA-3DAO reference evaluation
+
+Download `objects_0001-0100.zip` from Meta's
+[SA-3DAO download page](https://ai.meta.com/datasets/sa-3dao-sam-3d-artist-objects-downloads/)
+and extract it under `workspace/sam3d/sa3dao`. The checker selects folders
+containing reference `mesh.glb` files; input-only folders are excluded. The
+evaluated archive contains 100 reference objects from 81 distinct RGB files.
+Its SHA-256 is:
+
+```text
+e594558ee2dcddcfc43f802b49902114912124347ca182d348569b4161af47a4
+```
+
+Reconstruction uses only the RGB image and JPEG mask, thresholded at 127,
+with seed 42, default steps, both decoders and `compile=False`. It estimates
+its own MoGe pointmap and does not use the artist mesh, released pointmap or
+reference pose as model inputs.
+
+```sh
+# CPU metric checks without model weights or a dataset.
+ryzers run "python /ryzers/check_sam3d_dataset.py --self-test"
+
+# Requires normal model access and an empty prediction directory.
+ryzers run "python /ryzers/check_sam3d_dataset.py \
+  --dataset-root /ryzers/output/sa3dao \
+  --predictions /ryzers/output/sa3dao-predictions \
+  --reconstruct"
+```
+
+Use `HIP_VISIBLE_DEVICES` as shown in the README and a distinct prediction
+folder for each device/version. Omit `--reconstruct` to score existing meshes
+on CPU without downloading weights. The report defaults to
+`workspace/sam3d/sa3dao-scores.json`; select `--output` for separate reports.
+Missing or invalid predictions produce error entries and a nonzero exit,
+rather than silently reducing the evaluated set.
+
+The CPU checker follows the core shape definitions in
+[paper v2, Appendix D.3.1](https://arxiv.org/html/2511.16624v2#A4.SS3.SSS1):
+independent bbox-centering and uniform scaling into `[-1,1]`, rigid ICP,
+one million uniform surface samples per mesh, F-score at 0.01, and surface
+voxel occupancy IoU at resolution 64. It preserves aspect ratios and permits
+proper rotations/translations during alignment, without reflections or fitted
+scale. Deterministic PCA-axis initializations reduce ICP local-minimum errors.
+Both aligned point sets share an isotropic 64-cubed voxel grid enclosing them.
+Chamfer reports distinguish the mean/sum of unsquared Euclidean directional
+distances and the sum of directional mean squared distances. Identity, known rigid motion and
+shape-deformation controls check the evaluator independently of model outputs.
+
+The compatibility-only port and optimized defaults each reconstructed all
+100 objects on both GPUs: 400 successful reconstructions and CPU scores,
+without inference/scoring errors. Means over the same 100 references are:
+
+| GPU / version | F-score @0.01 | Surface voxel IoU, 64 | Mean unsquared Chamfer |
+|---|---:|---:|---:|
+| R9700, original port | 0.21437 | 0.22265 | 0.060131 |
+| R9700, optimized | 0.21393 | 0.22115 | 0.060139 |
+| 8060S, original port | 0.21671 | 0.22573 | 0.060391 |
+| 8060S, optimized | 0.21647 | 0.22481 | 0.060456 |
+
+Before scoring, the quality-preservation criterion was a paired mean
+final-minus-port difference whose 95% bootstrap interval lies within
+`[-0.005, +0.005]` for both F-score and IoU. Both GPUs meet this criterion
+using 10,000 object-level bootstrap resamples, seed 42. The following values
+are **percentage points**, with an equivalence margin of +/-0.5 points:
+
+| GPU / metric | Mean change | 95% paired bootstrap interval |
+|---|---:|---:|
+| R9700, F-score | -0.0438 | [-0.1564, +0.0802] |
+| R9700, IoU | -0.1497 | [-0.3928, +0.0045] |
+| 8060S, F-score | -0.0239 | [-0.1921, +0.1443] |
+| 8060S, IoU | -0.0914 | [-0.4041, +0.1569] |
+
+Independent ICP fitting and voxel-grid placement can amplify small mesh
+changes. An additional diagnostic fits alignment on the original port and
+uses that transform and one common voxel grid for both predictions. Its mean
+F-score changes are +0.0033 / -0.0419 percentage points for R9700 / 8060S;
+IoU changes are +0.0037 / -0.0296 points. This shared-frame diagnostic does not
+replace the primary independently registered scores or predeclared criterion.
+The concurrent dataset runs test quality; their elapsed times are not the
+isolated performance measurements above.
+
+These are local metrics with explicit conventions, rather than official
+leaderboard scores. The public 100-object split differs from the paper's
+aggregate evaluation; published aggregate scores are not a direct reference
+for this subset. Artist meshes are untextured: these checks measure shape
+after alignment, not texture quality or camera-pose accuracy. Complete model
+agreement with an NVIDIA CUDA run is a separate, unmeasured property.

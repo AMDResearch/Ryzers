@@ -85,6 +85,18 @@ rendering need additional GPU rasterizers and are not supported here. The
 upstream example disables these paths; PyTorch3D/gsplat are installed without
 their CUDA rasterizers.
 
+## Optional reference-dataset check
+
+The [SA-3DAO public data](https://ai.meta.com/datasets/sa-3dao-sam-3d-artist-objects/)
+provides artist-created reference meshes for independent shape evaluation.
+The optional dataset checker reconstructs those inputs and computes CPU mesh
+metrics; it is separate from the default smoke test. See
+[dataset validation](VALIDATION.md#sa-3dao-reference-evaluation) for the data
+layout, commands, scoring conventions and coverage. All 400 original-port /
+optimized reconstructions across the two GPUs completed; paired mean F-score
+and IoU confidence intervals met the predeclared margin of
++/-0.5 percentage points.
+
 ## References
 
 - [Upstream setup](https://github.com/facebookresearch/sam-3d-objects/blob/main/doc/setup.md)
