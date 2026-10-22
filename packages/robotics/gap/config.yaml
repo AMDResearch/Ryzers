@@ -1,0 +1,24 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+init_image: "rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0@sha256:c38eeda81d85f00fbe35d3d50ce42ce59c524e87d810624f4eb5c52fddb3b9ad"
+
+build_arguments:
+- "GAP_REF=c8b5515df80d3029ca5dc7f7f1ec1c327b70bbea"
+- "OPEN_ROBOT_SKILLS_REF=752dfbd96968d4d08379f8111765efbf6457800b"
+- "SAM3_REF=b26a5f330e05d321afb39d01d3d4881f258f65ff"
+
+x11_display: false
+
+environment_variables:
+- "MUJOCO_GL=egl"
+- "PYOPENGL_PLATFORM=egl"
+- "JAX_PLATFORMS=cpu"
+- "GAP_DINO_DEVICE=cuda"
+- "GAP_SAM3_DEVICE=cuda"
+
+volume_mappings:
+- "~/.cache/huggingface:/root/.cache/huggingface"
+- "$PWD/packages/robotics/gap/outputs:/ryzers/graph-as-policy/outputs"
+
+docker_extra_run_flags: "-e HF_TOKEN -e OPENROUTER_API_KEY"
