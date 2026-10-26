@@ -149,6 +149,14 @@ for gate in ('gate_msa', 'gate_mlp'):
             '        )',
             f'        x = _pytree.tree_map(partial(self._apply_gated_add, multiplier={gate}), x, h)')
 pipeline = 'sam3d_objects/pipeline/inference_pipeline.py'
+# Select convolutions before the first depth inference. Timing-based solver
+# selection on gfx1151 can change FP16 depth values between fresh processes.
+# Preserve explicit runtime settings and the existing defaults on other GPUs.
+replace(pipeline, '        self.device = torch.device(device)',
+        '        self.device = torch.device(device)\n'
+        "        if (torch.version.hip and self.device.type == 'cuda' and\n"
+        "                torch.cuda.get_device_properties(self.device).gcnArchName.split(':')[0] == 'gfx1151'):\n"
+        "            os.environ.setdefault('MIOPEN_FIND_MODE', 'FAST')")
 replace(pipeline, 'import torch\n', cache_import + 'import torch\n')
 replace(pipeline, 'import torch\n',
         'from sam3d_objects.backbone_rocm import prepare_inference_memory\nimport torch\n')
