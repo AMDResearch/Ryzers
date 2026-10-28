@@ -41,7 +41,7 @@ kernels. Meta recommends at least 32 GB of GPU memory.
 For systems with multiple GPUs, list the available devices and select one:
 
 ```sh
-ryzers run "python -c 'import torch; print([(i, torch.cuda.get_device_name(i)) for i in range(torch.cuda.device_count())])'"
+ryzers run "python -c t=__import__('torch');print(list(enumerate(map(t.cuda.get_device_name,range(t.cuda.device_count())))))"
 HIP_VISIBLE_DEVICES=0 ryzers run "python /ryzers/test_sam3d.py"  # use the chosen index
 ```
 
