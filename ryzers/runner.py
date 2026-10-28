@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 import subprocess
+import shlex
 import yaml
 import os
 
@@ -37,11 +38,22 @@ class DockerRunner:
         if not os.path.exists(self.script_name):
             raise FileNotFoundError(f"Script {self.script_name} not found.")
         
+        command = shlex.split(self.docker_cmdstr)
+        script_args = ["bash", self.script_name]
+        with open(self.script_name) as script_file:
+            script = script_file.read()
+        # Older generated scripts expect one string and expand it unsafely.
+        # Adapt their final Docker line in memory, without modifying the file.
+        if (script.startswith("#!/bin/bash\n# Auto-generated script to run Docker with combined flags\n")
+                and script.splitlines()[-1].startswith("docker run ")
+                and script.endswith(" $1\n")):
+            script_args = ["bash", "-c", script[:-4] + ' "$@"\n', self.script_name]
+
         # Execute the script
         try:
 
             result = subprocess.run(
-                ["bash", self.script_name, self.docker_cmdstr], check=True
+                [*script_args, *command], check=True
             )
             print(f"Script output:\n{result.stdout}")
         except subprocess.CalledProcessError as e:
@@ -65,7 +77,7 @@ class DockerRunner:
 # Enable X11 forwarding
 xhost +local:docker
 
-docker run {runflags} {self.container_name} $1
+docker run {runflags} {self.container_name} "$@"
 """
 
         # Write the script to the specified file

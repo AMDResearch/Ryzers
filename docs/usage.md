@@ -54,3 +54,26 @@ When you run `ryzers run`, the command:
 2. Optionally allows you to override the default command specified in the `Dockerfile`.
 
 
+
+### Command arguments and quoting
+
+Pass the command override as one quoted string. Ryzers splits it into arguments,
+preserving inner quotes, spaces and empty arguments:
+
+```sh
+ryzers run "python -c 'print(1 + 2)'"
+ryzers run "python script.py --output 'mesh exports/object.glb'"
+```
+
+The override is not evaluated by a host shell. Wildcards, environment-variable
+references and shell operators are passed literally. To use a pipeline or shell
+expansion inside the container, invoke a shell explicitly:
+
+```sh
+ryzers run "bash -c 'printf hello | cat'"
+```
+
+Existing auto-generated scripts are handled by `ryzers run` without rewriting
+them or rebuilding the image. Newly generated scripts forward their arguments
+with `"$@"`; when calling one directly, pass the executable and its arguments
+separately, for example `bash ryzers.run.example.sh python -c 'print(1 + 2)'`.

@@ -35,10 +35,10 @@ Output video saved to `./output/drake_hello_world.mp4`.
 
 ### Interactive shell
 
-This package runs in headless mode by default to support SSH. For an interactive shell with TTY, use the `-it` flag:
+This package runs in headless mode by default to support SSH. For an interactive shell, override the default command with `bash`. Ryzers already enables TTY and interactive input:
 
 ```sh
-ryzers run -it bash
+ryzers run bash
 ```
 
 ## GPU Acceleration
