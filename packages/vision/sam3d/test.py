@@ -37,12 +37,16 @@ def check_sparse_convolution(kernel_size=3):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--smoke', action='store_true', help='check GPU and imports without downloading weights')
+    parser.add_argument('--list-gpus', action='store_true', help='list PyTorch device indices and names')
     parser.add_argument('--output', type=Path, default=Path('/ryzers/output'))
     masks = parser.add_mutually_exclusive_group()
     masks.add_argument('--mask-index', type=int, nargs='+', default=[14])
     masks.add_argument('--all-masks', action='store_true', help='run the upstream multi-object notebook masks')
     args = parser.parse_args()
     import torch
+    if args.list_gpus:
+        print([(i, torch.cuda.get_device_name(i)) for i in range(torch.cuda.device_count())])
+        return
     if not torch.version.hip or not torch.cuda.is_available():
         raise RuntimeError('SAM 3D requires an accessible ROCm GPU')
     print(f'PyTorch {torch.__version__}; ROCm {torch.version.hip}; GPU {torch.cuda.get_device_name(0)}')
