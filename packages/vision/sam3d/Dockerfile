@@ -52,11 +52,11 @@ COPY pointwise_rocm.py /ryzers/sam-3d-objects/sam3d_objects/model/backbone/tdfy_
 RUN python /ryzers/patch_sam3d_rocm.py \
  && /ryzers/sam-3d-objects/patching/hydra
 # gfx1151 otherwise falls back to quadratic-memory math attention.
+# Keep the native allocator: expandable segments can corrupt gfx1151 depth tensors.
 ENV TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1 \
-    PYTORCH_ALLOC_CONF=expandable_segments:True
+    PYTORCH_ALLOC_CONF=expandable_segments:False
 COPY test.py /ryzers/test_sam3d.py
 COPY check_numerics.py /ryzers/check_sam3d_numerics.py
-COPY check_dataset.py /ryzers/check_sam3d_dataset.py
 COPY test_conditioning_cache.py /ryzers/test_sam3d_conditioning_cache.py
 RUN chmod +x /ryzers/test_sam3d.py
 CMD /ryzers/test_sam3d.py --smoke

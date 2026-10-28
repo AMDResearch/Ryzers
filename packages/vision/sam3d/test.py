@@ -3,10 +3,8 @@
 # SPDX-License-Identifier: MIT
 """Run the upstream SAM 3D Objects kidsroom example on ROCm."""
 import argparse
-import json
 from pathlib import Path
 import sys
-import time
 
 
 def check_sparse_convolution(kernel_size=3):
@@ -39,12 +37,16 @@ def check_sparse_convolution(kernel_size=3):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--smoke', action='store_true', help='check GPU and imports without downloading weights')
+    parser.add_argument('--list-gpus', action='store_true', help='list PyTorch device indices and names')
     parser.add_argument('--output', type=Path, default=Path('/ryzers/output'))
     masks = parser.add_mutually_exclusive_group()
     masks.add_argument('--mask-index', type=int, nargs='+', default=[14])
     masks.add_argument('--all-masks', action='store_true', help='run the upstream multi-object notebook masks')
     args = parser.parse_args()
     import torch
+    if args.list_gpus:
+        print([(i, torch.cuda.get_device_name(i)) for i in range(torch.cuda.device_count())])
+        return
     if not torch.version.hip or not torch.cuda.is_available():
         raise RuntimeError('SAM 3D requires an accessible ROCm GPU')
     print(f'PyTorch {torch.__version__}; ROCm {torch.version.hip}; GPU {torch.cuda.get_device_name(0)}')
@@ -56,33 +58,21 @@ def main():
         print('SAM 3D inference imports passed')
         return
     from huggingface_hub import snapshot_download
-    checkpoint_root = Path(snapshot_download('facebook/sam-3d-objects', allow_patterns=['checkpoints/*'])) / 'checkpoints'
+    checkpoint_root = Path(snapshot_download(
+        'facebook/sam-3d-objects', revision='2e73555018d2741ccd486e56c24fac41155a1dc6',
+        allow_patterns=['checkpoints/*'])) / 'checkpoints'
     example = root / 'notebook/images/shutterstock_stylish_kidsroom_1640806567'
     image = load_image(str(example / 'image.png'))
     indices = sorted(int(p.stem) for p in example.glob('[0-9]*.png')) if args.all_masks else args.mask_index
     args.output.mkdir(parents=True, exist_ok=True)
-    start = time.monotonic()
     inference = Inference(str(checkpoint_root / 'pipeline.yaml'), compile=False)
-    load_seconds = round(time.monotonic() - start, 1)
     outputs = []
     for index in indices:
-        torch.cuda.reset_peak_memory_stats()
-        run_start = time.monotonic()
         mask = load_single_mask(str(example), index=index)
         assert image.shape[:2] == mask.shape and mask.any(), 'Invalid example image/mask'
         output = inference(image, mask, seed=42)
         report = save_output(output, args.output / f'kidsroom_{index}')
-        report.update({
-            'example': str(example.relative_to(root)), 'mask_index': index,
-            'model_revision': checkpoint_root.parent.name,
-            'model_load_seconds': load_seconds,
-            'seed': 42, 'torch': torch.__version__, 'rocm': torch.version.hip,
-            'gpu': torch.cuda.get_device_name(0),
-            'seconds': round(time.monotonic() - run_start, 1),
-            'peak_gpu_bytes': torch.cuda.max_memory_allocated(),
-        })
-        (args.output / f'kidsroom_{index}.json').write_text(json.dumps(report, indent=2) + '\n')
-        print('PASS:', json.dumps(report))
+        print(f'PASS: mask {index}, {report}')
         # Keep only what upstream make_scene needs, releasing mesh intermediates.
         outputs.append({k: output[k] for k in ('gaussian', 'rotation', 'translation', 'scale')})
         del output
@@ -93,7 +83,7 @@ def main():
         scene.save_ply(str(scene_path))
         count = check_ply(scene_path)
         assert count == sum(len(out['gaussian'][0].get_xyz) for out in outputs)
-        print(f'PASS: assembled {len(outputs)} objects, {count} Gaussians; {time.monotonic()-start:.1f}s total')
+        print(f'PASS: assembled {len(outputs)} objects, {count} Gaussians')
 
 
 def check_ply(path):
