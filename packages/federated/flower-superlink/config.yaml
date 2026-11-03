@@ -1,0 +1,33 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# SuperLink is the coordinator. It does not run training and does not
+# need the GPU or an X display.
+gpu_support: false
+x11_display: false
+
+# Host networking (and --rm) already come from RYZERS_DEFAULT_RUN_FLAGS,
+# so we don't repeat them here — Docker rejects "--network host" twice.
+# Host networking lets local deployments address every component over
+# 127.0.0.1 and distributed ones bind ports directly on the host (no -p
+# hop). SuperLink listens on host 9091/9092/9093.
+#
+# The label lets run-local.sh reliably clean up flower containers across
+# image rebuilds (an `--filter ancestor=<tag>` cleanup misses containers
+# whose image was orphaned by a rebuild).
+docker_extra_run_flags: "--label ryzers-flower-local=1"
+
+volume_mappings:
+- "$PWD/workspace/flower/state:/app/state"
+- "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
+
+# Consumed by /ryzers/run-superlink.sh. Override by exporting the same
+# variables in your shell before `ryzers run`.
+environment_variables:
+- "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
+- "FLOWER_ISOLATION=${FLOWER_ISOLATION:-process}"
+- "FLOWER_STATE_DB=${FLOWER_STATE_DB:-/app/state/state.db}"
+# Set FLWR_LOG_LEVEL=DEBUG in your shell before `ryzers run` to make the
+# SuperLink print full tracebacks (e.g. the server-side KeyError behind a
+# gRPC "Exception calling application: ..." seen by SuperNode/superexec).
+- "FLWR_LOG_LEVEL=${FLWR_LOG_LEVEL:-INFO}"
