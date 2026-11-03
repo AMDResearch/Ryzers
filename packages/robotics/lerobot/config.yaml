@@ -1,13 +1,9 @@
 # Copyright(C) 2025 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
-build_arguments:
-- "PYTHON_VERSION=3.10"   # Cannot exceed Python 3.11 due to Aloha Gym / Mujoco 2.3.7 dependency
-                          # https://pypi.org/project/mujoco/2.3.7/#files
-
-environment_variables: #TODO: Update with your own HF token
-  #- "HF_TOKEN=your_token_here" 
-- "HSA_OVERRIDE_GFX_VERSION=11.0.0"
+# Uncomment to set your Hugging Face token
+# environment_variables:
+# - "HF_TOKEN=your_token_here"
 
 # Make sure calibration is persistent and models are available after ryzer exit
 volume_mappings:

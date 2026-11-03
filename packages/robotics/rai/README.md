@@ -54,6 +54,8 @@ Once everything is loaded you can use the streamlit chat window to tell the robo
 
 ## Run benchmarks with local LLM
 
+### Ollama
+
 We'll append the ollama package to enable locally run models.
 
 ```bash
@@ -73,8 +75,8 @@ ollama pull gemma3:4b
 
 # Setup ROS environment
 cd /ryzers/rai
-source install/setup.sh
-source /opt/ros/jazzy/setup.sh
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
 
 # Run tool calling benchmark
 python src/rai_bench/rai_bench/examples/tool_calling_agent.py --model-name qwen2.5:7b --vendor ollama --extra-tool-calls 5 --task-types basic  --n-shots 5 --prompt-detail descriptive --complexities easy
@@ -87,6 +89,34 @@ python src/rai_bench/rai_bench/examples/vlm_benchmark.py --model-name gemma3:4b 
 ```
 
 By default we mount the benchmark results in an experiments directory on the path you ran `ryzers run` from. You will find a `results_summary.csv` for an overview there along with more detailed logs.
+
+### Lemonade
+
+We'll append the lemonade-sdk package to serve models locally through Lemonade's OpenAI-compatible API.
+
+```bash
+ryzers build ros o3de rai lemonade-sdk
+ryzers run
+```
+
+By default `lemonade_env.sh` downloads and serves **Gemma-4-E2B-it-GGUF**. To use a different model, pass it as an argument (`source lemonade_env.sh <model>`) and update the `--model-name` flag to match. Again, below we give an example for running the lemonade-sdk on the same 3 benchmarks.
+
+```bash
+ryzers run bash
+
+source lemonade_env.sh     # or: source lemonade_env.sh <other-model>
+
+# Run tool calling benchmark
+python src/rai_bench/rai_bench/examples/tool_calling_agent.py --model-name Gemma-4-E2B-it-GGUF --vendor openai --extra-tool-calls 5 --task-types basic --n-shots 5 --prompt-detail descriptive --complexities easy
+
+# Run manipulation benchmark
+python src/rai_bench/rai_bench/examples/manipulation_o3de.py --model-name Gemma-4-E2B-it-GGUF --vendor openai --levels trivial
+
+# Run VLM benchmark (use a vision-capable model)
+python src/rai_bench/rai_bench/examples/vlm_benchmark.py --model-name Gemma-4-E2B-it-GGUF --vendor openai
+```
+
+Available models and serving config live in `lemonade_env.sh`.
 
 ## Documentation
 

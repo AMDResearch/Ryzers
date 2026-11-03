@@ -16,44 +16,18 @@ RUN usermod -aG render root
 RUN usermod -aG video root
 RUN usermod -aG kvm root
 
-#################################
-# Install ROCm Using ROCm Docker
-#################################
+# Add HIP build tools when using wheel-based ROCm.
+RUN ROCM_VERSION="$(python -c "import importlib.metadata as m; print(m.version('rocm'))" 2>/dev/null)" || exit 0; \
+    pip install --index-url https://repo.amd.com/rocm/whl-multi-arch/ "rocm[devel]==${ROCM_VERSION}"; \
+    rocm-sdk init; \
+    test -e /opt/rocm || ln -s "$(rocm-sdk path --root)" /opt/rocm
 
+ENV ROCM_HOME=/opt/rocm
+ENV LD_LIBRARY_PATH=/opt/venv/lib/python3.12/site-packages/_rocm_sdk_devel/lib:/opt/venv/lib/python3.12/site-packages/_rocm_sdk_core/lib:/opt/venv/lib/python3.12/site-packages/_rocm_sdk_libraries/lib:${LD_LIBRARY_PATH}
 
-
-
-#####################################
-# Install ROCm Using TheRock Steps
-#####################################
-
-# add dependencies
-# RUN apt-get update && \
-#     apt-get install -y \
-# 	python3 \
-#     	python3.12 \
-# 	python3.12-dev \
-# 	python3.12-venv \
-# 	python3-pip
-
-# RUN python3 -m venv /ryzers/venv_ryzers
-# ENV PATH="/ryzers/venv_ryzers/bin:$PATH"
-
-# RUN  python3 -m pip install \
-#   --index-url https://rocm.nightlies.amd.com/v2/gfx1151/ \
-#   rocm[libraries,devel]
-
-# # install torch
-# RUN  python3 -m pip install \
-#   --index-url https://rocm.nightlies.amd.com/v2/gfx1151/ \
-#   torch torchaudio torchvision
-
-
-
-# add a sign-of-life test
+# Sign-of-life test
 WORKDIR /ryzers
 COPY test.sh /ryzers/test_init.sh
 RUN chmod +x /ryzers/test_init.sh
 
-# Command to run a test
 CMD /ryzers/test_init.sh  

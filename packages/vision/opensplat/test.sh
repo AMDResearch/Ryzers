@@ -11,6 +11,6 @@ TRAINER_BIN="${BUILD_DIR}/opensplat"
 echo ">>> Starting OpenSplat test..."
 
 echo ">>> Running '${TRAINER_BIN}'"
-${TRAINER_BIN} /ryzers/data/banana -n 2000
+${TRAINER_BIN} /opt/opensplat-test-data/banana -n 10
 
 echo ">>> OpenSplat test completed successfully."

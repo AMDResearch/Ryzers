@@ -4,7 +4,7 @@ Contains everything you need to build & run a ROCm-enabled LeRobot container.
 
 ## Build & Run the Docker Container
 
-To verify the lerobot installation simply run the built ryzer -- this will run one of the lerobot training examples as a test.
+Running the image verifies LeRobot 0.6 and performs a GPU forward/backward pass.
 
 ```bash
 ryzers build lerobot
@@ -119,7 +119,7 @@ lerobot-teleoperate \
 
 We record 30 episodes of manually placing a green cube into a mug. Make sure to set `robot.cameras` with the resolution and index according to your setup. Adjust dataset parameters like number of episodes or durations as needed for your task.
 
-Set `dataset.push_to_hub=True` if you want to upload the dataset online to your HuggingFace hub.
+Set `dataset.push_to_hub=true` if you want to upload the dataset to Hugging Face.
 
 ```bash
 lerobot-record \
@@ -135,8 +135,10 @@ lerobot-record \
     --dataset.single_task="place green cube in mug" \
     --dataset.episode_time_s=10 \
     --dataset.reset_time_s=5 \
-    --dataset.push_to_hub=False \
-    --play_sound=False
+    --dataset.streaming_encoding=true \
+    --dataset.encoder_threads=2 \
+    --dataset.push_to_hub=false \
+    --play_sounds=false
 ```
 
 You can later visualize individual episodes in your collected dataset using `lerobot-dataset-viz`. You can do this with local cached dataset - no need to upload anything online.
@@ -166,21 +168,18 @@ lerobot-train \
 
 ### 5. Run inference
 
-To deploy the model we re-use the `lerobot-record` command omitting training settings and with a `policy.path` parameter set. **Note:** the `dataset.repo_id` parameter should start with the word `eval`.
+Use `lerobot-rollout` to deploy the trained policy:
 
 ```bash
-lerobot-record \
+lerobot-rollout \
+    --strategy.type=base \
+    --policy.path=/ryzers/mounted/outputs/train/place_cube_act/checkpoints/last/pretrained_model/ \
     --robot.type=so101_follower \
     --robot.port=/dev/ttyACM_follower \
     --robot.id=my_awesome_follower_arm \
     --robot.cameras="{ top: {type: opencv, index_or_path: /dev/webcam_top, width: 640, height: 480, fps: 30}, front: {type: opencv, index_or_path: /dev/webcam_front, width: 640, height: 480, fps: 30}}" \
-    --dataset.repo_id=${HF_USER}/eval_place_cube_act \
-    --dataset.single_task="place green cube in mug" \
-    --policy.path=/ryzers/mounted/outputs/train/place_cube_act/checkpoints/last/pretrained_model/ \
-    --dataset.num_episodes=1 \
-    --dataset.episode_time_s=20 \
-    --dataset.push_to_hub=False \
-    --play_sound=False
+    --task="place green cube in mug" \
+    --duration=60
 ```
 
 Observe your arm doing its tasks autonomously!

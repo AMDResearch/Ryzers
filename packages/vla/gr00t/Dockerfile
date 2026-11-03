@@ -8,7 +8,7 @@ SHELL ["/bin/bash", "-c"]
 WORKDIR /ryzers
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git wget rocm-dev cmake pybind11-dev ffmpeg \
+    git wget cmake pybind11-dev ffmpeg \
     libavdevice-dev libavfilter-dev libavformat-dev libavcodec-dev \
     libavutil-dev libswresample-dev libswscale-dev pkg-config \
  && rm -rf /var/lib/apt/lists/*

@@ -11,6 +11,15 @@ index c4a06e5..e3c2b04 100644
  license = { file = "LICENSE" }
  dependencies = [
      "augmax>=0.3.4",
+@@ -16,7 +16,7 @@ dependencies = [
+     "fsspec[gcs]>=2024.6.0",
+     "gym-aloha>=0.1.1",
+     "imageio>=2.36.1",
+-    "jax[cuda12]==0.5.3",
++    "jax==0.5.3",
+     "jaxtyping==0.2.36",
+     "lerobot",
+     "ml_collections==1.0.0",
 @@ -26,7 +26,6 @@ dependencies = [
      "orbax-checkpoint==0.11.13",
      "pillow>=11.0.0",
@@ -23,21 +32,20 @@ index c4a06e5..e3c2b04 100644
      "beartype==0.19.0",
      "treescope>=0.1.7",
      "transformers==4.53.2",
-+    "torch==2.8.0+rocm6.4",
-+    "torchvision==0.23.0+rocm6.4", 
-+    "torchaudio==2.8.0+rocm6.4",
-+    "pytorch-triton-rocm==3.4.0",
++    "torch[device-gfx1151]==2.12.0+rocm7.14.0",
++    "torchvision[device-gfx1151]==0.27.0+rocm7.14.0",
++    "torchaudio==2.11.0+rocm7.14.0",
++    "rocm[devel]==7.14.0",
      "rich>=14.0.0",
      "polars>=1.30.0",
  ]
-@@ -62,10 +65,19 @@ rlds = [
+@@ -62,10 +64,17 @@ rlds = [
  [tool.uv]
  override-dependencies = ["ml-dtypes==0.4.1", "tensorstore==0.1.74"]
  
 +[[tool.uv.index]]
 +name = "pytorch-rocm"
-+url = "https://download.pytorch.org/whl/rocm6.4"
-+explicit = true
++url = "https://repo.amd.com/rocm/whl-multi-arch/"
 +
  [tool.uv.sources]
  openpi-client = { workspace = true }
@@ -46,11 +54,10 @@ index c4a06e5..e3c2b04 100644
 +torch = { index = "pytorch-rocm" }
 +torchvision = { index = "pytorch-rocm" }
 +torchaudio = { index = "pytorch-rocm" }
-+pytorch-triton-rocm = { index = "pytorch-rocm" }
  
  [tool.uv.workspace]
  members = ["packages/*"]
-@@ -134,4 +146,4 @@ build-backend = "hatchling.build"
+@@ -134,4 +144,4 @@ build-backend = "hatchling.build"
  
  [tool.pytest.ini_options]
  markers = ["manual: should be run manually."]

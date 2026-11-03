@@ -40,14 +40,10 @@ RUN mkdir -p /root/.mujoco \
 # Install mujoco
 RUN pip install --no-cache-dir --break-system-packages mujoco==${MUJOCO_VERSION}
 
-# Install openpi-specific lerobot
-RUN pip install git+https://github.com/huggingface/lerobot.git@0cf864870cf29f4738d3ade893e6fd13fbd7cdb5#0cf864870cf29f4738d3ade893e6fd13fbd7cdb5
-
-# Install ROCm jax
-RUN pip install jax[rocm]
-
 # Install uv
 RUN pip install uv
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+ENV UV_INDEX_STRATEGY=unsafe-best-match
 
 # Setup openpi
 RUN git clone https://github.com/Physical-Intelligence/openpi && \
@@ -58,8 +54,9 @@ RUN git clone https://github.com/Physical-Intelligence/openpi && \
 COPY openpi.patch /ryzers/openpi
 RUN cd openpi && \
     git apply ./openpi.patch && \
+    echo "3.12" > .python-version && \
     sed -i '/^override-dependencies = \[/ s/\]/, "av==13.1.0"]/' pyproject.toml && \
-    GIT_LFS_SKIP_SMUDGE=1 uv sync && \
+    GIT_LFS_SKIP_SMUDGE=1 uv sync --inexact && \
     GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 
 # Download model checkpoint
@@ -68,7 +65,7 @@ RUN cd openpi && \
 
 # Apply PyTorch support patch
 RUN cd openpi && \
-    cp -r ./src/openpi/models_pytorch/transformers_replace/* .venv/lib/python3.11/site-packages/transformers/
+    cp -r ./src/openpi/models_pytorch/transformers_replace/* /opt/venv/lib/python3.12/site-packages/transformers/
 
 # Convert JAX models to PyTorch
 RUN cd openpi && \
@@ -77,7 +74,7 @@ RUN cd openpi && \
     --config_name pi0_droid \
     --output_path /root/.cache/openpi/openpi-assets/checkpoints/pi0_droid
 
-RUN echo "export LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm-6.4.4/lib:$LD_LIBRARY_PATH" >> /root/.bashrc
+RUN echo "export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH" >> /root/.bashrc
 
 COPY test.py /ryzers/openpi/test.py
 COPY test.sh /ryzers/test.sh

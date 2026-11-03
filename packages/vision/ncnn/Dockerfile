@@ -20,7 +20,7 @@ RUN git clone https://github.com/Tencent/ncnn
 RUN cd ncnn && \
     mkdir -p build && \
     cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release -DNCNN_VULKAN=ON -DNCNN_SYSTEM_GLSLANG=ON -DNCNN_BUILD_EXAMPLES=ON .. && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DNCNN_VULKAN=ON -DNCNN_SYSTEM_GLSLANG=ON -DNCNN_BUILD_EXAMPLES=ON -DNCNN_SIMPLEOCV=ON .. && \
     make -j$(nproc)
 
 # Copy the test script

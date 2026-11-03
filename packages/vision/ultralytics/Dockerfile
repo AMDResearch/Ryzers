@@ -6,6 +6,10 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /ryzers 
 
+RUN apt-get update && \
+    apt-get install -y libgl1 && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install Ultralytics YOLO
 RUN pip install --no-cache-dir \
     ultralytics \
@@ -15,8 +19,10 @@ RUN pip install --no-cache-dir \
     matplotlib
 
 # Download test image
-RUN mkdir -p /ryzers/data_ultralytics/
-RUN wget https://ultralytics.com/images/bus.jpg -O /ryzers/data_ultralytics/bus.jpg
+RUN mkdir -p /opt/ultralytics-test-data
+RUN wget https://ultralytics.com/images/bus.jpg -O /opt/ultralytics-test-data/bus.jpg
+RUN wget https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo11n.pt \
+    -O /opt/ultralytics-test-data/yolo11n.pt
 
 # Copy test scripts
 COPY test_ultralytics.py /ryzers/test_ultralytics.py

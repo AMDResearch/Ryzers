@@ -17,21 +17,23 @@ ryzers run
 
 ## Building an Example Splat
 
-1. **Download the data**:  
-   Create a directory called `data`. Download the “banana” data from the [official repository](https://github.com/pierotofy/OpenSplat/tree/main) and place it in `data`.
+1. **Check `config.yaml`**:
+   The default configuration mounts the host's `./data` directory at `/ryzers/data`. Update the mapping if your data is stored elsewhere.
 
-2. **Edit `config.yaml`**:  
-   In your `config.yaml`, uncomment the relevant mount line. Update the local path is correct for mounting the `data` folder, as it will also be used to store your final splat.
-
-3. **Generate the splat**:  
-   Once inside the Docker container, run:
+2. **Generate the splat**:
+   Start an interactive shell:
    ```bash
-   cd build
-   ./opensplat /ryzers/data/banana -n 2000
+   ryzers run bash
    ```
-   This will generate the `output_splat.ply` by default.
+   Then run:
+   ```bash
+   cd /ryzers/OpenSplat/build
+   ./opensplat /opt/opensplat-test-data/banana -n 2000 \
+       -o /ryzers/data/output_splat.ply
+   ```
+   This writes the result to `./data/output_splat.ply` on the host.
 
-4. **View the splat**:  
+3. **View the splat**:
    Close the Docker container, then navigate to [https://playcanvas.com/viewer](https://playcanvas.com/viewer).  
    Drag and drop the `output_splat.ply` file into the viewer to see your generated splat.
 

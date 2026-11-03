@@ -43,8 +43,6 @@ ryzers run -it bash
 
 ## GPU Acceleration
 
-This package includes PyTorch with ROCm backend for GPU-accelerated computation. The `HSA_OVERRIDE_GFX_VERSION=11.0.0` environment variable is set for Strix Point (gfx1150) compatibility.
-
 To verify GPU acceleration:
 
 ```python

@@ -4,7 +4,7 @@
 from ultralytics import YOLO
 import cv2
 
-model = YOLO("/ryzers/data_ultralytics/yolo11x.pt")  # or s/m/l/x
+model = YOLO("/opt/ultralytics-test-data/yolo11n.pt")
 
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():

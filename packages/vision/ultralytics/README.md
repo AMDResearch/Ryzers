@@ -19,7 +19,7 @@ ryzers run "python3 /ryzers/demo_ultralytics.py"
 
 ## Models
 
-By default, the test uses `yolov11x.pt` - to use a different model, modify the `model_name` in [test_ultralytics.py](test_ultralytics.py).
+The test and webcam demo use the bundled `yolo11n.pt` model. To use another model, update the path passed to `YOLO` in the corresponding script.
 
 ## References
 

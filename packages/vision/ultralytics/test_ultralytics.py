@@ -12,12 +12,12 @@ import ultralytics
 print(f"Ultralytics version: {ultralytics.__version__}")
 
 print("Loading YOLO model...")
-model = YOLO("/ryzers/data_ultralytics/yolo11x.pt")
+model = YOLO("/opt/ultralytics-test-data/yolo11n.pt")
 print("Model loaded successfully")
 
 print("Running inference benchmark (10 iterations)...")
 for i in range(10):
-    results = model("/ryzers/data_ultralytics/bus.jpg", verbose=False)
+    results = model("/opt/ultralytics-test-data/bus.jpg", verbose=False)
     if i == 0:
         # Print detection results from first run
         print(f"Detected {len(results[0].boxes)} objects in image")

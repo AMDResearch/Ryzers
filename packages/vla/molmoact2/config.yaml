@@ -1,0 +1,62 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+### ryzers build options
+
+# init_image is omitted on purpose: ryzers defaults to RYZERS_DEFAULT_INIT_IMAGE
+# (the public rocm/pytorch ROCm+torch base), which is all this package needs.
+
+# Pin the upstream MolmoAct2 source + lerobot ref this package builds against.
+build_arguments:
+- "MOLMOACT2_COMMIT=cdf4b7728e0545366bf3366639fd86477ef59d04"
+- "LEROBOT_REF=molmoact2-hf-inference"
+
+### ryzers run options
+
+gpu_support: true
+x11_display: false
+
+# Weights and HF datasets are NOT baked into the image; they download once into
+# the persistent /root/.cache/huggingface volume and are reused across runs.
+# Artifacts (videos + joint-angle plots) land under /outputs.
+environment_variables:
+- "HF_HOME=/root/.cache/huggingface"
+# HF download backend: default to single-stream with the Xet client off for reliable
+# anonymous downloads. Override for speed where permits/auth allow:
+#   HF_HUB_ENABLE_HF_TRANSFER=1 ryzers run ...
+- 'HF_HUB_DISABLE_XET=${HF_HUB_DISABLE_XET:-1}'
+- 'HF_HUB_ENABLE_HF_TRANSFER=${HF_HUB_ENABLE_HF_TRANSFER:-0}'
+- 'HF_HUB_DOWNLOAD_TIMEOUT=${HF_HUB_DOWNLOAD_TIMEOUT:-60}'
+- "HF_HUB_DISABLE_TELEMETRY=1"
+- "TOKENIZERS_PARALLELISM=false"
+- "MUJOCO_GL=egl"
+- "PYOPENGL_PLATFORM=egl"
+# ROCm perf levers for gfx1151.
+- "TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL=1"
+- "TORCH_BLAS_PREFER_HIPBLASLT=0"
+- "OUT_DIR=/outputs"
+# Per-demo knobs (override from the host: VAR=... ryzers run /ryzers/demo_*.sh).
+- 'SEED=${SEED:-}'
+- 'EPISODE=${EPISODE:-}'
+- 'SUITE=${SUITE:-}'
+- 'TASK_ID=${TASK_ID:-}'
+- 'THINK=${THINK:-}'
+- 'HF_TOKEN=${HF_TOKEN:-}'
+# Flow-matching denoising steps (lower = a bit faster inference). Blank = model default.
+- 'NUM_STEPS=${NUM_STEPS:-}'
+# Interactive demo (demo_interactive.sh / demo_interactive_rt.sh) knobs.
+- 'PORT=${PORT:-}'
+- 'RT_HZ=${RT_HZ:-}'
+- 'RT_LOOKAHEAD=${RT_LOOKAHEAD:-}'
+# Sim horizon (max episode steps) for the real-time demo; raise for longer tasks.
+- 'RT_MAX_STEPS=${RT_MAX_STEPS:-}'
+# Cross-embodiment arm selector (panda | ur5e | xarm6).
+- 'EMBODIMENT=${EMBODIMENT:-}'
+
+volume_mappings:
+- "$PWD/workspace/molmoact2/outputs:/outputs"
+- "$PWD/workspace/molmoact2/models:/models"
+- "$PWD/workspace/.cache/huggingface:/root/.cache/huggingface"
+
+# --network=host, --ipc=host, and --shm-size 16G are provided by the Ryzer default
+# run flags. Repeating them here makes Docker reject the run.
