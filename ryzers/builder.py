@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 import os
+import sys
 import yaml
 import subprocess
 from typing import List
@@ -46,11 +47,27 @@ class DockerBuilder:
 
             cmd = f"docker build -t {image_tag} {buildflags} --build-arg BASE_IMAGE={current_base_image} {package_path}"
             print(cmd)
+            # Tee the build output: keep it on screen so long builds stay watchable,
+            # while also recording a transcript per layer. Docker writes its build
+            # progress to stderr, so it has to be merged into stdout to be captured.
             with open(log_file, "w") as log:
-                subprocess.run(
-                    cmd.split(), 
-                    check=True
+                proc = subprocess.Popen(
+                    cmd.split(),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
                 )
+                for line in proc.stdout:
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
+                    log.write(line)
+                    log.flush()
+                returncode = proc.wait()
+
+            if returncode != 0:
+                print(f"Build of '{image_tag}' failed, see log: {log_file}")
+                sys.stdout.flush()
+                raise subprocess.CalledProcessError(returncode, cmd)
 
             self._write_last_built()
             print(f"Successfully built image: {image_tag}")
