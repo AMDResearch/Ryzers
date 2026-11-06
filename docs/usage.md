@@ -24,6 +24,7 @@ ryzers run                         # Runs the last built image
 ryzers run --name <imagename>      # Runs the imagename image
 ryzers run bash                    # Runs the last build image with "bash" command
 ryzers run --name <imagename> bash # Runs the imagename image with "bash" command
+ryzers run "jupyter-lab --ip=0.0.0.0 --no-browser --allow-root"  # Quote commands that contain flags
 ```
 
 

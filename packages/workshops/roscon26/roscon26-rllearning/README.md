@@ -13,7 +13,7 @@ notebook runs deterministic inference only.
 
 ```sh
 ryzers build jupyterlab roscon26-rllearning
-ryzers run jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+ryzers run "jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
 ```
 
 Then open `0_simulation_rl.ipynb` and pick the **ROSCon26 RL (ROCm)** kernel.

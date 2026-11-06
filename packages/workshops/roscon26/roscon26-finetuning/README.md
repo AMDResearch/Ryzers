@@ -14,7 +14,7 @@ pinned, immutable Hugging Face revisions of public checkpoints and datasets.
 
 ```sh
 ryzers build jupyterlab roscon26-finetuning
-ryzers run jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+ryzers run "jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
 ```
 
 Then open `0_overview.ipynb` and pick the **ROSCon26 Fine-tuning (MolmoAct2)**

@@ -11,7 +11,7 @@ renders both so the failure mode is visible rather than just a number.
 
 ```sh
 ryzers build jupyterlab roscon26-simulation
-ryzers run jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+ryzers run "jupyter-lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
 ```
 
 Open `notebooks/00_workshop_intro.ipynb` first and select the **gslab ROSCon
