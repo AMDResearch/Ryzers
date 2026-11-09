@@ -40,12 +40,14 @@ class DockerRunner:
         # Execute the script
         try:
 
-            result = subprocess.run(
+            # The script runs `docker run -it`, so its output has to stay attached to
+            # this terminal to keep the container interactive -- nothing is captured
+            # here, and `result.stdout`/`e.stderr` are therefore always None.
+            subprocess.run(
                 ["bash", self.script_name, self.docker_cmdstr], check=True
             )
-            print(f"Script output:\n{result.stdout}")
         except subprocess.CalledProcessError as e:
-            print(f"Error executing script {self.script_name}: {e.stderr}")
+            print(f"Error executing script {self.script_name}: exited {e.returncode}")
             raise
 
     def build_runscript(self, runflags, docker_cmd=""):

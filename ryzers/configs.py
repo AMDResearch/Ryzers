@@ -87,7 +87,6 @@ class ConfigManager:
         extra_run_flags = ""
 
         for c in self.configentries:
-            print(str(c))
             if c.key == "port_mappings":
                 runflags += f" -p {c}" 
             if c.key == "volume_mappings":
