@@ -13,6 +13,7 @@ The `config.yaml` file defines the metadata, build arguments, environment variab
 init_image: <string>    
 gpu_support: <boolean>  
 x11_display: <boolean>  
+camera_support: <boolean>  
 
 build_arguments:
 - <key1=value1>  
@@ -42,6 +43,8 @@ All fields are optional and all have a default value if not specified.
 - **`gpu_support`**: (Optional) A boolean value indicating whether GPU support is enabled. Defaults to `true`.
 
 - **`x11_display`**: (Optional) A boolean value indicating whether X11 display forwarding is enabled. Defaults to `true`.
+
+- **`camera_support`**: (Optional) A boolean value indicating whether host cameras are passed into the container. When enabled, every `/dev/video*` node found on the host is added with `--device`. Defaults to `true`. Set it to `false` for packages that never open a camera.
 
 - **`build_arguments`**: A list of build arguments to pass to the Docker build process. Each argument is specified as a key-value pair. For example:
   - `"PYTHON_VERSION=3.10"` 

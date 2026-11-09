@@ -1,0 +1,1772 @@
+{
+  "schema_version": "rho-multitask-helix-report/v2",
+  "mode": "live_capx",
+  "recorded_fallback": false,
+  "study_provenance": {
+    "created_at": "2026-08-30T08:01:55Z",
+    "hostname": "jupyter-student",
+    "image_id": null,
+    "source_revision": null
+  },
+  "mutation_model_loader_alias": "user.Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+  "mutation_model_api_id": "Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+  "seed_model": "Gemma-4-E4B-it-GGUF",
+  "generations": 2,
+  "proposal_slots_per_generation": 4,
+  "manifest": {
+    "hidden_rollouts_exposed_to_evolution": false,
+    "scenarios": {
+      "lift_train": {
+        "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+        "policy_path": "solver/tasks/cube_lift.py",
+        "task": "cube_lift",
+        "trial": 1
+      },
+      "lift_val1": {
+        "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+        "policy_path": "solver/tasks/cube_lift.py",
+        "task": "cube_lift",
+        "trial": 2
+      },
+      "lift_val2": {
+        "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+        "policy_path": "solver/tasks/cube_lift.py",
+        "task": "cube_lift",
+        "trial": 3
+      },
+      "lift_val3": {
+        "config_path": "env_configs/cube_lifting/franka_robosuite_cube_lifting.yaml",
+        "policy_path": "solver/tasks/cube_lift.py",
+        "task": "cube_lift",
+        "trial": 4
+      },
+      "stack_train": {
+        "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+        "policy_path": "solver/tasks/cube_stack.py",
+        "task": "cube_stack",
+        "trial": 1
+      },
+      "stack_val1": {
+        "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+        "policy_path": "solver/tasks/cube_stack.py",
+        "task": "cube_stack",
+        "trial": 2
+      },
+      "stack_val2": {
+        "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+        "policy_path": "solver/tasks/cube_stack.py",
+        "task": "cube_stack",
+        "trial": 3
+      },
+      "stack_val3": {
+        "config_path": "env_configs/cube_stack/franka_robosuite_cube_stack.yaml",
+        "policy_path": "solver/tasks/cube_stack.py",
+        "task": "cube_stack",
+        "trial": 4
+      }
+    },
+    "schema_version": "rho-multitask-scenarios/v2",
+    "splits": {
+      "train": [
+        "stack_train",
+        "lift_train"
+      ],
+      "val": [
+        "stack_val1",
+        "stack_val2",
+        "stack_val3",
+        "lift_val1",
+        "lift_val2",
+        "lift_val3"
+      ]
+    }
+  },
+  "provenance": {
+    "schema_version": "rho-multitask-fixtures/v2",
+    "seed_model": "Gemma-4-E4B-it-GGUF",
+    "policies": {
+      "cube_stack": {
+        "file": "cube_stack.py",
+        "source": "historical CaP-X Gemma E4B cube_stack trial 1 generated policy",
+        "source_policy_sha256": "1e832d66a724443636ef68cdc1d70c4357169317a44b2c65b80b42faa52dd17c",
+        "source_prompt": "Pick up the red cube and gently stack it on top of the green cube, then release it.",
+        "source_prompt_file": null,
+        "source_prompt_sha256": "fb532e91e6977c096e373861b1eb3b6c1e45e01e2a60a33c1d0f565d8d48bfed",
+        "source_git_commit": "53e9966",
+        "source_trial": 1,
+        "source_task_completed": false,
+        "relationship": "whitespace-normalized authentic generated policy"
+      },
+      "spill_wipe": {
+        "file": "spill_wipe.py",
+        "source": "/results/live-20260821/full/capx/spill_wipe/attempt_03/artifacts/scenarios/Gemma-4-E4B-it-GGUF/spill_wipe/trial_01_sandboxrc_0_reward_0.980_taskcompleted_0/code.py",
+        "source_policy_sha256": "e31ccc884d4872ced181d6614d46b5dafc425548471206ceac32eff6a9dbac59",
+        "source_prompt": "Wipe the complete detected brown spill region with the Franka end effector.",
+        "source_prompt_file": null,
+        "source_prompt_sha256": null,
+        "prompt_note": "The source run retained the generated policy and task goal but not the fully expanded runtime API suffix.",
+        "source_git_commit": "7f55f31",
+        "source_trial": 1,
+        "source_task_completed": false,
+        "relationship": "normalized authentic generated raster policy retaining its overrun failure mode"
+      },
+      "cube_lift": {
+        "failure_mode": "NameError: name 'numpy' is not defined -- the policy calls numpy.array without importing it. 9 of 40 trials in the source sweep failed this way.",
+        "file": "cube_lift.py",
+        "relationship": "authentic generated policy retaining its missing-import failure mode, trailing newline added",
+        "source": "outputs/overnight/sweep_cube_lift/artifacts/scenarios/Gemma-4-E4B-it-GGUF/cube_lift/trial_02_sandboxrc_1_reward_0.502_taskcompleted_0/code.py",
+        "source_git_commit": null,
+        "source_git_commit_note": "the source sweep recorded source_revision=None, so no commit is available",
+        "source_policy_sha256": "28a96855e0fe957a73b4005043118c8b64ed4dd6216a9d457aa43471e9013bfa",
+        "source_prompt": "Pick up the red cube and lift it.",
+        "source_prompt_file": null,
+        "source_prompt_sha256": null,
+        "source_sweep": "40-trial Gemma-4-E4B cube_lift sweep, 2026-08-29",
+        "source_task_completed": false,
+        "source_trial": 2
+      }
+    }
+  },
+  "baseline_validation": [
+    {
+      "scenario_id": "stack_val1",
+      "task": "cube_stack",
+      "trial": 2,
+      "reward": 0.0,
+      "raw_reward": 0.004114115263672655,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [343.01, 303.81, 406.38, 373.39]\nObject position for red cube: [ 0.63645687  0.1104276  -0.08539962]\nObject quaternion wxyz for red cube: [ 0.18211549  0.57305371 -0.6877652  -0.40672155]\nObject extent for red cube: [0.06306552 0.0633641  0.04753841]\nRunning SAM2 segmentation with box: [156.74, 320.47, 236.32, 416.23]\nObject position for green cube: [ 0.68005499 -0.05415394 -0.07880755]\nObject quaternion wxyz for green cube: [-0.24739964  0.75775969  0.44728484 -0.4056229 ]\nObject extent for green cube: [0.08018345 0.07043336 0.05682124]\nRunning SAM2 segmentation with box: [343.01, 303.81, 406.38, 373.39]\nGrasp sample position for red cube: [ 0.63216663  0.11417632 -0.09651567]\nGrasp sample quaternion wxyz for red cube: [0.09586328 0.56864073 0.7862939  0.22181069]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.0041.",
+      "video": null,
+      "elapsed_seconds": 16.00160474400036
+    },
+    {
+      "scenario_id": "stack_val2",
+      "task": "cube_stack",
+      "trial": 3,
+      "reward": 0.0,
+      "raw_reward": 0.7274070497201475,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [206.06, 280.41, 253.55, 340.82]\nObject position for red cube: [ 0.60071564 -0.02101931 -0.08463361]\nObject quaternion wxyz for red cube: [-0.14591955  0.47059579  0.78425231 -0.37708806]\nObject extent for red cube: [0.05924518 0.06496773 0.04685289]\nRunning SAM2 segmentation with box: [110.4, 264.65, 179.56, 346.74]\nObject position for green cube: [ 0.59955018 -0.11057999 -0.07907382]\nObject quaternion wxyz for green cube: [-0.1560767   0.42031987 -0.03068245  0.89332517]\nObject extent for green cube: [0.07048241 0.06387664 0.05795351]\nRunning SAM2 segmentation with box: [206.06, 280.41, 253.55, 340.82]\nGrasp sample position for red cube: [ 0.59437081 -0.02448643 -0.09355415]\nGrasp sample quaternion wxyz for red cube: [-0.23155589  0.07884136  0.96432165 -0.10124105]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7274.",
+      "video": null,
+      "elapsed_seconds": 15.787956197978929
+    },
+    {
+      "scenario_id": "stack_val3",
+      "task": "cube_stack",
+      "trial": 4,
+      "reward": 0.0,
+      "raw_reward": 0.7206192483662033,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [115.38, 301.27, 175.52, 372.64]\nObject position for red cube: [ 0.6358334  -0.10360634 -0.08201654]\nObject quaternion wxyz for red cube: [ 0.27635724  0.87648482 -0.2660789  -0.29086603]\nObject extent for red cube: [0.05709622 0.06476172 0.03251985]\nRunning SAM2 segmentation with box: [230.27, 283.06, 302.82, 370.49]\nObject position for green cube: [ 0.62934381  0.01256827 -0.08043403]\nObject quaternion wxyz for green cube: [-0.0894177   0.80979795  0.29122911 -0.50141536]\nObject extent for green cube: [0.07133266 0.08117661 0.06036952]\nRunning SAM2 segmentation with box: [115.38, 301.27, 175.52, 372.64]\nGrasp sample position for red cube: [ 0.62628702 -0.10166478 -0.09603339]\nGrasp sample quaternion wxyz for red cube: [-0.06170741  0.39634577  0.90417886  0.14684305]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7206.",
+      "video": null,
+      "elapsed_seconds": 15.77860560407862
+    },
+    {
+      "scenario_id": "lift_val1",
+      "task": "cube_lift",
+      "trial": 2,
+      "reward": 0.0,
+      "raw_reward": 0.5198141284351532,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [225.6, 265.09, 282.43, 334.38]\nGrasp sample position for red cube: [ 0.57671899 -0.00325374 -0.09300555]\nGrasp sample quaternion wxyz for red cube: [-0.03233725  0.41161793  0.87879636  0.23925291]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5198.",
+      "video": null,
+      "elapsed_seconds": 10.09120413614437
+    },
+    {
+      "scenario_id": "lift_val2",
+      "task": "cube_lift",
+      "trial": 3,
+      "reward": 0.0,
+      "raw_reward": 0.506068341068297,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [225.07, 258.86, 284.11, 329.08]\nGrasp sample position for red cube: [ 0.57481194 -0.00247012 -0.10049881]\nGrasp sample quaternion wxyz for red cube: [ 0.05597917  0.12400508 -0.99026311  0.0294633 ]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5061.",
+      "video": null,
+      "elapsed_seconds": 10.130787308095023
+    },
+    {
+      "scenario_id": "lift_val3",
+      "task": "cube_lift",
+      "trial": 4,
+      "reward": 0.0,
+      "raw_reward": 0.4906904806061291,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [211.69, 252.71, 269.45, 321.1]\nGrasp sample position for red cube: [ 0.56036584 -0.0183077  -0.09429374]\nGrasp sample quaternion wxyz for red cube: [-0.00490843  0.43722572  0.87261876  0.21759164]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.4907.",
+      "video": null,
+      "elapsed_seconds": 10.163298340979964
+    }
+  ],
+  "helix": {
+    "returncode": 0,
+    "timed_out": false,
+    "stdout": "num_parallel_proposals * mutations_per_parent = 4 exceeds the 1 disjoint \nminibatches available from 2 train examples at minibatch_size=2; minibatches \nwill repeat within an iteration.\nCreating seed worktree...\n\u27f3  Evaluating seed\u2026\nEvaluating seed...\nSeed evaluated: 0.0000\n\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Generation 0 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502 Generation 0 / 2                                                             \u2502\n\u2502   Score  : 0.0000                                                            \u2502\n\u2502   Status : ACCEPTED                                                          \u2502\n\u2502                                                                              \u2502\n\u2502 Current frontier:                                                            \u2502\n\u2502   g0-s0  0.0000                                                              \u2502\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\nMinibatch gate: g2-s5 rejected (sum 2.0000 vs parent 2.0000) -- removing.\nMinibatch gate: g2-s6 rejected (sum 1.5101 vs parent 2.0000) -- removing.\nMinibatch gate: g2-s7 rejected (sum 2.0000 vs parent 2.0000) -- removing.\nMinibatch gate: g2-s8 rejected (sum 2.0000 vs parent 2.0000) -- removing.\n\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 HELIX Evolution \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502                                                                              \u2502\n\u2502  Generation 2 / 2                                                            \u2502\n\u2502  Status: Applying mutation                                                   \u2502\n\u2502                                                                              \u2502\n\u2502  Best Score: 1.0000 (g1-s3)                                                  \u2502\n\u2502  Frontier  : g0-s0, g1-s1, g1-s2, g1-s3, g1-s4                               \u2502\n\u2502  Acceptance: 4/8 (50.0%)                                                     \u2502\n\u2502                                                                              \u2502\n\u2502  Current Generation Usage:                                                   \u2502\n\u2502    Tokens: 20,400 in / 239 out                                               \u2502\n\u2502    Turns : 83                                                                \u2502\n\u2502    Tools : 79                                                                \u2502\n\u2502                                                                              \u2502\n\u2502  Cumulative Evolution Total:                                                 \u2502\n\u2502    Tokens: 40,800 in / 463 out                                               \u2502\n\u2502    Cost  : $0.0000                                                           \u2502\n\u2502    Budget: |\u2588\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591| 60/900 evals                               \u2502\n\u2502                                                                              \u2502\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256fEvaluations          \u2501\u2501\u2578                                        7%\n                          Pareto Frontier                          \n\u250f\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2533\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2533\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2533\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2533\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2513\n\u2503 Candidate \u2503 Scores     \u2503 Instance Wins \u2503 Generation \u2503 Operation \u2503\n\u2521\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2547\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2547\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2547\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2547\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2529\n\u2502 g0-s0     \u2502 agg=0.0000 \u2502             0 \u2502          0 \u2502 seed      \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 g1-s1     \u2502 agg=0.6814 \u2502             4 \u2502          1 \u2502 mutate    \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 g1-s2     \u2502 agg=0.8382 \u2502             5 \u2502          1 \u2502 mutate    \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 g1-s3     \u2502 agg=1.0000 \u2502             6 \u2502          1 \u2502 mutate    \u2502\n\u251c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 g1-s4     \u2502 agg=0.9204 \u2502             5 \u2502          1 \u2502 mutate    \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\nEvolution complete.  Best candidate: g1-s3\nHELIX worktrees and saved state remain on disk after the run. Run helix clean \nwhen you want to discard them.\n",
+    "elapsed_seconds": 1968.7206178698689
+  },
+  "frontier": {
+    "generation": 2,
+    "budget": {
+      "evaluations": 62,
+      "input_tokens": 40800,
+      "output_tokens": 463,
+      "cached_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.0
+    },
+    "frontier_type": "instance",
+    "active_frontier": {
+      "0": [
+        "g1-s1",
+        "g1-s2",
+        "g1-s3",
+        "g1-s4"
+      ],
+      "1": [
+        "g1-s2",
+        "g1-s3",
+        "g1-s4"
+      ],
+      "2": [
+        "g1-s3",
+        "g1-s4"
+      ],
+      "3": [
+        "g1-s1",
+        "g1-s2",
+        "g1-s3",
+        "g1-s4"
+      ],
+      "4": [
+        "g1-s1",
+        "g1-s2",
+        "g1-s3"
+      ],
+      "5": [
+        "g1-s1",
+        "g1-s2",
+        "g1-s3",
+        "g1-s4"
+      ]
+    },
+    "candidates": {
+      "g0-s0": {
+        "scores": {
+          "stack_val1": 0.0,
+          "stack_val2": 0.0,
+          "stack_val3": 0.0,
+          "lift_val1": 0.0,
+          "lift_val2": 0.0,
+          "lift_val3": 0.0
+        },
+        "wins": [],
+        "frontier": false
+      },
+      "g1-s1": {
+        "scores": {
+          "stack_val1": 1.0,
+          "stack_val2": 0.04521165583210493,
+          "stack_val3": 0.043000264378265846,
+          "lift_val1": 1.0,
+          "lift_val2": 1.0,
+          "lift_val3": 1.0
+        },
+        "wins": [
+          "stack_val1",
+          "lift_val1",
+          "lift_val2",
+          "lift_val3"
+        ],
+        "frontier": true
+      },
+      "g1-s2": {
+        "scores": {
+          "stack_val1": 1.0,
+          "stack_val2": 1.0,
+          "stack_val3": 0.029171534936022883,
+          "lift_val1": 1.0,
+          "lift_val2": 1.0,
+          "lift_val3": 1.0
+        },
+        "wins": [
+          "stack_val1",
+          "stack_val2",
+          "lift_val1",
+          "lift_val2",
+          "lift_val3"
+        ],
+        "frontier": true
+      },
+      "g1-s3": {
+        "scores": {
+          "stack_val1": 1.0,
+          "stack_val2": 1.0,
+          "stack_val3": 1.0,
+          "lift_val1": 1.0,
+          "lift_val2": 1.0,
+          "lift_val3": 1.0
+        },
+        "wins": [
+          "stack_val1",
+          "stack_val2",
+          "stack_val3",
+          "lift_val1",
+          "lift_val2",
+          "lift_val3"
+        ],
+        "frontier": true
+      },
+      "g1-s4": {
+        "scores": {
+          "stack_val1": 1.0,
+          "stack_val2": 1.0,
+          "stack_val3": 1.0,
+          "lift_val1": 1.0,
+          "lift_val2": 0.5224907794250278,
+          "lift_val3": 1.0
+        },
+        "wins": [
+          "stack_val1",
+          "stack_val2",
+          "stack_val3",
+          "lift_val1",
+          "lift_val3"
+        ],
+        "frontier": true
+      }
+    },
+    "merge_counter": 0,
+    "merge_attempted_pairs": [],
+    "merge_output_dedup_triplets": [],
+    "merge_ancestry": [],
+    "lineage": [
+      {
+        "id": "g0-s0",
+        "parent": null,
+        "parents": [],
+        "operation": "seed",
+        "generation": 0,
+        "files_changed": [],
+        "changed_files": [],
+        "sampled_train_task": null,
+        "sampled_train_scenario": null,
+        "gate_result": "seed",
+        "validation_vector": {
+          "stack_val1": 0.0,
+          "stack_val2": 0.0,
+          "stack_val3": 0.0,
+          "lift_val1": 0.0,
+          "lift_val2": 0.0,
+          "lift_val3": 0.0
+        },
+        "agent_metrics": {
+          "model": "",
+          "total_seconds": 0.0,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 0.0,
+          "usage": {}
+        },
+        "validation_simulator_seconds": 78.35654613981023
+      },
+      {
+        "id": "g1-s1",
+        "parent": "g0-s0",
+        "parents": [
+          "g0-s0"
+        ],
+        "operation": "mutate",
+        "generation": 1,
+        "files_changed": [],
+        "changed_files": [
+          "solver/tasks/cube_lift.py",
+          "solver/tasks/cube_stack.py"
+        ],
+        "sampled_train_task": "cube_lift",
+        "sampled_train_scenario": "lift_train",
+        "gate_result": "passed_strict_train_gate",
+        "validation_vector": {
+          "stack_val1": 1.0,
+          "stack_val2": 0.04521165583210493,
+          "stack_val3": 0.043000264378265846,
+          "lift_val1": 1.0,
+          "lift_val2": 1.0,
+          "lift_val3": 1.0
+        },
+        "agent_metrics": {
+          "model": "lemonade/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+          "total_seconds": 89.0609998703003,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 44.477000000000004,
+          "usage": {
+            "input_tokens": 5100,
+            "output_tokens": 57,
+            "cached_input_tokens": 0,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "reasoning_tokens": 0,
+            "num_turns": 14,
+            "tool_event_count": 13,
+            "tool_names": [
+              "read",
+              "glob",
+              "read",
+              "read",
+              "read",
+              "grep",
+              "grep",
+              "bash",
+              "edit",
+              "edit",
+              "bash",
+              "bash",
+              "bash"
+            ],
+            "cost_usd": 0.0,
+            "session_id": "ses_fae720bc8ffe4GeDTbLLBScQsw"
+          }
+        },
+        "validation_simulator_seconds": 78.4187493249774
+      },
+      {
+        "id": "g1-s2",
+        "parent": "g0-s0",
+        "parents": [
+          "g0-s0"
+        ],
+        "operation": "mutate",
+        "generation": 1,
+        "files_changed": [],
+        "changed_files": [
+          "solver/tasks/cube_lift.py",
+          "solver/tasks/cube_stack.py"
+        ],
+        "sampled_train_task": "cube_stack",
+        "sampled_train_scenario": "stack_train",
+        "gate_result": "passed_strict_train_gate",
+        "validation_vector": {
+          "stack_val1": 1.0,
+          "stack_val2": 1.0,
+          "stack_val3": 0.029171534936022883,
+          "lift_val1": 1.0,
+          "lift_val2": 1.0,
+          "lift_val3": 1.0
+        },
+        "agent_metrics": {
+          "model": "lemonade/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+          "total_seconds": 152.55999994277954,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 73.55100000000002,
+          "usage": {
+            "input_tokens": 5100,
+            "output_tokens": 56,
+            "cached_input_tokens": 0,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "reasoning_tokens": 0,
+            "num_turns": 15,
+            "tool_event_count": 14,
+            "tool_names": [
+              "read",
+              "glob",
+              "read",
+              "read",
+              "glob",
+              "read",
+              "edit",
+              "edit",
+              "bash",
+              "bash",
+              "edit",
+              "bash",
+              "bash",
+              "bash"
+            ],
+            "cost_usd": 0.0,
+            "session_id": "ses_fae6fc675ffegxGtQSylpsX5uk"
+          }
+        },
+        "validation_simulator_seconds": 78.65849246294238
+      },
+      {
+        "id": "g1-s3",
+        "parent": "g0-s0",
+        "parents": [
+          "g0-s0"
+        ],
+        "operation": "mutate",
+        "generation": 1,
+        "files_changed": [],
+        "changed_files": [
+          "solver/tasks/cube_lift.py",
+          "solver/tasks/cube_stack.py"
+        ],
+        "sampled_train_task": "cube_stack",
+        "sampled_train_scenario": "stack_train",
+        "gate_result": "passed_strict_train_gate",
+        "validation_vector": {
+          "stack_val1": 1.0,
+          "stack_val2": 1.0,
+          "stack_val3": 1.0,
+          "lift_val1": 1.0,
+          "lift_val2": 1.0,
+          "lift_val3": 1.0
+        },
+        "agent_metrics": {
+          "model": "lemonade/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+          "total_seconds": 157.11100006103516,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 75.98900000000002,
+          "usage": {
+            "input_tokens": 5100,
+            "output_tokens": 55,
+            "cached_input_tokens": 0,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "reasoning_tokens": 0,
+            "num_turns": 18,
+            "tool_event_count": 17,
+            "tool_names": [
+              "read",
+              "bash",
+              "bash",
+              "glob",
+              "read",
+              "read",
+              "read",
+              "read",
+              "read",
+              "edit",
+              "edit",
+              "bash",
+              "bash",
+              "edit",
+              "bash",
+              "bash",
+              "bash"
+            ],
+            "cost_usd": 0.0,
+            "session_id": "ses_fae6c7934ffePTnGhIOWuD72bc"
+          }
+        },
+        "validation_simulator_seconds": 78.72271717316471
+      },
+      {
+        "id": "g1-s4",
+        "parent": "g0-s0",
+        "parents": [
+          "g0-s0"
+        ],
+        "operation": "mutate",
+        "generation": 1,
+        "files_changed": [],
+        "changed_files": [
+          "solver/tasks/cube_lift.py",
+          "solver/tasks/cube_stack.py"
+        ],
+        "sampled_train_task": "cube_stack",
+        "sampled_train_scenario": "stack_train",
+        "gate_result": "passed_strict_train_gate",
+        "validation_vector": {
+          "stack_val1": 1.0,
+          "stack_val2": 1.0,
+          "stack_val3": 1.0,
+          "lift_val1": 1.0,
+          "lift_val2": 0.5224907794250278,
+          "lift_val3": 1.0
+        },
+        "agent_metrics": {
+          "model": "lemonade/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+          "total_seconds": 87.87400007247925,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 43.248,
+          "usage": {
+            "input_tokens": 5100,
+            "output_tokens": 56,
+            "cached_input_tokens": 0,
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": 0,
+            "reasoning_tokens": 0,
+            "num_turns": 13,
+            "tool_event_count": 12,
+            "tool_names": [
+              "read",
+              "glob",
+              "read",
+              "read",
+              "read",
+              "glob",
+              "read",
+              "edit",
+              "edit",
+              "bash",
+              "bash",
+              "bash"
+            ],
+            "cost_usd": 0.0,
+            "session_id": "ses_fae691571ffegCsjk0p6cl13D0"
+          }
+        },
+        "validation_simulator_seconds": 78.36676477990113
+      },
+      {
+        "id": "g2-s5",
+        "parent": "g1-s3",
+        "parents": [
+          "g1-s3"
+        ],
+        "operation": "mutate",
+        "generation": 2,
+        "files_changed": [],
+        "changed_files": [],
+        "sampled_train_task": "cube_lift",
+        "sampled_train_scenario": "lift_train",
+        "gate_result": "rejected_minibatch_gate",
+        "validation_vector": {},
+        "agent_metrics": {
+          "model": "",
+          "total_seconds": 0.0,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 0.0,
+          "usage": {}
+        },
+        "validation_simulator_seconds": 0
+      },
+      {
+        "id": "g2-s6",
+        "parent": "g1-s3",
+        "parents": [
+          "g1-s3"
+        ],
+        "operation": "mutate",
+        "generation": 2,
+        "files_changed": [],
+        "changed_files": [],
+        "sampled_train_task": "cube_stack",
+        "sampled_train_scenario": "stack_train",
+        "gate_result": "rejected_minibatch_gate",
+        "validation_vector": {},
+        "agent_metrics": {
+          "model": "",
+          "total_seconds": 0.0,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 0.0,
+          "usage": {}
+        },
+        "validation_simulator_seconds": 0
+      },
+      {
+        "id": "g2-s7",
+        "parent": "g1-s3",
+        "parents": [
+          "g1-s3"
+        ],
+        "operation": "mutate",
+        "generation": 2,
+        "files_changed": [],
+        "changed_files": [],
+        "sampled_train_task": "cube_lift",
+        "sampled_train_scenario": "lift_train",
+        "gate_result": "rejected_minibatch_gate",
+        "validation_vector": {},
+        "agent_metrics": {
+          "model": "",
+          "total_seconds": 0.0,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 0.0,
+          "usage": {}
+        },
+        "validation_simulator_seconds": 0
+      },
+      {
+        "id": "g2-s8",
+        "parent": "g1-s3",
+        "parents": [
+          "g1-s3"
+        ],
+        "operation": "mutate",
+        "generation": 2,
+        "files_changed": [],
+        "changed_files": [],
+        "sampled_train_task": "cube_lift",
+        "sampled_train_scenario": "lift_train",
+        "gate_result": "rejected_minibatch_gate",
+        "validation_vector": {},
+        "agent_metrics": {
+          "model": "",
+          "total_seconds": 0.0,
+          "prompt_wait_seconds": 0.0,
+          "text_generation_seconds": 0.0,
+          "usage": {}
+        },
+        "validation_simulator_seconds": 0
+      }
+    ]
+  },
+  "lesson": {
+    "multi_key_frontier": true,
+    "covered_difficult_keys": [
+      "lift_val1",
+      "lift_val2",
+      "lift_val3",
+      "stack_val1",
+      "stack_val2",
+      "stack_val3"
+    ],
+    "specialist_pair": false,
+    "specialists": {
+      "cube_lift": [],
+      "cube_stack": []
+    },
+    "broad_candidates": [
+      "g1-s1",
+      "g1-s2",
+      "g1-s3",
+      "g1-s4"
+    ],
+    "merge_attempted": false,
+    "merge_ancestry": []
+  },
+  "selected_candidate": "g1-s3",
+  "selected_from_frontier": true,
+  "selected_diff": "--- seed/solver/tasks/cube_lift.py\n+++ best/solver/tasks/cube_lift.py\n@@ -1,4 +1,5 @@\n # Code block 0\n+import numpy\n home_pose()\n # Get the grasp pose for the red cube\n grasp_position, grasp_quaternion = sample_grasp_pose(\"red cube\")\n--- seed/solver/tasks/cube_stack.py\n+++ best/solver/tasks/cube_stack.py\n@@ -26,8 +26,24 @@\n \n # --- 5. Calculate the target placement pose on the green cube ---\n \n-# Green cube center Z coordinate\n-green_center_z = green_pose[0][2]\n+# Handle various formats that green_pose might be returned in\n+try:\n+    # Try the original approach first\n+    green_center_z = green_pose[0][2]\n+    green_center_x = green_pose[0][0]\n+    green_center_y = green_pose[0][1]\n+except (IndexError, TypeError):\n+    # If that fails, try direct indexing or scalar access\n+    try:\n+        green_center_z = green_pose[2]\n+        green_center_x = green_pose[0]\n+        green_center_y = green_pose[1]\n+    except (IndexError, TypeError):\n+        # If still fails, treat green_pose as a scalar or use defaults\n+        green_center_z = green_pose[2] if hasattr(green_pose, '__getitem__') and len(green_pose) >= 3 else 0.0\n+        green_center_x = green_pose[0] if hasattr(green_pose, '__getitem__') and len(green_pose) >= 3 else 0.0\n+        green_center_y = green_pose[1] if hasattr(green_pose, '__getitem__') and len(green_pose) >= 3 else 0.0\n+\n # Half height of green cube\n green_half_height = green_extent[2] / 2\n # Half height of red cube\n@@ -37,7 +53,7 @@\n place_z = green_center_z + green_half_height + red_half_height\n \n # Target position (X, Y matches green cube center, Z is stacking height)\n-placement_position = numpy.array([green_pose[0][0], green_pose[0][1], place_z])\n+placement_position = numpy.array([green_center_x, green_center_y, place_z])\n \n # --- 6. Approach and place the red cube ---\n print(\"Moving to placement location on green cube...\")\n",
+  "exported_repositories": {
+    "seed": [
+      "CONTRACT.md",
+      "helix.toml",
+      "opencode.json",
+      "probe.py",
+      "provenance.json",
+      "scenarios.json",
+      "solver/__init__.py",
+      "solver/geometry.py",
+      "solver/runtime.py",
+      "solver/tasks/__init__.py",
+      "solver/tasks/cube_lift.py",
+      "solver/tasks/cube_stack.py"
+    ],
+    "selected": [
+      "CONTRACT.md",
+      "helix.toml",
+      "opencode.json",
+      "probe.py",
+      "provenance.json",
+      "scenarios.json",
+      "solver/__init__.py",
+      "solver/geometry.py",
+      "solver/runtime.py",
+      "solver/tasks/__init__.py",
+      "solver/tasks/cube_lift.py",
+      "solver/tasks/cube_stack.py"
+    ]
+  },
+  "hidden_trials": {
+    "cube_stack": [
+      8740,
+      9351,
+      6027,
+      7419,
+      4883
+    ],
+    "cube_lift": [
+      2596,
+      3841,
+      5107,
+      6773,
+      8215
+    ]
+  },
+  "hidden_trials_used_by_evolution": false,
+  "hidden_rollouts_per_task": 15,
+  "hidden_repeats": 3,
+  "hidden_before": [
+    {
+      "scenario_id": "hidden_cube_stack_8740",
+      "task": "cube_stack",
+      "trial": 8740,
+      "reward": 0.0,
+      "raw_reward": 0.716083809688787,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [207.76, 348.67, 255.78, 413.58]\nObject position for red cube: [ 0.68676207 -0.0192193  -0.09143472]\nObject quaternion wxyz for red cube: [ 0.03289352  0.80319244  0.22875455 -0.54906399]\nObject extent for red cube: [0.0669144  0.05613191 0.04357098]\nRunning SAM2 segmentation with box: [156.41, 244.69, 216.34, 317.33]\nObject position for green cube: [ 0.5671768  -0.06648779 -0.08032975]\nObject quaternion wxyz for green cube: [-0.78401713  0.43730265 -0.26605621  0.35113763]\nObject extent for green cube: [0.07494549 0.07601174 0.06016622]\nRunning SAM2 segmentation with box: [207.76, 348.67, 255.78, 413.58]\nGrasp sample position for red cube: [ 0.67236341 -0.01358276 -0.09645964]\nGrasp sample quaternion wxyz for red cube: [-0.13163864  0.0220647   0.9899279  -0.04719253]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7161.",
+      "video": "videos/video_val_hidden_cube_stack_8740_1788074166.mp4",
+      "elapsed_seconds": 16.179012703010812
+    },
+    {
+      "scenario_id": "hidden_cube_stack_9351",
+      "task": "cube_stack",
+      "trial": 9351,
+      "reward": 0.0,
+      "raw_reward": 0.004780485000467197,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [195.83, 206.87, 245.51, 265.62]\nObject position for red cube: [ 0.48894599 -0.0415067  -0.08849746]\nObject quaternion wxyz for red cube: [-0.48802046  0.35943032 -0.43407857  0.66649956]\nObject extent for red cube: [0.05743711 0.05667882 0.05062088]\nRunning SAM2 segmentation with box: [343.64, 355.49, 424.09, 452.21]\nObject position for green cube: [ 0.71613579  0.10645668 -0.07538509]\nObject quaternion wxyz for green cube: [-0.38867196 -0.40730672  0.02239892 -0.82615594]\nObject extent for green cube: [0.08269789 0.07125548 0.03715688]\nRunning SAM2 segmentation with box: [195.83, 206.87, 245.51, 265.62]\nGrasp sample position for red cube: [ 0.48453874 -0.04064316 -0.10428078]\nGrasp sample quaternion wxyz for red cube: [-0.04449535  0.42664317  0.87533286  0.22313273]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.0048.",
+      "video": "videos/video_val_hidden_cube_stack_9351_1788074182.mp4",
+      "elapsed_seconds": 16.30547178396955
+    },
+    {
+      "scenario_id": "hidden_cube_stack_6027",
+      "task": "cube_stack",
+      "trial": 6027,
+      "reward": 0.0,
+      "raw_reward": 0.7026104700895621,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [181.47, 225.5, 227.41, 283.41]\nObject position for red cube: [ 0.52279709 -0.05320158 -0.08257495]\nObject quaternion wxyz for red cube: [-0.90150983  0.11264847 -0.39953406 -0.12232288]\nObject extent for red cube: [0.05781972 0.04288094 0.03211713]\nRunning SAM2 segmentation with box: [332.72, 293.27, 394.19, 373.06]\nObject position for green cube: [ 0.63837411  0.10124637 -0.07684097]\nObject quaternion wxyz for green cube: [ 0.02275336  0.89495083 -0.07091096 -0.43990559]\nObject extent for green cube: [0.07098773 0.05404974 0.04519913]\nRunning SAM2 segmentation with box: [181.47, 225.5, 227.41, 283.41]\nGrasp sample position for red cube: [ 0.51362837 -0.05798853 -0.09138977]\nGrasp sample quaternion wxyz for red cube: [0.10148741 0.42348508 0.88228714 0.17868997]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7026.",
+      "video": "videos/video_val_hidden_cube_stack_6027_1788074198.mp4",
+      "elapsed_seconds": 16.041303801117465
+    },
+    {
+      "scenario_id": "hidden_cube_stack_7419",
+      "task": "cube_stack",
+      "trial": 7419,
+      "reward": 0.0,
+      "raw_reward": 0.7381918637130955,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [133.7, 273.98, 185.1, 332.78]\nObject position for red cube: [ 0.59377699 -0.09988826 -0.08555272]\nObject quaternion wxyz for red cube: [ 0.46063983  0.04193217 -0.88010704 -0.1070712 ]\nObject extent for red cube: [0.06122389 0.04927639 0.03632284]\nRunning SAM2 segmentation with box: [143.55, 206.35, 206.68, 278.31]\nObject position for green cube: [ 0.51169765 -0.08938609 -0.08150206]\nObject quaternion wxyz for green cube: [-0.16010712  0.82281904  0.2148723  -0.50116308]\nObject extent for green cube: [0.08077994 0.07550181 0.05837881]\nRunning SAM2 segmentation with box: [133.7, 273.98, 185.1, 332.78]\nGrasp sample position for red cube: [ 0.57931044 -0.09539066 -0.10225215]\nGrasp sample quaternion wxyz for red cube: [ 0.03216554  0.61979587 -0.77284895  0.1323743 ]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7382.",
+      "video": "videos/video_val_hidden_cube_stack_7419_1788074215.mp4",
+      "elapsed_seconds": 16.40683543216437
+    },
+    {
+      "scenario_id": "hidden_cube_stack_4883",
+      "task": "cube_stack",
+      "trial": 4883,
+      "reward": 0.0,
+      "raw_reward": 0.7264838691080027,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [328.83, 254.26, 386.15, 319.51]\nObject position for red cube: [ 0.56932445  0.10541656 -0.08522412]\nObject quaternion wxyz for red cube: [-0.38822427 -0.43560046 -0.1896949  -0.78965182]\nObject extent for red cube: [0.05678638 0.06368908 0.04615196]\nRunning SAM2 segmentation with box: [275.0, 296.35, 350.01, 385.11]\nObject position for green cube: [ 0.64547131  0.05036883 -0.07840491]\nObject quaternion wxyz for green cube: [ 0.32363582  0.48911783 -0.74220503 -0.32427657]\nObject extent for green cube: [0.07651098 0.07894913 0.05826927]\nRunning SAM2 segmentation with box: [328.83, 254.26, 386.15, 319.51]\nGrasp sample position for red cube: [ 0.55535556  0.11087818 -0.09533188]\nGrasp sample quaternion wxyz for red cube: [ 0.16382963  0.13762896 -0.97003984  0.11506881]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7265.",
+      "video": "videos/video_val_hidden_cube_stack_4883_1788074231.mp4",
+      "elapsed_seconds": 16.146239436930045
+    },
+    {
+      "scenario_id": "hidden_cube_lift_2596",
+      "task": "cube_lift",
+      "trial": 2596,
+      "reward": 0.0,
+      "raw_reward": 0.5103455353236253,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [239.39, 261.95, 280.26, 319.87]\nGrasp sample position for red cube: [ 0.55685482  0.01240212 -0.10094072]\nGrasp sample quaternion wxyz for red cube: [-0.23447562  0.04366488  0.97051874 -0.03475643]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5103.",
+      "video": "videos/video_val_hidden_cube_lift_2596_1788074241.mp4",
+      "elapsed_seconds": 10.561005766969174
+    },
+    {
+      "scenario_id": "hidden_cube_lift_3841",
+      "task": "cube_lift",
+      "trial": 3841,
+      "reward": 0.0,
+      "raw_reward": 0.4970511754568807,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [235.58, 242.92, 290.04, 307.89]\nGrasp sample position for red cube: [ 0.53452832  0.00597557 -0.09925188]\nGrasp sample quaternion wxyz for red cube: [0.00743184 0.36271901 0.9111111  0.19559197]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.4971.",
+      "video": "videos/video_val_hidden_cube_lift_3841_1788074252.mp4",
+      "elapsed_seconds": 10.654444850981236
+    },
+    {
+      "scenario_id": "hidden_cube_lift_5107",
+      "task": "cube_lift",
+      "trial": 5107,
+      "reward": 0.0,
+      "raw_reward": 0.5356668505586304,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [259.31, 262.29, 303.05, 320.31]\nGrasp sample position for red cube: [ 0.55757656  0.03245502 -0.10184976]\nGrasp sample quaternion wxyz for red cube: [-0.23106381  0.02074159  0.97250672 -0.02024901]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5357.",
+      "video": "videos/video_val_hidden_cube_lift_5107_1788074263.mp4",
+      "elapsed_seconds": 10.67884369706735
+    },
+    {
+      "scenario_id": "hidden_cube_lift_6773",
+      "task": "cube_lift",
+      "trial": 6773,
+      "reward": 0.0,
+      "raw_reward": 0.49340246362620244,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [217.93, 252.11, 269.07, 317.05]\nGrasp sample position for red cube: [ 0.54993986 -0.01919672 -0.10450113]\nGrasp sample quaternion wxyz for red cube: [-0.14512191  0.22286005  0.95703919  0.11553814]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.4934.",
+      "video": "videos/video_val_hidden_cube_lift_6773_1788074274.mp4",
+      "elapsed_seconds": 10.951507226098329
+    },
+    {
+      "scenario_id": "hidden_cube_lift_8215",
+      "task": "cube_lift",
+      "trial": 8215,
+      "reward": 0.0,
+      "raw_reward": 0.4919876466336709,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [248.56, 246.49, 303.73, 312.15]\nGrasp sample position for red cube: [ 0.54822554  0.02733177 -0.10368468]\nGrasp sample quaternion wxyz for red cube: [-0.0217302   0.47439935  0.86183152  0.17809989]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.4920.",
+      "video": "videos/video_val_hidden_cube_lift_8215_1788074284.mp4",
+      "elapsed_seconds": 10.620303767966107
+    },
+    {
+      "scenario_id": "hidden_cube_stack_8740",
+      "task": "cube_stack",
+      "trial": 8740,
+      "reward": 0.0,
+      "raw_reward": 0.7031808564710949,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [195.56, 169.79, 235.2, 221.42]\nObject position for red cube: [ 0.42052308 -0.04928208 -0.08329173]\nObject quaternion wxyz for red cube: [-0.11306951  0.8520596   0.29933838 -0.41425385]\nObject extent for red cube: [0.06619616 0.05987867 0.03398194]\nRunning SAM2 segmentation with box: [211.76, 276.95, 275.84, 356.95]\nObject position for green cube: [ 0.615935   -0.0142477  -0.07809478]\nObject quaternion wxyz for green cube: [-0.14961025  0.38956607 -0.18857073  0.88898601]\nObject extent for green cube: [0.07843375 0.0705469  0.05852687]\nRunning SAM2 segmentation with box: [195.56, 169.79, 235.2, 221.42]\nGrasp sample position for red cube: [ 0.40764831 -0.04679699 -0.09999056]\nGrasp sample quaternion wxyz for red cube: [ 0.13806315  0.04870842 -0.98406952  0.10086205]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7032.",
+      "video": null,
+      "elapsed_seconds": 15.82104253093712
+    },
+    {
+      "scenario_id": "hidden_cube_stack_9351",
+      "task": "cube_stack",
+      "trial": 9351,
+      "reward": 0.0,
+      "raw_reward": 0.7268892785050727,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [253.01, 275.07, 295.92, 334.11]\nObject position for red cube: [ 0.59468549  0.01788207 -0.08918572]\nObject quaternion wxyz for red cube: [ 0.04429089  0.84770351 -0.05227916 -0.52602658]\nObject extent for red cube: [0.06102237 0.04385139 0.03812626]\nRunning SAM2 segmentation with box: [291.3, 342.01, 353.38, 424.56]\nObject position for green cube: [ 0.69604663  0.05754185 -0.08123617]\nObject quaternion wxyz for green cube: [-0.49877723  0.08366566  0.86263088 -0.00944926]\nObject extent for green cube: [0.07502152 0.05590696 0.04353887]\nRunning SAM2 segmentation with box: [253.01, 275.07, 295.92, 334.11]\nGrasp sample position for red cube: [ 0.58332689  0.02363819 -0.09526317]\nGrasp sample quaternion wxyz for red cube: [-0.21949535  0.16035881  0.958774    0.082821  ]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7269.",
+      "video": null,
+      "elapsed_seconds": 15.933675118954852
+    },
+    {
+      "scenario_id": "hidden_cube_stack_6027",
+      "task": "cube_stack",
+      "trial": 6027,
+      "reward": 0.0,
+      "raw_reward": 0.7017771681495102,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [322.52, 231.55, 367.45, 289.32]\nObject position for red cube: [ 0.53055418  0.09578123 -0.0901952 ]\nObject quaternion wxyz for red cube: [-0.20827522 -0.54939414 -0.02009421 -0.80893988]\nObject extent for red cube: [0.06451994 0.05333448 0.03718052]\nRunning SAM2 segmentation with box: [150.2, 197.58, 215.77, 272.49]\nObject position for green cube: [ 0.49654957 -0.07887372 -0.08002191]\nObject quaternion wxyz for green cube: [ 0.44268155  0.6148367  -0.6134303  -0.22296219]\nObject extent for green cube: [0.07967327 0.0763874  0.05912826]\nRunning SAM2 segmentation with box: [322.52, 231.55, 367.45, 289.32]\nGrasp sample position for red cube: [ 0.52403005  0.11023253 -0.10217351]\nGrasp sample quaternion wxyz for red cube: [-0.12902908  0.08402694  0.98806688 -0.00385357]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7018.",
+      "video": null,
+      "elapsed_seconds": 15.91317750304006
+    },
+    {
+      "scenario_id": "hidden_cube_stack_7419",
+      "task": "cube_stack",
+      "trial": 7419,
+      "reward": 0.0,
+      "raw_reward": 0.6870603842605484,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [332.69, 204.84, 382.1, 260.34]\nObject position for red cube: [ 0.48201845  0.1140372  -0.0932108 ]\nObject quaternion wxyz for red cube: [ 0.58965096 -0.06389042 -0.79024215 -0.15410096]\nObject extent for red cube: [0.05744865 0.05875738 0.05164798]\nRunning SAM2 segmentation with box: [127.35, 306.98, 201.74, 396.69]\nObject position for green cube: [ 0.65473194 -0.08430938 -0.08195833]\nObject quaternion wxyz for green cube: [-0.10743501  0.77816634  0.42690176 -0.44796177]\nObject extent for green cube: [0.08421611 0.07702399 0.06043689]\nRunning SAM2 segmentation with box: [332.69, 204.84, 382.1, 260.34]\nGrasp sample position for red cube: [ 0.48351582  0.11735734 -0.09683476]\nGrasp sample quaternion wxyz for red cube: [0.07932115 0.5863776  0.77676747 0.21564271]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.6871.",
+      "video": null,
+      "elapsed_seconds": 15.750590027077124
+    },
+    {
+      "scenario_id": "hidden_cube_stack_4883",
+      "task": "cube_stack",
+      "trial": 4883,
+      "reward": 0.0,
+      "raw_reward": 0.7280533257536964,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [262.27, 182.06, 312.17, 240.35]\nObject position for red cube: [ 0.44820575  0.03489797 -0.08600048]\nObject quaternion wxyz for red cube: [-0.3521302   0.69141591  0.51985468 -0.35735062]\nObject extent for red cube: [0.05693885 0.05915933 0.04578317]\nRunning SAM2 segmentation with box: [199.58, 169.09, 252.21, 235.49]\nObject position for green cube: [ 0.4393714  -0.03718871 -0.08288955]\nObject quaternion wxyz for green cube: [ 0.41354913  0.46790559 -0.68553927 -0.37426914]\nObject extent for green cube: [0.07460062 0.07443807 0.0582588 ]\nRunning SAM2 segmentation with box: [262.27, 182.06, 312.17, 240.35]\nGrasp sample position for red cube: [ 0.43138186  0.02626113 -0.09521501]\nGrasp sample quaternion wxyz for red cube: [-0.12290551  0.28336736  0.95018961  0.04167596]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7281.",
+      "video": null,
+      "elapsed_seconds": 16.191044036997482
+    },
+    {
+      "scenario_id": "hidden_cube_lift_2596",
+      "task": "cube_lift",
+      "trial": 2596,
+      "reward": 0.0,
+      "raw_reward": 0.509467299390598,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [238.16, 255.64, 290.81, 319.01]\nGrasp sample position for red cube: [ 0.55728899  0.00531361 -0.08859446]\nGrasp sample quaternion wxyz for red cube: [ 0.1711143   0.11712835 -0.97406705  0.09052218]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5095.",
+      "video": null,
+      "elapsed_seconds": 10.2485349138733
+    },
+    {
+      "scenario_id": "hidden_cube_lift_3841",
+      "task": "cube_lift",
+      "trial": 3841,
+      "reward": 0.0,
+      "raw_reward": 0.529267585923196,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [228.86, 240.68, 270.53, 297.89]\nGrasp sample position for red cube: [ 0.53845442 -0.01433843 -0.0919823 ]\nGrasp sample quaternion wxyz for red cube: [-0.11945526  0.06163064  0.99091872 -0.00349796]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5293.",
+      "video": null,
+      "elapsed_seconds": 10.216441046912223
+    },
+    {
+      "scenario_id": "hidden_cube_lift_5107",
+      "task": "cube_lift",
+      "trial": 5107,
+      "reward": 0.0,
+      "raw_reward": 0.5109441831404021,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [220.38, 277.43, 264.61, 336.29]\nGrasp sample position for red cube: [ 0.5888976  -0.01476899 -0.09981104]\nGrasp sample quaternion wxyz for red cube: [-0.10503116 -0.02421845  0.99200822 -0.0655863 ]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5109.",
+      "video": null,
+      "elapsed_seconds": 10.204577788012102
+    },
+    {
+      "scenario_id": "hidden_cube_lift_6773",
+      "task": "cube_lift",
+      "trial": 6773,
+      "reward": 0.0,
+      "raw_reward": 0.4862005532932673,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [200.33, 252.53, 258.31, 321.35]\nGrasp sample position for red cube: [ 0.55830711 -0.02924759 -0.09189638]\nGrasp sample quaternion wxyz for red cube: [-0.04008071  0.35864498  0.90882822  0.20928125]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.4862.",
+      "video": null,
+      "elapsed_seconds": 10.070226324023679
+    },
+    {
+      "scenario_id": "hidden_cube_lift_8215",
+      "task": "cube_lift",
+      "trial": 8215,
+      "reward": 0.0,
+      "raw_reward": 0.4550032726948705,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [252.44, 259.21, 306.84, 325.33]\nGrasp sample position for red cube: [ 0.56950032  0.03021467 -0.10066826]\nGrasp sample quaternion wxyz for red cube: [-0.18219622  0.1859983   0.96423715  0.04955695]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.4550.",
+      "video": null,
+      "elapsed_seconds": 10.212351856054738
+    },
+    {
+      "scenario_id": "hidden_cube_stack_8740",
+      "task": "cube_stack",
+      "trial": 8740,
+      "reward": 0.0,
+      "raw_reward": 0.004567120121686266,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [155.87, 400.01, 218.24, 474.86]\nObject position for red cube: [ 0.74416296 -0.05464371 -0.08616255]\nObject quaternion wxyz for red cube: [ 0.441668    0.68459111 -0.53516403 -0.22330216]\nObject extent for red cube: [0.05879445 0.0594575  0.04670288]\nRunning SAM2 segmentation with box: [208.61, 176.37, 270.36, 249.48]\nObject position for green cube: [ 0.46005384 -0.02226013 -0.07931741]\nObject quaternion wxyz for green cube: [-0.60198507  0.26877129 -0.39568076  0.63938463]\nObject extent for green cube: [0.07549601 0.07795106 0.05816586]\nRunning SAM2 segmentation with box: [155.87, 400.01, 218.24, 474.86]\nGrasp sample position for red cube: [ 0.72748206 -0.05640206 -0.09353298]\nGrasp sample quaternion wxyz for red cube: [ 0.05513761  0.68807478 -0.71900216  0.08092437]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.0046.",
+      "video": null,
+      "elapsed_seconds": 15.954277042998001
+    },
+    {
+      "scenario_id": "hidden_cube_stack_9351",
+      "task": "cube_stack",
+      "trial": 9351,
+      "reward": 0.0,
+      "raw_reward": 0.00496202775787935,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [189.53, 216.94, 235.94, 273.3]\nObject position for red cube: [ 0.50763311 -0.04600806 -0.08552156]\nObject quaternion wxyz for red cube: [-0.00731922  0.84287365  0.21894365 -0.4915019 ]\nObject extent for red cube: [0.06225638 0.06143155 0.04404438]\nRunning SAM2 segmentation with box: [240.38, 187.45, 286.31, 249.32]\nObject position for green cube: [ 0.46795954  0.00806853 -0.08228178]\nObject quaternion wxyz for green cube: [ 0.06271912  0.83325386 -0.08809883 -0.54221113]\nObject extent for green cube: [0.07368741 0.06104906 0.04605321]\nRunning SAM2 segmentation with box: [189.53, 216.94, 235.94, 273.3]\nGrasp sample position for red cube: [ 0.49788355 -0.05564149 -0.10060806]\nGrasp sample quaternion wxyz for red cube: [-0.1609229   0.09756429  0.97637494  0.10619318]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.0050.",
+      "video": null,
+      "elapsed_seconds": 15.82326607289724
+    },
+    {
+      "scenario_id": "hidden_cube_stack_6027",
+      "task": "cube_stack",
+      "trial": 6027,
+      "reward": 0.0,
+      "raw_reward": 0.699563829213234,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [197.05, 197.49, 247.1, 257.19]\nObject position for red cube: [ 0.47481    -0.03700794 -0.0846726 ]\nObject quaternion wxyz for red cube: [ 0.4323099   0.41308846 -0.79816635 -0.07346122]\nObject extent for red cube: [0.06005262 0.05838805 0.04720434]\nRunning SAM2 segmentation with box: [330.25, 279.5, 396.95, 361.83]\nObject position for green cube: [ 0.62010197  0.10249142 -0.08520214]\nObject quaternion wxyz for green cube: [-0.53894551  0.19242216  0.81389195  0.1004557 ]\nObject extent for green cube: [0.07447301 0.0546861  0.04740701]\nRunning SAM2 segmentation with box: [197.05, 197.49, 247.1, 257.19]\nGrasp sample position for red cube: [ 0.46076722 -0.04215899 -0.09560511]\nGrasp sample quaternion wxyz for red cube: [-0.0127881   0.25644991  0.95899915  0.11996026]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.6996.",
+      "video": null,
+      "elapsed_seconds": 15.796957790851593
+    },
+    {
+      "scenario_id": "hidden_cube_stack_7419",
+      "task": "cube_stack",
+      "trial": 7419,
+      "reward": 0.0,
+      "raw_reward": 0.717679530595313,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [255.11, 305.14, 312.72, 376.2]\nObject position for red cube: [ 0.6377685   0.02911112 -0.08496568]\nObject quaternion wxyz for red cube: [-0.66524003 -0.14547194 -0.36131558 -0.6369809 ]\nObject extent for red cube: [0.06181111 0.06343954 0.04930971]\nRunning SAM2 segmentation with box: [112.78, 289.34, 190.61, 378.21]\nObject position for green cube: [ 0.63797702 -0.09726775 -0.07962976]\nObject quaternion wxyz for green cube: [ 0.43764921  0.58730144 -0.64197807 -0.22672526]\nObject extent for green cube: [0.07951138 0.07402857 0.058283  ]\nRunning SAM2 segmentation with box: [255.11, 305.14, 312.72, 376.2]\nGrasp sample position for red cube: [ 0.63132714  0.03092084 -0.09308013]\nGrasp sample quaternion wxyz for red cube: [-0.16826358  0.134967    0.97564603  0.03982584]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7177.",
+      "video": null,
+      "elapsed_seconds": 15.943470411933959
+    },
+    {
+      "scenario_id": "hidden_cube_stack_4883",
+      "task": "cube_stack",
+      "trial": 4883,
+      "reward": 0.0,
+      "raw_reward": 0.7237230950096888,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [309.0, 333.4, 358.6, 395.68]\nObject position for red cube: [ 0.6686853   0.06812652 -0.0902299 ]\nObject quaternion wxyz for red cube: [-0.7456888  -0.38892533 -0.35493803 -0.40829437]\nObject extent for red cube: [0.05930565 0.06715693 0.04532737]\nRunning SAM2 segmentation with box: [335.58, 248.08, 394.36, 323.97]\nObject position for green cube: [ 0.57618728  0.10967059 -0.07833073]\nObject quaternion wxyz for green cube: [-0.45848937  0.39354433  0.79510817 -0.05208989]\nObject extent for green cube: [0.08230659 0.08022491 0.04386327]\nRunning SAM2 segmentation with box: [309.0, 333.4, 358.6, 395.68]\nGrasp sample position for red cube: [ 0.67178774  0.06718856 -0.1034778 ]\nGrasp sample quaternion wxyz for red cube: [0.10929425 0.62619799 0.75587603 0.15678717]\nApproaching and grasping red cube...\nLifting red cube to safe height...\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 30, in <module>\nIndexError: invalid index to scalar variable.\n\n\nRaw simulator reward before execution penalty: 0.7237.",
+      "video": null,
+      "elapsed_seconds": 15.982972137164325
+    },
+    {
+      "scenario_id": "hidden_cube_lift_2596",
+      "task": "cube_lift",
+      "trial": 2596,
+      "reward": 0.0,
+      "raw_reward": 0.5377447485299724,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [242.79, 268.39, 298.13, 335.48]\nGrasp sample position for red cube: [ 0.58484672  0.00533104 -0.09723698]\nGrasp sample quaternion wxyz for red cube: [ 0.17126979  0.06751679 -0.98289748 -0.00455443]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5377.",
+      "video": null,
+      "elapsed_seconds": 10.243276635184884
+    },
+    {
+      "scenario_id": "hidden_cube_lift_3841",
+      "task": "cube_lift",
+      "trial": 3841,
+      "reward": 0.0,
+      "raw_reward": 0.4964216817449546,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [214.07, 248.42, 257.45, 306.6]\nGrasp sample position for red cube: [ 0.54503587 -0.01118957 -0.09231931]\nGrasp sample quaternion wxyz for red cube: [-0.1877586   0.04290573  0.97941038 -0.0605074 ]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.4964.",
+      "video": null,
+      "elapsed_seconds": 10.187568826135248
+    },
+    {
+      "scenario_id": "hidden_cube_lift_5107",
+      "task": "cube_lift",
+      "trial": 5107,
+      "reward": 0.0,
+      "raw_reward": 0.5170947092247025,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [242.22, 237.24, 284.81, 293.16]\nGrasp sample position for red cube: [ 0.53348942  0.00610529 -0.08843274]\nGrasp sample quaternion wxyz for red cube: [-0.07747967  0.38539788  0.90643193  0.15442306]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5171.",
+      "video": null,
+      "elapsed_seconds": 10.16314186505042
+    },
+    {
+      "scenario_id": "hidden_cube_lift_6773",
+      "task": "cube_lift",
+      "trial": 6773,
+      "reward": 0.0,
+      "raw_reward": 0.5465991983041013,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [250.81, 259.14, 306.31, 329.48]\nGrasp sample position for red cube: [ 0.57175482  0.01380546 -0.09209155]\nGrasp sample quaternion wxyz for red cube: [-0.14263698  0.18891058  0.97121879  0.02648822]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5466.",
+      "video": null,
+      "elapsed_seconds": 10.277167743071914
+    },
+    {
+      "scenario_id": "hidden_cube_lift_8215",
+      "task": "cube_lift",
+      "trial": 8215,
+      "reward": 0.0,
+      "raw_reward": 0.5141511117689096,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "Traceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [199.86, 238.98, 255.89, 304.56]\nGrasp sample position for red cube: [ 0.53662028 -0.03358268 -0.08908533]\nGrasp sample quaternion wxyz for red cube: [-0.13040825  0.22823227  0.96346805  0.05131307]\n\n\nSandbox stderr:\nTraceback (most recent call last):\n  File \"/ryzers/cap-x/capx/envs/tasks/base.py\", line 174, in _exec_user_code\n    exec(code, self._exec_globals, self._exec_globals)\n  File \"<string>\", line 21, in <module>\nNameError: name 'numpy' is not defined\n\n\nRaw simulator reward before execution penalty: 0.5142.",
+      "video": null,
+      "elapsed_seconds": 10.00055746291764
+    }
+  ],
+  "hidden_after": [
+    {
+      "scenario_id": "hidden_cube_stack_8740",
+      "task": "cube_stack",
+      "trial": 8740,
+      "reward": 0.0014173562347967322,
+      "raw_reward": 0.0014173562347967322,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [269.45, 325.45, 331.44, 401.42]\nObject position for red cube: [ 0.66690974  0.03992461 -0.08647092]\nObject quaternion wxyz for red cube: [ 0.37176603  0.44803401 -0.7461442  -0.32299285]\nObject extent for red cube: [0.06034965 0.05575006 0.04800959]\nRunning SAM2 segmentation with box: [227.83, 158.22, 273.57, 219.82]\nObject position for green cube: [ 0.41524459 -0.00717886 -0.08058112]\nObject quaternion wxyz for green cube: [-0.08180505  0.83869826  0.17934983 -0.507668  ]\nObject extent for green cube: [0.07865458 0.06760038 0.04490964]\nRunning SAM2 segmentation with box: [269.45, 325.45, 331.44, 401.42]\nGrasp sample position for red cube: [ 0.65730634  0.03652547 -0.09543619]\nGrasp sample quaternion wxyz for red cube: [-0.08288666  0.42836408  0.87637479  0.20396359]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": "videos/video_val_hidden_cube_stack_8740_1788076530.mp4",
+      "elapsed_seconds": 16.34796195081435
+    },
+    {
+      "scenario_id": "hidden_cube_stack_9351",
+      "task": "cube_stack",
+      "trial": 9351,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [196.03, 245.6, 245.78, 307.3]\nObject position for red cube: [ 0.55708358 -0.03505604 -0.08235473]\nObject quaternion wxyz for red cube: [-0.00766656  0.89578416  0.17007181 -0.41059414]\nObject extent for red cube: [0.05816004 0.04481224 0.03335985]\nRunning SAM2 segmentation with box: [155.72, 336.48, 224.54, 419.71]\nObject position for green cube: [ 0.6877671  -0.05775588 -0.07992019]\nObject quaternion wxyz for green cube: [ 0.15410321  0.88211912 -0.14438122 -0.42103697]\nObject extent for green cube: [0.08047836 0.06562232 0.05806077]\nRunning SAM2 segmentation with box: [196.03, 245.6, 245.78, 307.3]\nGrasp sample position for red cube: [ 0.54983649 -0.03695624 -0.09804484]\nGrasp sample quaternion wxyz for red cube: [0.04068299 0.46721251 0.86892638 0.15819078]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": "videos/video_val_hidden_cube_stack_9351_1788076547.mp4",
+      "elapsed_seconds": 16.295293611939996
+    },
+    {
+      "scenario_id": "hidden_cube_stack_6027",
+      "task": "cube_stack",
+      "trial": 6027,
+      "reward": 0.0014637828007542653,
+      "raw_reward": 0.0014637828007542653,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [316.0, 161.52, 359.89, 215.51]\nObject position for red cube: [ 0.40142535  0.10376383 -0.09277322]\nObject quaternion wxyz for red cube: [-0.01175008  0.73675229  0.28081296 -0.61498137]\nObject extent for red cube: [0.06188713 0.06470269 0.05245664]\nRunning SAM2 segmentation with box: [146.57, 265.93, 212.94, 347.0]\nObject position for green cube: [ 0.6038873  -0.07839433 -0.07923526]\nObject quaternion wxyz for green cube: [-0.25383638  0.79538007  0.35574383 -0.41998092]\nObject extent for green cube: [0.08353131 0.07368551 0.0560984 ]\nRunning SAM2 segmentation with box: [316.0, 161.52, 359.89, 215.51]\nGrasp sample position for red cube: [ 0.38942195  0.10020694 -0.07440411]\nGrasp sample quaternion wxyz for red cube: [-0.62915788  0.47320212 -0.58249216  0.20234385]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": "videos/video_val_hidden_cube_stack_6027_1788076564.mp4",
+      "elapsed_seconds": 17.506566505879164
+    },
+    {
+      "scenario_id": "hidden_cube_stack_7419",
+      "task": "cube_stack",
+      "trial": 7419,
+      "reward": 0.007049891818527165,
+      "raw_reward": 0.007049891818527165,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [285.35, 216.57, 335.75, 275.7]\nObject position for red cube: [ 0.50836355  0.05722821 -0.08484784]\nObject quaternion wxyz for red cube: [ 0.29186402  0.46082634 -0.74942596 -0.37525353]\nObject extent for red cube: [0.05883162 0.06202084 0.04535538]\nRunning SAM2 segmentation with box: [166.98, 271.55, 225.03, 342.78]\nObject position for green cube: [ 0.60450451 -0.05367697 -0.08288304]\nObject quaternion wxyz for green cube: [-0.81838646  0.31570689 -0.41053913  0.24905901]\nObject extent for green cube: [0.08351849 0.08041903 0.0567454 ]\nRunning SAM2 segmentation with box: [285.35, 216.57, 335.75, 275.7]\nGrasp sample position for red cube: [ 0.5027847   0.06221308 -0.09760918]\nGrasp sample quaternion wxyz for red cube: [0.03404282 0.46632721 0.86647083 0.17495249]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": "videos/video_val_hidden_cube_stack_7419_1788076580.mp4",
+      "elapsed_seconds": 16.211165891960263
+    },
+    {
+      "scenario_id": "hidden_cube_stack_4883",
+      "task": "cube_stack",
+      "trial": 4883,
+      "reward": 0.0005334286019269135,
+      "raw_reward": 0.0005334286019269135,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [340.55, 305.57, 395.91, 367.58]\nObject position for red cube: [ 0.63510664  0.10623393 -0.0902897 ]\nObject quaternion wxyz for red cube: [-0.51753798  0.07111771  0.83994687  0.14692161]\nObject extent for red cube: [0.06004024 0.05792847 0.04744556]\nRunning SAM2 segmentation with box: [173.29, 166.29, 231.18, 235.32]\nObject position for green cube: [ 0.43757912 -0.06617228 -0.0796809 ]\nObject quaternion wxyz for green cube: [ 0.35212991  0.48832525 -0.72316391 -0.33849216]\nObject extent for green cube: [0.0764236  0.07800709 0.05816949]\nRunning SAM2 segmentation with box: [340.55, 305.57, 395.91, 367.58]\nGrasp sample position for red cube: [ 0.62650061  0.10628293 -0.10448208]\nGrasp sample quaternion wxyz for red cube: [0.10563754 0.57069793 0.76927296 0.26713998]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": "videos/video_val_hidden_cube_stack_4883_1788076597.mp4",
+      "elapsed_seconds": 16.661507100099698
+    },
+    {
+      "scenario_id": "hidden_cube_lift_2596",
+      "task": "cube_lift",
+      "trial": 2596,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [206.55, 265.02, 261.83, 332.5]\nGrasp sample position for red cube: [ 0.56459303 -0.0304196  -0.10049655]\nGrasp sample quaternion wxyz for red cube: [-0.18522176  0.12086144  0.97347329  0.05861058]\n",
+      "video": "videos/video_val_hidden_cube_lift_2596_1788076608.mp4",
+      "elapsed_seconds": 10.912548904074356
+    },
+    {
+      "scenario_id": "hidden_cube_lift_3841",
+      "task": "cube_lift",
+      "trial": 3841,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [229.2, 241.73, 283.83, 307.4]\nGrasp sample position for red cube: [ 0.53402841  0.00252788 -0.10130753]\nGrasp sample quaternion wxyz for red cube: [-0.13988385  0.34411668  0.9182081   0.13751383]\n",
+      "video": "videos/video_val_hidden_cube_lift_3841_1788076618.mp4",
+      "elapsed_seconds": 10.467728432035074
+    },
+    {
+      "scenario_id": "hidden_cube_lift_5107",
+      "task": "cube_lift",
+      "trial": 5107,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [263.25, 255.44, 304.93, 312.94]\nGrasp sample position for red cube: [ 0.5482162   0.04213109 -0.09926152]\nGrasp sample quaternion wxyz for red cube: [-0.17521904  0.09251798  0.97915518 -0.04465273]\n",
+      "video": "videos/video_val_hidden_cube_lift_5107_1788076629.mp4",
+      "elapsed_seconds": 10.568450263002887
+    },
+    {
+      "scenario_id": "hidden_cube_lift_6773",
+      "task": "cube_lift",
+      "trial": 6773,
+      "reward": 0.5071770133334458,
+      "raw_reward": 0.5071770133334458,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [242.87, 282.24, 285.93, 342.84]\nGrasp sample position for red cube: [ 0.58933093  0.01009679 -0.1068795 ]\nGrasp sample quaternion wxyz for red cube: [-0.14088019  0.11785537  0.98166886  0.0508837 ]\n",
+      "video": "videos/video_val_hidden_cube_lift_6773_1788076640.mp4",
+      "elapsed_seconds": 10.973721275106072
+    },
+    {
+      "scenario_id": "hidden_cube_lift_8215",
+      "task": "cube_lift",
+      "trial": 8215,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [241.99, 276.9, 301.92, 349.03]\nGrasp sample position for red cube: [ 0.5810101   0.01018409 -0.10026046]\nGrasp sample quaternion wxyz for red cube: [-0.07959867  0.33315802  0.92659255  0.15522886]\n",
+      "video": "videos/video_val_hidden_cube_lift_8215_1788076651.mp4",
+      "elapsed_seconds": 10.661589932860807
+    },
+    {
+      "scenario_id": "hidden_cube_stack_8740",
+      "task": "cube_stack",
+      "trial": 8740,
+      "reward": 0.0019110830428751696,
+      "raw_reward": 0.0019110830428751696,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [279.1, 384.62, 345.32, 464.56]\nObject position for red cube: [ 0.7311612   0.04484484 -0.08526229]\nObject quaternion wxyz for red cube: [ 0.05917519  0.76305019 -0.43535573 -0.47404441]\nObject extent for red cube: [0.06144256 0.06248992 0.04621721]\nRunning SAM2 segmentation with box: [307.35, 199.25, 360.11, 268.23]\nObject position for green cube: [ 0.49443872  0.08597728 -0.08411417]\nObject quaternion wxyz for green cube: [-0.18040783 -0.54427135 -0.04695159 -0.81793475]\nObject extent for green cube: [0.08016392 0.06233112 0.0488565 ]\nRunning SAM2 segmentation with box: [279.1, 384.62, 345.32, 464.56]\nGrasp sample position for red cube: [ 0.72227686  0.04840886 -0.09243484]\nGrasp sample quaternion wxyz for red cube: [0.01996003 0.52995282 0.82068282 0.21267643]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.04949425999075
+    },
+    {
+      "scenario_id": "hidden_cube_stack_9351",
+      "task": "cube_stack",
+      "trial": 9351,
+      "reward": 0.00030580460122139885,
+      "raw_reward": 0.00030580460122139885,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [211.16, 157.72, 257.16, 213.69]\nObject position for red cube: [ 0.39954138 -0.0255029  -0.08552451]\nObject quaternion wxyz for red cube: [-0.06158276  0.82688206  0.27943169 -0.48414001]\nObject extent for red cube: [0.05715011 0.06264354 0.04612277]\nRunning SAM2 segmentation with box: [337.02, 360.29, 411.92, 446.15]\nObject position for green cube: [ 0.71249231  0.09505355 -0.07874833]\nObject quaternion wxyz for green cube: [-0.61775802 -0.4466838   0.00622326 -0.64715522]\nObject extent for green cube: [0.0779395  0.07467949 0.06052381]\nRunning SAM2 segmentation with box: [211.16, 157.72, 257.16, 213.69]\nGrasp sample position for red cube: [ 0.3811826  -0.02457648 -0.08012519]\nGrasp sample quaternion wxyz for red cube: [-0.44376445  0.62974942 -0.5971712   0.223328  ]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.39874450303614
+    },
+    {
+      "scenario_id": "hidden_cube_stack_6027",
+      "task": "cube_stack",
+      "trial": 6027,
+      "reward": 0.021097737156486482,
+      "raw_reward": 0.021097737156486482,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [254.19, 172.09, 301.45, 228.56]\nObject position for red cube: [ 0.42592294  0.02688697 -0.08619726]\nObject quaternion wxyz for red cube: [ 0.35341408  0.61647167 -0.64464839 -0.28193904]\nObject extent for red cube: [0.05644009 0.06316769 0.04769713]\nRunning SAM2 segmentation with box: [221.55, 220.11, 280.49, 292.65]\nObject position for green cube: [ 0.53017138 -0.00807532 -0.08208676]\nObject quaternion wxyz for green cube: [-0.30481837  0.77557154  0.31215804 -0.45621476]\nObject extent for green cube: [0.08389288 0.0709764  0.05974044]\nRunning SAM2 segmentation with box: [254.19, 172.09, 301.45, 228.56]\nGrasp sample position for red cube: [ 0.44016857  0.01974844 -0.09224485]\nGrasp sample quaternion wxyz for red cube: [-0.20717992  0.57929655 -0.72891765  0.30028494]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.2587486829143
+    },
+    {
+      "scenario_id": "hidden_cube_stack_7419",
+      "task": "cube_stack",
+      "trial": 7419,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [269.85, 272.53, 311.44, 330.07]\nObject position for red cube: [ 0.58986972  0.03519281 -0.08783616]\nObject quaternion wxyz for red cube: [-0.25481889 -0.50972672 -0.17390607 -0.80312059]\nObject extent for red cube: [0.06518284 0.06034186 0.03716276]\nRunning SAM2 segmentation with box: [218.13, 210.51, 280.29, 285.62]\nObject position for green cube: [ 0.51634953 -0.00839758 -0.08215535]\nObject quaternion wxyz for green cube: [-0.17509303  0.79942188  0.27855447 -0.50266738]\nObject extent for green cube: [0.08277819 0.07288258 0.06101083]\nRunning SAM2 segmentation with box: [269.85, 272.53, 311.44, 330.07]\nGrasp sample position for red cube: [ 0.58279209  0.03122655 -0.09740844]\nGrasp sample quaternion wxyz for red cube: [-0.17513304  0.06341956  0.98195701 -0.03266304]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 15.853669384028763
+    },
+    {
+      "scenario_id": "hidden_cube_stack_4883",
+      "task": "cube_stack",
+      "trial": 4883,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [250.35, 261.51, 303.91, 325.65]\nObject position for red cube: [ 0.57942273  0.01807753 -0.08460827]\nObject quaternion wxyz for red cube: [ 0.13360662  0.68355361 -0.56592431 -0.44117277]\nObject extent for red cube: [0.06355476 0.05695586 0.04530868]\nRunning SAM2 segmentation with box: [305.34, 301.69, 376.01, 388.37]\nObject position for green cube: [ 0.64877206  0.0784388  -0.07780369]\nObject quaternion wxyz for green cube: [ 0.04540994  0.89534819 -0.20261812 -0.3939993 ]\nObject extent for green cube: [0.07456367 0.06105997 0.05520145]\nRunning SAM2 segmentation with box: [250.35, 261.51, 303.91, 325.65]\nGrasp sample position for red cube: [ 0.56527622  0.01724575 -0.09652338]\nGrasp sample quaternion wxyz for red cube: [0.05139426 0.60443788 0.77743929 0.16613757]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.123855646001175
+    },
+    {
+      "scenario_id": "hidden_cube_lift_2596",
+      "task": "cube_lift",
+      "trial": 2596,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [251.19, 237.63, 304.48, 301.26]\nGrasp sample position for red cube: [ 0.54402634  0.02723423 -0.09462141]\nGrasp sample quaternion wxyz for red cube: [-0.03414817  0.5218388   0.82003284  0.23251742]\n",
+      "video": null,
+      "elapsed_seconds": 10.176803342998028
+    },
+    {
+      "scenario_id": "hidden_cube_lift_3841",
+      "task": "cube_lift",
+      "trial": 3841,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [250.31, 240.2, 306.8, 306.61]\nGrasp sample position for red cube: [ 0.53764041  0.02123626 -0.09384859]\nGrasp sample quaternion wxyz for red cube: [-0.07441525  0.39889469  0.90062464  0.15562984]\n",
+      "video": null,
+      "elapsed_seconds": 10.047756822081283
+    },
+    {
+      "scenario_id": "hidden_cube_lift_5107",
+      "task": "cube_lift",
+      "trial": 5107,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [214.53, 255.15, 265.29, 319.78]\nGrasp sample position for red cube: [ 0.5583148  -0.01462716 -0.08876513]\nGrasp sample quaternion wxyz for red cube: [ 0.18813108  0.04029801 -0.97940319  0.06125492]\n",
+      "video": null,
+      "elapsed_seconds": 10.146265429910272
+    },
+    {
+      "scenario_id": "hidden_cube_lift_6773",
+      "task": "cube_lift",
+      "trial": 6773,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [237.06, 242.71, 294.18, 311.6]\nGrasp sample position for red cube: [ 0.54534699  0.00754828 -0.09056431]\nGrasp sample quaternion wxyz for red cube: [-0.1064792   0.31274712  0.93630721  0.11908101]\n",
+      "video": null,
+      "elapsed_seconds": 10.231866657966748
+    },
+    {
+      "scenario_id": "hidden_cube_lift_8215",
+      "task": "cube_lift",
+      "trial": 8215,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [223.04, 272.53, 277.74, 339.96]\nGrasp sample position for red cube: [ 0.59507757 -0.00247348 -0.09324531]\nGrasp sample quaternion wxyz for red cube: [-0.00299494  0.53221917  0.80015319  0.27656577]\n",
+      "video": null,
+      "elapsed_seconds": 10.008186465129256
+    },
+    {
+      "scenario_id": "hidden_cube_stack_8740",
+      "task": "cube_stack",
+      "trial": 8740,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [154.95, 251.37, 209.2, 315.38]\nObject position for red cube: [ 0.56326343 -0.07866026 -0.08852175]\nObject quaternion wxyz for red cube: [-0.22209741  0.79333127  0.23445842 -0.51606927]\nObject extent for red cube: [0.06548021 0.06292906 0.05058806]\nRunning SAM2 segmentation with box: [236.76, 151.86, 286.33, 215.94]\nObject position for green cube: [ 0.40287684  0.00995367 -0.08109715]\nObject quaternion wxyz for green cube: [ 0.39740003  0.66810751 -0.55066529 -0.30409425]\nObject extent for green cube: [0.06642524 0.07365862 0.05911648]\nRunning SAM2 segmentation with box: [154.95, 251.37, 209.2, 315.38]\nGrasp sample position for red cube: [ 0.55647607 -0.07821573 -0.09417761]\nGrasp sample quaternion wxyz for red cube: [0.01909803 0.47276386 0.86348599 0.17470435]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 15.985291995108128
+    },
+    {
+      "scenario_id": "hidden_cube_stack_9351",
+      "task": "cube_stack",
+      "trial": 9351,
+      "reward": 0.00027419444474327537,
+      "raw_reward": 0.00027419444474327537,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [265.35, 154.59, 307.09, 206.0]\nObject position for red cube: [ 0.3901153   0.03525086 -0.08602126]\nObject quaternion wxyz for red cube: [-0.25560223  0.80740828  0.30364916 -0.43652784]\nObject extent for red cube: [0.06674368 0.05804033 0.04375915]\nRunning SAM2 segmentation with box: [324.63, 381.06, 395.28, 464.38]\nObject position for green cube: [ 0.73213877  0.08074344 -0.08058339]\nObject quaternion wxyz for green cube: [-0.02479707  0.65803868 -0.53831389 -0.52591668]\nObject extent for green cube: [0.07411372 0.08263948 0.06148143]\nRunning SAM2 segmentation with box: [265.35, 154.59, 307.09, 206.0]\nGrasp sample position for red cube: [ 0.40987707  0.04587918 -0.08923586]\nGrasp sample quaternion wxyz for red cube: [-0.59870397 -0.07265234 -0.79664588  0.0403807 ]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.446231952868402
+    },
+    {
+      "scenario_id": "hidden_cube_stack_6027",
+      "task": "cube_stack",
+      "trial": 6027,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [105.49, 352.52, 171.48, 427.36]\nObject position for red cube: [ 0.69640216 -0.10318121 -0.08486917]\nObject quaternion wxyz for red cube: [-0.88862802  0.15604456 -0.43053231  0.02514506]\nObject extent for red cube: [0.05861109 0.0627885  0.04660988]\nRunning SAM2 segmentation with box: [200.28, 165.73, 255.97, 234.11]\nObject position for green cube: [ 0.43179946 -0.02730333 -0.0801178 ]\nObject quaternion wxyz for green cube: [ 0.47620502  0.65639646 -0.57829891 -0.08912258]\nObject extent for green cube: [0.08348787 0.07494138 0.06110687]\nRunning SAM2 segmentation with box: [105.49, 352.52, 171.48, 427.36]\nGrasp sample position for red cube: [ 0.68391723 -0.10826658 -0.09404713]\nGrasp sample quaternion wxyz for red cube: [-0.17713002  0.19744737  0.96349495  0.03628961]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.027291610836983
+    },
+    {
+      "scenario_id": "hidden_cube_stack_7419",
+      "task": "cube_stack",
+      "trial": 7419,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [293.93, 320.5, 342.66, 386.33]\nObject position for red cube: [ 0.65495594  0.05825309 -0.09199379]\nObject quaternion wxyz for red cube: [-0.05932367 -0.5532474   0.0967619  -0.82524854]\nObject extent for red cube: [0.06087596 0.04285021 0.03911163]\nRunning SAM2 segmentation with box: [263.06, 151.75, 317.37, 217.76]\nObject position for green cube: [ 0.40294327  0.03585767 -0.07909608]\nObject quaternion wxyz for green cube: [ 0.03707712  0.68579523 -0.57905026 -0.43933015]\nObject extent for green cube: [0.0797565  0.07109457 0.06108201]\nRunning SAM2 segmentation with box: [293.93, 320.5, 342.66, 386.33]\nGrasp sample position for red cube: [ 0.64817037  0.05468816 -0.08955319]\nGrasp sample quaternion wxyz for red cube: [ 0.12123288  0.35890199 -0.92193559  0.08078843]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.059191385051236
+    },
+    {
+      "scenario_id": "hidden_cube_stack_4883",
+      "task": "cube_stack",
+      "trial": 4883,
+      "reward": 0.0461734830169762,
+      "raw_reward": 0.0461734830169762,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [128.17, 402.34, 189.0, 479.14]\nObject position for red cube: [ 0.74802341 -0.08146495 -0.08896265]\nObject quaternion wxyz for red cube: [-0.86275968  0.12013332 -0.49042594 -0.0263841 ]\nObject extent for red cube: [0.0665347  0.04999718 0.03545679]\nRunning SAM2 segmentation with box: [162.84, 188.0, 216.12, 255.14]\nObject position for green cube: [ 0.47602937 -0.07678021 -0.08242919]\nObject quaternion wxyz for green cube: [ 0.0638262   0.86007258 -0.0327842  -0.50510055]\nObject extent for green cube: [0.07997688 0.06522869 0.04829987]\nRunning SAM2 segmentation with box: [128.17, 402.34, 189.0, 479.14]\nGrasp sample position for red cube: [ 0.73321938 -0.07252225 -0.09176072]\nGrasp sample quaternion wxyz for red cube: [ 0.16371006  0.03604795 -0.98581634 -0.00810407]\nApproaching and grasping red cube...\nLifting red cube to safe height...\nMoving to placement location on green cube...\nReleasing red cube.\nTask completed: Red cube stacked on green cube.\n",
+      "video": null,
+      "elapsed_seconds": 16.029507116880268
+    },
+    {
+      "scenario_id": "hidden_cube_lift_2596",
+      "task": "cube_lift",
+      "trial": 2596,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [257.81, 253.19, 311.8, 320.53]\nGrasp sample position for red cube: [ 0.56130627  0.02809497 -0.09164297]\nGrasp sample quaternion wxyz for red cube: [0.09629654 0.5287333  0.80878465 0.23882109]\n",
+      "video": null,
+      "elapsed_seconds": 10.091148125007749
+    },
+    {
+      "scenario_id": "hidden_cube_lift_3841",
+      "task": "cube_lift",
+      "trial": 3841,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [201.55, 248.87, 254.32, 314.61]\nGrasp sample position for red cube: [ 0.54900887 -0.04170891 -0.09032394]\nGrasp sample quaternion wxyz for red cube: [-0.14178794  0.15392699  0.97277224  0.09958299]\n",
+      "video": null,
+      "elapsed_seconds": 10.097952822921798
+    },
+    {
+      "scenario_id": "hidden_cube_lift_5107",
+      "task": "cube_lift",
+      "trial": 5107,
+      "reward": 0.49956552645334107,
+      "raw_reward": 0.49956552645334107,
+      "task_completed": false,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task not completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [223.01, 265.18, 280.23, 333.38]\nGrasp sample position for red cube: [ 0.58084233 -0.00387516 -0.08695048]\nGrasp sample quaternion wxyz for red cube: [0.07890786 0.60868607 0.74471618 0.26205472]\n",
+      "video": null,
+      "elapsed_seconds": 10.033957156119868
+    },
+    {
+      "scenario_id": "hidden_cube_lift_6773",
+      "task": "cube_lift",
+      "trial": 6773,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [232.01, 262.74, 273.85, 320.94]\nGrasp sample position for red cube: [ 0.56724558 -0.00640611 -0.09054387]\nGrasp sample quaternion wxyz for red cube: [-0.17152086  0.10900573  0.97908406  0.00963677]\n",
+      "video": null,
+      "elapsed_seconds": 10.179825728992
+    },
+    {
+      "scenario_id": "hidden_cube_lift_8215",
+      "task": "cube_lift",
+      "trial": 8215,
+      "reward": 1.0,
+      "raw_reward": 1.0,
+      "task_completed": true,
+      "timed_out": false,
+      "stderr": "",
+      "traceback": "",
+      "feedback": "Task completed.\n\nSandbox stdout:\nRunning SAM2 segmentation with box: [252.56, 258.43, 308.63, 325.09]\nGrasp sample position for red cube: [ 0.57644102  0.02763573 -0.09154685]\nGrasp sample quaternion wxyz for red cube: [0.00595722 0.5794505  0.77429036 0.25431482]\n",
+      "video": null,
+      "elapsed_seconds": 10.167068582959473
+    }
+  ],
+  "hidden_before_summary": {
+    "cube_stack": {
+      "rollouts": 15,
+      "trials": [
+        8740,
+        9351,
+        6027,
+        7419,
+        4883,
+        8740,
+        9351,
+        6027,
+        7419,
+        4883,
+        8740,
+        9351,
+        6027,
+        7419,
+        4883
+      ],
+      "completed": 0,
+      "completion_rate": 0.0,
+      "mean_reward": 0.0,
+      "mean_raw_reward": 0.5723738075625093,
+      "execution_failures": 15
+    },
+    "cube_lift": {
+      "rollouts": 15,
+      "trials": [
+        2596,
+        3841,
+        5107,
+        6773,
+        8215,
+        2596,
+        3841,
+        5107,
+        6773,
+        8215,
+        2596,
+        3841,
+        5107,
+        6773,
+        8215
+      ],
+      "completed": 0,
+      "completion_rate": 0.0,
+      "mean_reward": 0.0,
+      "mean_raw_reward": 0.5087565343742656,
+      "execution_failures": 15
+    }
+  },
+  "hidden_after_summary": {
+    "cube_stack": {
+      "rollouts": 15,
+      "trials": [
+        8740,
+        9351,
+        6027,
+        7419,
+        4883,
+        8740,
+        9351,
+        6027,
+        7419,
+        4883,
+        8740,
+        9351,
+        6027,
+        7419,
+        4883
+      ],
+      "completed": 6,
+      "completion_rate": 0.4,
+      "mean_reward": 0.4053484507812205,
+      "mean_raw_reward": 0.4053484507812205,
+      "execution_failures": 0
+    },
+    "cube_lift": {
+      "rollouts": 15,
+      "trials": [
+        2596,
+        3841,
+        5107,
+        6773,
+        8215,
+        2596,
+        3841,
+        5107,
+        6773,
+        8215,
+        2596,
+        3841,
+        5107,
+        6773,
+        8215
+      ],
+      "completed": 13,
+      "completion_rate": 0.8666666666666667,
+      "mean_reward": 0.9337828359857858,
+      "mean_raw_reward": 0.9337828359857858,
+      "execution_failures": 0
+    }
+  },
+  "success_criterion": {
+    "required_tasks": [
+      "cube_stack",
+      "cube_lift"
+    ],
+    "rollouts": 30,
+    "completed_before": 0,
+    "completed_after": 19,
+    "completion_rate_before": 0.0,
+    "completion_rate_after": 0.6333333333333333,
+    "mean_reward_before": 0.0,
+    "mean_reward_after": 0.6695656433835031,
+    "minimum_hard_reward_gain": 0.05,
+    "completion_improved": true,
+    "reward_improved": false,
+    "deployment_improved": true,
+    "met": true
+  },
+  "timing": {
+    "setup_seconds": 11.426942968042567,
+    "baseline_seconds": 473.44859246583655,
+    "evolution_seconds": 1968.7213867451064,
+    "hidden_after_seconds": 399.03308271593414,
+    "agent_event_span_seconds": 486.60599994659424,
+    "retained_validation_simulator_seconds": 392.52326988079585
+  }
+}

@@ -1,0 +1,24 @@
+diff --git a/examples/droid/host_server_droid.py b/examples/droid/host_server_droid.py
+index a9d1cf6..aa65c90 100644
+--- a/examples/droid/host_server_droid.py
++++ b/examples/droid/host_server_droid.py
+@@ -126,12 +126,15 @@ class Policy:
+         enable_cuda_graph: bool = False,
+     ) -> None:
+         self.default_cuda_graph = enable_cuda_graph
+-        # The MolmoAct2 model code reads `norm_stats.json` from
++        # The MolmoAct2 model code reads `norm_stats.json` from
+         # `config._name_or_path`. Loading by repo id makes that a non-path
+         # string, so `predict_action` fails at runtime. Resolve the local
+-        # snapshot dir up front and load from there — `snapshot_download` is a
+-        # no-op when files are cached.
+-        local_dir = snapshot_download(repo_id=repo_id)
++        # snapshot dir up front and load from there. Callers may also pass an
++        # already-resolved snapshot to pin an immutable Hub revision.
++        if os.path.isdir(repo_id):
++            local_dir = os.path.realpath(repo_id)
++        else:
++            local_dir = snapshot_download(repo_id=repo_id)
+         log.info("Resolved snapshot dir: %s", local_dir)
+ 
+         _patch_modeling_for_bf16(local_dir)

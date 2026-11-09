@@ -1,0 +1,90 @@
+objective = """Evolve this repository into a robust 2-task robot policy package.
+Improve every policy under solver/tasks/ using evaluator evidence. Prefer
+general repairs and shared helpers over trial-specific constants. Multiple
+specialist candidates are valuable: HELIX will retain repositories that win
+different validation tasks."""
+seed = "."
+rng_seed = 29
+passthrough_env = [
+  "CUDA_VISIBLE_DEVICES",
+  "HIP_VISIBLE_DEVICES",
+  "ROCR_VISIBLE_DEVICES",
+  "HSA_OVERRIDE_GFX_VERSION",
+  "LD_LIBRARY_PATH",
+  "HF_HOME",
+  "MUJOCO_GL",
+  "PYOPENGL_PLATFORM",
+  "CAPX_ROOT",
+  "RHO_MODEL",
+  "RHO_MULTITASK_MODEL",
+  "RHO_MULTITASK_MOCK",
+  "RHO_PROGRESS_FILE",
+  "RHO_SUPPORT_ROOT",
+  "XDG_RUNTIME_DIR",
+]
+
+[env]
+CAPX_ROOT = "/ryzers/cap-x"
+HF_HOME = "/opt/capx-cache"
+MUJOCO_GL = "egl"
+PYOPENGL_PLATFORM = "egl"
+RHO_EVAL_TIMEOUT = "180"
+
+[evaluator]
+command = "/opt/capx-venv/bin/python probe.py"
+protected_files = [
+  "probe.py",
+  "helix.toml",
+  "opencode.json",
+  "CONTRACT.md",
+  "scenarios.json",
+  "provenance.json",
+]
+
+[dataset]
+train_size = 2
+val_size = 6
+
+[evolution]
+max_generations = 2
+# Scores are bounded by 1.0, so a threshold above 1.0 stops a candidate that
+# wins everything early from short-circuiting the rest of the search.
+perfect_score_threshold = 1.1
+max_evaluations = 900
+merge_enabled = true
+max_merge_invocations = 2
+merge_val_overlap_floor = 1
+merge_subsample_size = 6
+num_parallel_proposals = 4
+mutations_per_parent = 1
+minibatch_size = 2
+max_workers = 1
+cache_evaluation = true
+acceptance_criterion = "strict_improvement"
+frontier_type = "instance"
+batch_sampler = "epoch_shuffled"
+
+[agent]
+backend = "opencode"
+model = "lemonade/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M"
+max_turns = 24
+background = """This is a two-generation GEPA-style repository evolution. Read CONTRACT.md,
+the policy files, and the evaluator diagnostics supplied for your sampled task.
+Diagnose failures rather than assuming the repair. Treat the sampled task as
+the primary edit target: read its policy first and do not inspect or modify
+unrelated working task policies unless the diagnostic implicates them. Use the
+read and glob tools for discovery instead of shell commands. Robot primitives
+are injected only into task-script globals; imported helper modules must remain
+pure calculations or control decisions and cannot call those primitives.
+Do not edit protected configuration or encode scenario IDs, trial IDs, or fixed
+poses. Reserve enough turns to make the edit and run the checks below.
+Before finishing, run `/opt/capx-venv/bin/python -m py_compile solver/*.py
+solver/tasks/*.py`, then run
+`RHO_EVAL_ORIGIN=agent-self-check /opt/capx-venv/bin/python probe.py`, and
+inspect `git diff`."""
+
+[sandbox]
+enabled = false
+
+[worktree]
+base_dir = ".helix/worktrees"
