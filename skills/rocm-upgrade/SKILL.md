@@ -37,12 +37,21 @@ For a wheel-based image, install development components matching the installed `
 
 ```dockerfile
 RUN ROCM_VERSION="$(python -c "import importlib.metadata as m; print(m.version('rocm'))" 2>/dev/null)" || exit 0; \
-    pip install --index-url https://repo.amd.com/rocm/whl-multi-arch/ "rocm[devel]==${ROCM_VERSION}"; \
+    pip install --index-url https://stable.repo.amd.com/rocm/whl-next/ \
+                --extra-index-url https://repo.amd.com/rocm/whl-multi-arch/ \
+                "rocm[devel]==${ROCM_VERSION}"; \
     rocm-sdk init; \
     test -e /opt/rocm || ln -s "$(rocm-sdk path --root)" /opt/rocm
 ```
 
 Keep this compatibility setup in `ryzer_env`, not in every native package. Verify the exact repository and installation mechanism again on future releases.
+
+AMD serves different ROCm ranges from different indexes, and they do not overlap: as of the
+ROCm 10.1 migration `whl-next` carried 10.0.0 and 10.1.0 while `whl-multi-arch` stopped at
+7.14.1. Querying both keeps packages that pin an older base building after the default moves.
+Check what each index actually serves before changing this — the `|| exit 0` guard only covers
+the version probe, so an index that cannot satisfy the requested version fails the pip install
+and the chain then dies later at `rocm-sdk init`, with a confusing error.
 
 ## 3. Inventory version-coupled code
 

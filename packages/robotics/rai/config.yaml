@@ -1,6 +1,11 @@
 # Copyright (C) 2026 Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: MIT
 
+# No init_image pin: rai needs a Python 3.12 ROCm base (rai_core requires numpy<2,
+# which ships no cp313 wheels, and every cp313 opencv-python needs numpy>=2), and
+# the repo default is already rocm10.1 py3.12. Re-pin here if the default ever
+# moves to py3.13.
+
 port_mappings:
   - "8501:8501"   # Streamlit frontend
 

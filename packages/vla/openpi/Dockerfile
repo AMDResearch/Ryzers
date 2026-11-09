@@ -40,8 +40,12 @@ RUN mkdir -p /root/.mujoco \
 # Install mujoco
 RUN pip install --no-cache-dir --break-system-packages mujoco==${MUJOCO_VERSION}
 
-# Install uv
-RUN pip install uv
+# Install uv as a standalone binary OUTSIDE /opt/venv. `pip install uv` lands it
+# in /opt/venv, which `uv sync` (UV_PROJECT_ENVIRONMENT=/opt/venv) rebuilds if the
+# interpreter doesn't match -- leaving no uv on disk for the steps below
+# (exit 127: /opt/venv/bin/uv: No such file).
+RUN wget -qO- https://astral.sh/uv/install.sh | sh
+ENV PATH=/root/.local/bin:${PATH}
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV UV_INDEX_STRATEGY=unsafe-best-match
 
@@ -52,20 +56,34 @@ RUN git clone https://github.com/Physical-Intelligence/openpi && \
     git submodule update --init --recursive
 
 COPY openpi.patch /ryzers/openpi
+# Read .python-version off the base image's venv (3.12 today) rather than
+# hardcoding it. If the two disagree, uv rebuilds /opt/venv from scratch and the
+# base image's ROCm torch -- which no pip index serves -- is gone for good.
+# The sed appends av==13.1.0 to the (single-line) override-dependencies list.
 RUN cd openpi && \
     git apply ./openpi.patch && \
-    echo "3.12" > .python-version && \
+    /opt/venv/bin/python -c 'import sys; print("%d.%d" % sys.version_info[:2])' > .python-version && \
     sed -i '/^override-dependencies = \[/ s/\]/, "av==13.1.0"]/' pyproject.toml && \
     GIT_LFS_SKIP_SMUDGE=1 uv sync --inexact && \
     GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
+
+# Guard: uv must not have replaced the base image's ROCm torch (the never-true
+# markers in override-dependencies are what keep it out of the resolve).
+RUN /opt/venv/bin/python -c "import torch, torchvision; assert torch.version.hip, 'torch is not a ROCm build: ' + torch.__version__; print('openpi OK torch', torch.__version__, 'hip', torch.version.hip)"
 
 # Download model checkpoint
 RUN cd openpi && \
     uv run scripts/serve_policy.py --download-only policy:checkpoint --policy.config=pi0_droid --policy.dir=gs://openpi-assets/checkpoints/pi0_droid
 
-# Apply PyTorch support patch
+# Apply PyTorch support patch.
+# Resolve transformers' location rather than hardcoding a site-packages path: the
+# literal /opt/venv/lib/python3.12/... is wrong on the ROCm 10.1 base, and a `cp`
+# into a non-existent directory would fail the build here -- or worse, succeed
+# against the wrong interpreter's copy of transformers.
 RUN cd openpi && \
-    cp -r ./src/openpi/models_pytorch/transformers_replace/* /opt/venv/lib/python3.12/site-packages/transformers/
+    tf_dir="$(python -c 'import transformers, os; print(os.path.dirname(transformers.__file__))')" && \
+    echo "patching transformers at $tf_dir" && \
+    cp -r ./src/openpi/models_pytorch/transformers_replace/* "$tf_dir/"
 
 # Convert JAX models to PyTorch
 RUN cd openpi && \
