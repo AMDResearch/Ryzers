@@ -39,8 +39,18 @@ RUN pip3 install --no-cache-dir --break-system-packages "genesis-world==1.4.3"
 
 # Quadrants dlopens "libamdhip64.so"; resolve it to the HIP runtime torch preloads from _rocm_sdk_core, otherwise a
 # second copy gets loaded and kernel lookup fails (Genesis-Embodied-AI/genesis-world#3059)
-ENV ROCM_SDK_CORE_LIB=/opt/venv/lib/python3.12/site-packages/_rocm_sdk_core/lib
-RUN ln -sf libamdhip64.so.7 ${ROCM_SDK_CORE_LIB}/libamdhip64.so
+# /opt/site-packages is the stable alias ryzer_env points at whichever directory
+# actually holds the _rocm_sdk_* wheels. The old literal
+# /opt/venv/lib/python3.12/site-packages path is wrong on the ROCm 10.1 base,
+# where the SDK wheels live in the system dist-packages rather than the venv.
+ENV ROCM_SDK_CORE_LIB=/opt/site-packages/_rocm_sdk_core/lib
+# The HIP soname major follows the clr component, not the ROCm release, so read it off the installed runtime rather
+# than hardcoding it (it was .so.7 under ROCm 7.14 and may or may not have moved under 10.1); a link pointing at a
+# name that isn't there only shows up later as the same kernel lookup failure
+RUN cd ${ROCM_SDK_CORE_LIB} && \
+    hip_soname="$(ls libamdhip64.so.* | sort | head -n1)" && \
+    ln -sf "$hip_soname" libamdhip64.so && \
+    echo "libamdhip64.so -> $hip_soname"
 ENV LD_LIBRARY_PATH=${ROCM_SDK_CORE_LIB}:${LD_LIBRARY_PATH}
 # Quadrants links GPU kernels with ld.lld; don't rely on /opt/rocm being present
 ENV PATH=${ROCM_SDK_CORE_LIB}/llvm/bin:${PATH}

@@ -84,15 +84,30 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN rm -rf /opt/lerobot-allenai && git clone --branch ${LEROBOT_REF} --depth 1 \
-      https://github.com/allenai/lerobot.git /opt/lerobot-allenai && \
-    sed -i \
-      -e 's/"torch>=2.7,<2.11.0"/"torch>=2.7,<2.13.0"/' \
-      -e 's/"torchvision>=0.22.0,<0.26.0"/"torchvision>=0.22.0,<0.28.0"/' \
-      /opt/lerobot-allenai/pyproject.toml
+      https://github.com/allenai/lerobot.git /opt/lerobot-allenai
+
+# Lift allenai/lerobot's torch ceilings to admit the torch the base image ships.
+# The bound is derived from the installed version rather than hardcoded: this pin
+# has needed a hand-edit on every single base bump so far (<2.11 originally,
+# ->2.13 for rocm7.14, ->2.14 for rocm10, and ROCm 10.1 ships 2.14 which the last
+# one excludes). The match is also a regex rather than the previous exact-string
+# replace, which silently did nothing whenever upstream reworded its pin, and the
+# trailing grep turns that silent no-op into a loud build failure.
+RUN TORCH_MAX="$(python -c 'import torch; v=torch.__version__.split("+")[0].split("."); print(f"{int(v[0])}.{int(v[1])+1}.0")')" && \
+    TV_MAX="$(python -c 'import torchvision; v=torchvision.__version__.split("+")[0].split("."); print(f"{int(v[0])}.{int(v[1])+1}.0")')" && \
+    echo "lifting ceilings to torch<${TORCH_MAX} torchvision<${TV_MAX}" && \
+    sed -i -E \
+      -e "s/\"torch>=([0-9.]+),<[0-9.]+\"/\"torch>=\1,<${TORCH_MAX}\"/" \
+      -e "s/\"torchvision>=([0-9.]+),<[0-9.]+\"/\"torchvision>=\1,<${TV_MAX}\"/" \
+      /opt/lerobot-allenai/pyproject.toml && \
+    grep -qE "\"torch>=[0-9.]+,<${TORCH_MAX}\"" /opt/lerobot-allenai/pyproject.toml && \
+    grep -qE "\"torchvision>=[0-9.]+,<${TV_MAX}\"" /opt/lerobot-allenai/pyproject.toml && \
+    grep -nE '"torch(vision)?>=' /opt/lerobot-allenai/pyproject.toml
 
 RUN rm -rf /opt/libero-venv && python -m venv /opt/libero-venv && \
-    echo "/opt/venv/lib/python3.12/site-packages" \
-      > "/opt/libero-venv/lib/python3.12/site-packages/zz_base_site.pth" && \
+    base_sp="$(/opt/venv/bin/python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')" && \
+    venv_sp="$(/opt/libero-venv/bin/python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')" && \
+    echo "$base_sp" > "$venv_sp/zz_base_site.pth" && \
     /opt/venv/bin/pip freeze | grep -iE '^(torch|torchvision)==' > /opt/torch-constraints.txt && \
     echo "torch constraints:" && cat /opt/torch-constraints.txt && \
     PIP_CONSTRAINT=/opt/torch-constraints.txt /opt/libero-venv/bin/pip install --no-cache-dir \

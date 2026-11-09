@@ -1,5 +1,5 @@
 diff --git a/pyproject.toml b/pyproject.toml
-index c4a06e5..e3c2b04 100644
+index c4a06e5..dec0a7f 100644
 --- a/pyproject.toml
 +++ b/pyproject.toml
 @@ -3,7 +3,7 @@ name = "openpi"
@@ -11,7 +11,7 @@ index c4a06e5..e3c2b04 100644
  license = { file = "LICENSE" }
  dependencies = [
      "augmax>=0.3.4",
-@@ -16,7 +16,7 @@ dependencies = [
+@@ -15,7 +15,7 @@ dependencies = [
      "fsspec[gcs]>=2024.6.0",
      "gym-aloha>=0.1.1",
      "imageio>=2.36.1",
@@ -28,42 +28,20 @@ index c4a06e5..e3c2b04 100644
      "tqdm-loggable>=0.2",
      "typing-extensions>=4.12.2",
      "tyro>=0.9.5",
-@@ -35,6 +34,10 @@ dependencies = [
-     "beartype==0.19.0",
-     "treescope>=0.1.7",
-     "transformers==4.53.2",
-+    "torch[device-gfx1151]==2.12.0+rocm7.14.0",
-+    "torchvision[device-gfx1151]==0.27.0+rocm7.14.0",
-+    "torchaudio==2.11.0+rocm7.14.0",
-+    "rocm[devel]==7.14.0",
-     "rich>=14.0.0",
-     "polars>=1.30.0",
+@@ -60,7 +59,12 @@ rlds = [
  ]
-@@ -62,10 +64,17 @@ rlds = [
- [tool.uv]
- override-dependencies = ["ml-dtypes==0.4.1", "tensorstore==0.1.74"]
  
-+[[tool.uv.index]]
-+name = "pytorch-rocm"
-+url = "https://repo.amd.com/rocm/whl-multi-arch/"
-+
+ [tool.uv]
+-override-dependencies = ["ml-dtypes==0.4.1", "tensorstore==0.1.74"]
++# The ROCm torch stack is baked into the base image and is not on any pip index
++# (repo.amd.com's whl-multi-arch tops out at rocm-7.14.1), so uv must not install
++# it. A never-true marker keeps torch resolvable in the lock while excluding it,
++# and its deps, from the environment; `uv sync --inexact` then leaves the base
++# image's build in place. Keep this on one line: the Dockerfile seds onto it.
++override-dependencies = ["ml-dtypes==0.4.1", "tensorstore==0.1.74", "torch ; sys_platform == 'never'", "torchvision ; sys_platform == 'never'", "torchaudio ; sys_platform == 'never'"]
+ 
  [tool.uv.sources]
  openpi-client = { workspace = true }
- lerobot = { git = "https://github.com/huggingface/lerobot", rev = "0cf864870cf29f4738d3ade893e6fd13fbd7cdb5" }
- dlimp = { git = "https://github.com/kvablack/dlimp", rev = "ad72ce3a9b414db2185bc0b38461d4101a65477a" }
-+torch = { index = "pytorch-rocm" }
-+torchvision = { index = "pytorch-rocm" }
-+torchaudio = { index = "pytorch-rocm" }
- 
- [tool.uv.workspace]
- members = ["packages/*"]
-@@ -134,4 +144,4 @@ build-backend = "hatchling.build"
- 
- [tool.pytest.ini_options]
- markers = ["manual: should be run manually."]
--testpaths = ["src", "scripts", "packages"]
-+testpaths = ["src", "scripts", "packages"]
-\ No newline at end of file
 diff --git a/scripts/serve_policy.py b/scripts/serve_policy.py
 index 30f121a..f7c5175 100644
 --- a/scripts/serve_policy.py
