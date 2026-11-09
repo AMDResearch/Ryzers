@@ -1,0 +1,1 @@
+import sys; exec("try:\n import os\n if os.path.isdir('/opt/sim') and '/opt/sim' not in sys.path: sys.path.insert(0, '/opt/sim')\n import sim_libero._torch_compat as _c; _c.patch_torch_load()\nexcept Exception: pass")

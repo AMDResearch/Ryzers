@@ -50,6 +50,19 @@ class ConfigManager:
         "docker_extra_run_flags"
     ]
 
+    # Keys whose value is a pair, mapped to the separator that splits it.
+    # Every other key in CONFIG_KEYS carries a plain scalar. Deriving the
+    # scalar case from CONFIG_KEYS rather than repeating it keeps the two from
+    # drifting apart: camera_support was listed in CONFIG_KEYS and honoured by
+    # configs_to_runflags(), but missing from the literal list that used to be
+    # here, so setting it raised ValueError and failed the build.
+    PAIR_KEY_SEPARATORS = {
+        "build_arguments": "=",
+        "environment_variables": "=",
+        "port_mappings": ":",
+        "volume_mappings": ":",
+    }
+
     def __init__(self, configfiles: List[str]):
         self.configfiles = configfiles
         self.configentries = self.get_configentries()
@@ -86,13 +99,32 @@ class ConfigManager:
         cameras = True
         extra_run_flags = ""
 
+        # Docker refuses to start a container given two -v flags with the same
+        # destination ("Duplicate mount point") or two -p flags on the same host
+        # port ("port is already allocated"). A long build chain hits both
+        # easily: several packages independently mount a HuggingFace cache at
+        # /root/.cache/huggingface, or each declare 8888. Collapse them here,
+        # keyed on the part Docker treats as unique and last-wins, so the
+        # package closest to the end of the chain decides -- matching how
+        # configs_to_buildflags() already resolves repeated build arguments.
+        #
+        # Environment variables are deliberately NOT collapsed: repeated -e is
+        # legal and Docker already applies last-wins to it.
+        ports = {}
+        volumes = {}
         for c in self.configentries:
             if c.key == "port_mappings":
-                runflags += f" -p {c}" 
+                ports[c.key1] = c
             if c.key == "volume_mappings":
-                runflags += f" -v {c}"                 
+                volumes[c.value] = c
+
+        for c in self.configentries:
+            if c.key == "port_mappings" and ports.get(c.key1) is c:
+                runflags += f" -p {c}"
+            if c.key == "volume_mappings" and volumes.get(c.value) is c:
+                runflags += f" -v {c}"
             if c.key == "environment_variables":
-                runflags += f" -e {c}"  
+                runflags += f" -e {c}"
             if c.key == "gpu_support":
                 gpu = c.value
             if c.key == "x11_display":
@@ -151,13 +183,11 @@ class ConfigManager:
         return configs
     
     def get_configentry_obj(self, key: str, value: str, config_path: str) -> Tuple[str, str]:
-        if key in ["build_arguments", "environment_variables"]:
-            key0, val0 = value.split('=', 1)
-            return ConfigKeyKeyValueEntry(key, key0, val0, config_path)
-        if key in ["port_mappings", "volume_mappings"]:
-            key0, val0 = value.split(':', 1)
-            return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=':')
-        if key in ["gpu_support", "x11_display", "docker_extra_build_flags", "docker_extra_run_flags", "init_image"]:
+        if key in self.PAIR_KEY_SEPARATORS:
+            sep = self.PAIR_KEY_SEPARATORS[key]
+            key0, val0 = value.split(sep, 1)
+            return ConfigKeyKeyValueEntry(key, key0, val0, config_path, sep=sep)
+        if key in self.CONFIG_KEYS:
             return ConfigKeyValueEntry(key, value, config_path)
         else:
             raise ValueError(f"Invalid key: {key}. Must be one of {', '.join(self.CONFIG_KEYS)}")

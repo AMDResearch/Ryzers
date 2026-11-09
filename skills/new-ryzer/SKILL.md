@@ -108,6 +108,7 @@ This file configures Docker build and run flags. All fields are optional — inc
 
 # gpu_support: false          # add GPU support, default is true
 # x11_display: false          # add X11 support, default is true
+# camera_support: false       # pass host /dev/video* through, default is true
 # init_image: "image_name"    # The first docker image to use as a base
                               # default is ryzers.RYZERS_DEFAULT_INIT_IMAGE
 
@@ -142,6 +143,7 @@ This file configures Docker build and run flags. All fields are optional — inc
 | Package needs specific env vars at runtime | `environment_variables: ["HSA_OVERRIDE_GFX_VERSION=11.0.0"]` |
 | Package does NOT need GPU | `gpu_support: false` |
 | Package does NOT need X11 | `x11_display: false` |
+| Package does NOT need host cameras | `camera_support: false` |
 
 ### 3. test.sh (or test.py)
 

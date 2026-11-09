@@ -1,0 +1,59 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "lemonade/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+  "small_model": "lemonade/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+  "agent": {
+    "build": {
+      "temperature": 0.1,
+      "steps": 24
+    }
+  },
+  "experimental": {
+    "primary_tools": [
+      "read",
+      "edit",
+      "bash"
+    ]
+  },
+  "provider": {
+    "lemonade": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Local Lemonade",
+      "options": {
+        "baseURL": "http://127.0.0.1:13305/api/v1",
+        "apiKey": "lemonade"
+      },
+      "models": {
+        "Qwen3-Coder-30B-A3B-Instruct-Q4_K_M": {
+          "name": "Qwen3-Coder-30B-A3B-Instruct-Q4_K_M",
+          "tool_call": true,
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        }
+      }
+    }
+  },
+  "permission": {
+    "*": "allow",
+    "edit": {
+      "*": "deny",
+      "solver/**": "allow",
+      "**/solver/**": "allow"
+    },
+    "external_directory": "deny",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "task": "deny",
+    "skill": "deny",
+    "todowrite": "deny",
+    "bash": {
+      "*": "deny",
+      "RHO_EVAL_ORIGIN=agent-self-check /opt/capx-venv/bin/python probe.py*": "allow",
+      "/opt/capx-venv/bin/python -m py_compile solver/*.py solver/tasks/*.py": "allow",
+      "git diff*": "allow",
+      "git status*": "allow"
+    }
+  }
+}
