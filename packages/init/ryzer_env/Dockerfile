@@ -6,6 +6,17 @@ FROM ${BASE_IMAGE}
 
 SHELL ["/bin/bash", "-lc"]
 
+# Common tooling the ROCm 10.1 base no longer ships. The 7.x images carried these,
+# so packages across the tree call git/wget/sudo/add-apt-repository without
+# installing them first and now fail with "command not found" at their first RUN.
+# Installing them once here matches how the base's missing libraries have been
+# handled before (see skills/rocm-upgrade/reference.md) and avoids adding the same
+# apt line to dozens of Dockerfiles. Deliberately minimal: toolchain packages a
+# single ryzer needs -- and anything it pins a version of, such as cmake -- stay
+# in that package.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git wget sudo unzip ca-certificates lsb-release software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN getent group render || groupadd render
 RUN getent group video || groupadd video
