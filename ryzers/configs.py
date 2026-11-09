@@ -119,7 +119,6 @@ class ConfigManager:
                 volumes[c.value] = c
 
         for c in self.configentries:
-            print(str(c))
             if c.key == "port_mappings" and ports.get(c.key1) is c:
                 runflags += f" -p {c}"
             if c.key == "volume_mappings" and volumes.get(c.value) is c:
