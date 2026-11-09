@@ -1,0 +1,33 @@
+# Copyright(C) 2026 Advanced Micro Devices, Inc. All rights reserved.
+# SPDX-License-Identifier: MIT
+
+# The SuperNode itself does not run training; it just orchestrates the
+# paired ClientApp superexec. GPU support is left enabled (default) so
+# colocating with the superexec is straightforward.
+
+# Host networking (and --rm) already come from RYZERS_DEFAULT_RUN_FLAGS,
+# so we don't repeat them here — Docker rejects "--network host" twice.
+# Host networking lets us run multiple instances on one box (each on a
+# different ClientAppIo port) for local testing, and lets distributed
+# deployments skip explicit port mapping.
+#
+# The label lets run-local.sh reliably clean up flower containers across
+# image rebuilds.
+docker_extra_run_flags: "--label ryzers-flower-local=1"
+
+volume_mappings:
+- "$PWD/workspace/flower/superlink-certificates:/app/certificates:ro"
+
+# Consumed by /ryzers/run-supernode.sh. Override by exporting the same
+# variables in your shell before `ryzers run`.
+#
+# Local (single-machine) testing: defaults are correct — SUPERLINK_IP
+#   stays 127.0.0.1, FLOWER_CLIENTAPPIO auto-offsets by PARTITION_ID so
+#   multiple SuperNodes don't collide on port 9094.
+# Distributed testing: export SUPERLINK_IP=<remote-server-ip>.
+environment_variables:
+- "SUPERLINK_IP=${SUPERLINK_IP:-127.0.0.1}"
+- "FLOWER_INSECURE=${FLOWER_INSECURE:-1}"
+- "FLOWER_PARTITION_ID=${FLOWER_PARTITION_ID:-0}"
+- "FLOWER_NUM_PARTITIONS=${FLOWER_NUM_PARTITIONS:-2}"
+- "FLOWER_CLIENTAPPIO=${FLOWER_CLIENTAPPIO:-0.0.0.0:$((9094 + ${FLOWER_PARTITION_ID:-0}))}"

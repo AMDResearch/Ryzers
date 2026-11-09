@@ -25,6 +25,7 @@ These dockerfiles will also be pushed and actively maintained in their original 
 | Graphics                     | [`O3DE`](packages/graphics/o3de) |
 | Robotics                | [`ROS 2`](packages/ros/ros), [`Gazebo`](packages/ros/gazebo), [`LeRobot`](packages/robotics/lerobot), [`ACT`](packages/robotics/act), [`RAI`](packages/robotics/rai), [`CaP-X`](packages/robotics/capx), [`Graph-as-Policy`](packages/robotics/gap)    |
 | Simulation                |  [`Genesis`](packages/robotics/genesis), [`PyDrake`](packages/robotics/pydrake)  |
+| Federated Learning      | [`Flower`](packages/federated/flower-base) ([`SuperLink`](packages/federated/flower-superlink), [`SuperNode`](packages/federated/flower-supernode), [`SuperExec`](packages/federated/flower-superexec)) |
 | Vision                  | [`OpenCV`](packages/vision/opencv), [`SAM`](packages/vision/sam), [`MobileSAM`](packages/vision/mobilesam), [`ncnn`](packages/vision/ncnn), [`DINOv3`](packages/vision/dinov3), [`SAM3`](packages/vision/sam3), [`SAM 3D Objects`](packages/vision/sam3d), [`Ultralytics`](packages/vision/ultralytics) |
 | Ryzen AI NPU                |  [`XDNA`](packages/npu/xdna), [`IRON`](packages/npu/iron), [`NPUEval`](packages/npu/npueval), [`Ryzen AI CVML`](packages/npu/ryzenai_cvml)  |
 | Adaptive SoCs           | [`PYNQ.remote`](packages/adaptive-socs/pynq-remote) |
