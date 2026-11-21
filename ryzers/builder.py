@@ -3,6 +3,7 @@
 
 import os
 import yaml
+import shlex
 import subprocess
 from typing import List
 
@@ -48,7 +49,7 @@ class DockerBuilder:
             print(cmd)
             with open(log_file, "w") as log:
                 subprocess.run(
-                    cmd.split(), 
+                    shlex.split(cmd),
                     check=True
                 )
 
