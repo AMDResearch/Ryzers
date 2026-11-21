@@ -4,7 +4,10 @@
 import os
 
 RYZERS_DEFAULT_INIT_IMAGE = "rocm/pytorch:rocm7.14_ubuntu24.04_py3.12_pytorch_release_2.12.0"
-RYZERS_DEFAULT_RUN_FLAGS = "-it --rm --shm-size 16G --cap-add=SYS_PTRACE  --network=host --ipc=host"
+# --ipc=host already shares the host /dev/shm, so --shm-size is a no-op there;
+# podman rejects the combination outright ("cannot set shmsize when running in
+# the host IPC Namespace"), while docker silently ignores it.
+RYZERS_DEFAULT_RUN_FLAGS = "-it --rm --cap-add=SYS_PTRACE  --network=host --ipc=host"
 
 # Auto-detect packages path in editable mode
 RYZERS_PACKAGES_PATH = None
